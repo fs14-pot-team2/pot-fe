@@ -1,0 +1,142 @@
+.card {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 32px;
+  border-radius: 24px;
+  background-color: var(--color-bg-wh);
+  /* box-shadow: 0 4px 16px rgb(0 0 0 / 8%); */
+  cursor: pointer;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.createdAt {
+  color: #888888;
+  font-size: 14px;
+  font-weight: var(--font-regular);
+  white-space: nowrap;
+}
+
+.ownerSection {
+  margin-top: 28px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.ownerName {
+  margin: 0;
+  font-size: 20px;
+  font-weight: var(--font-medium);
+  line-height: 1.4;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin: 20px 0 24px;
+}
+
+.detailItem {
+  min-width: 0;
+}
+
+.detailLabel {
+  color: #888888;
+  font-size: 14px;
+  font-weight: var(--font-regular);
+  line-height: 1.4;
+}
+
+.detailValue {
+  margin: 6px 0 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: var(--font-medium);
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.actionButton {
+  width: 100%;
+  gap: 6px;
+}
+
+.quoteIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 28px;
+  }
+}
+
+@media (max-width: 540px) {
+  .card {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .ownerSection {
+    margin-top: 24px;
+    padding-bottom: 16px;
+  }
+
+  .details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 12px;
+    row-gap: 20px;
+    margin: 20px 0 24px;
+  }
+
+  .detailItem:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+}
+
+@media (max-width: 360px) {
+  .card {
+    padding: 16px;
+  }
+
+  .topRow {
+    gap: 8px;
+  }
+
+  .tags {
+    gap: 4px;
+  }
+
+  .createdAt {
+    font-size: 12px;
+  }
+
+  .ownerName {
+    font-size: 18px;
+  }
+}
