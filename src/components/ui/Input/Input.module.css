@@ -91,6 +91,13 @@
   border-radius: 4px;
 }
 
+@media (max-width: 768px) {
+  .errorMessage {
+    margin-top: 4px;
+    font-size: 13px;
+  }
+}
+
 @media (max-width: 360px) {
   .label {
     font-size: 14px;
@@ -98,8 +105,5 @@
   }
   .input {
     font-size: 16px;
-  }
-  .errorMessage {
-    font-size: 13px;
   }
 }
