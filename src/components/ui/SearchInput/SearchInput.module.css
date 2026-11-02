@@ -1,0 +1,67 @@
+.wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  height: 56px;
+  padding: 0 96px 0 20px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  outline: none;
+  background-color: #f7f7f7;
+  color: #222;
+  font-size: 16px;
+  font-weight: var(--font-regular);
+}
+
+.input::placeholder {
+  color: #999;
+}
+
+.input:focus {
+  border-color: var(--color-brand);
+}
+
+.input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.input::-webkit-search-decoration,
+.input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.actions {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transform: translateY(-50%);
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.iconButton:focus-visible {
+  outline: 1px solid var(--color-brand);
+  outline-offset: 1px;
+  border-radius: 50%;
+}
+
+.iconButton:disabled {
+  cursor: not-allowed;
+}
