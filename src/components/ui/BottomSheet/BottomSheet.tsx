@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import styles from "./BottomSheet.module.css";
 import Button from "@/components/ui/Button/Button";
 import FilterReset from "@/components/ui/FilterReset/FilterReset";
@@ -61,82 +62,98 @@ export default function BottomSheet({
   className = "",
 }: BottomSheetProps) {
   const [activeTab, setActiveTab] = useState<FilterTab>("region");
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (!isOpen) {
+    const dialog = dialogRef.current;
+
+    if (!dialog) {
       return;
     }
 
-    const originalOverflow = document.body.style.overflow;
-
-    const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
+    if (!isOpen) {
+      if (dialog.open) {
+        dialog.close();
       }
-    };
+
+      return;
+    }
+
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    const originalOverflow = document.body.style.overflow;
 
     document.body.style.overflow = "hidden";
 
-    document.addEventListener("keydown", handleEscapeKey);
+    if (!dialog.open) {
+      dialog.showModal();
+    }
 
     return () => {
       document.body.style.overflow = originalOverflow;
-      document.removeEventListener("keydown", handleEscapeKey);
-    };
-  }, [isOpen, onClose]);
 
-  if (!isOpen) {
-    return null;
-  }
+      if (dialog.open) {
+        dialog.close();
+      }
+
+      previousFocusRef.current?.focus();
+    };
+  }, [isOpen]);
 
   const sheetClassName = [styles.sheet, className].filter(Boolean).join(" ");
 
-  const handleApply = () => {
-    onApply();
+  const handleCancel = (event: React.SyntheticEvent<HTMLDialogElement>) => {
+    event.preventDefault();
     onClose();
   };
 
+  const handleBackdropClick = (event: React.MouseEvent<HTMLDialogElement>) => {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <section
-        className={sheetClassName}
-        role="dialog"
-        aria-modal="true"
-        aria-label="필터"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <header className={styles.header}>
-          <h2 className={styles.title}>필터</h2>
+    <dialog
+      ref={dialogRef}
+      className={sheetClassName}
+      aria-label="필터"
+      onCancel={handleCancel}
+      onClick={handleBackdropClick}
+    >
+      <header className={styles.header}>
+        <h2 className={styles.title}>필터</h2>
 
-          <button
-            className={styles.closeButton}
-            type="button"
-            aria-label="필터 닫기"
-            onClick={onClose}
-          >
-            ×
-          </button>
-        </header>
+        <button
+          className={styles.closeButton}
+          type="button"
+          aria-label="필터 닫기"
+          onClick={onClose}
+        >
+          <Image src="/icons/ic_close.svg" alt="" width={24} height={24} />
+        </button>
+      </header>
 
-        <Toggle
-          options={FILTER_TABS}
-          value={activeTab}
-          onChange={(value) => setActiveTab(value as FilterTab)}
-          variant="filter"
-        />
+      <Toggle
+        options={FILTER_TABS}
+        value={activeTab}
+        onChange={(value) => setActiveTab(value as FilterTab)}
+        variant="filter"
+      />
 
-        <div className={styles.content}>{children[activeTab]}</div>
+      <div className={styles.content}>{children[activeTab]}</div>
 
-        <footer className={styles.footer}>
-          <div className={styles.resetButton}>
-            <FilterReset onReset={onReset} />
-          </div>
+      <footer className={styles.footer}>
+        <div className={styles.resetButton}>
+          <FilterReset onReset={onReset} />
+        </div>
 
-          <Button className={styles.applyButton} variant="solid" onClick={handleApply}>
-            적용
-          </Button>
-        </footer>
-      </section>
-    </div>
+        <Button className={styles.applyButton} variant="solid" onClick={onApply}>
+          적용
+        </Button>
+      </footer>
+    </dialog>
   );
 }
