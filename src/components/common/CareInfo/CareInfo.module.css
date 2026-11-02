@@ -1,0 +1,191 @@
+.container {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 40px 48px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.heading {
+  display: grid;
+  gap: 8px;
+}
+
+.compactRequestedDate {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+.headerMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.compactActions {
+  display: none;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: var(--font-semibold);
+}
+
+.compactTitle {
+  display: none;
+}
+
+.requestedDate {
+  color: #8c8c8c;
+  font-size: 16px;
+}
+
+.details {
+  display: grid;
+  gap: 24px;
+  margin: 48px 0 0;
+}
+
+.detailRow {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  align-items: start;
+}
+
+.label,
+.value {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.label {
+  font-weight: var(--font-medium);
+}
+
+.summary .label {
+  color: var(--color-brand);
+}
+
+.detail .label {
+  color: #a6a6a6;
+}
+
+.value {
+  min-width: 0;
+  margin: 0;
+  color: #222;
+  font-weight: var(--font-medium);
+}
+
+.notice {
+  display: block;
+  margin-top: 6px;
+  color: #a6a6a6;
+  font-size: 10px;
+  font-weight: var(--font-regular);
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.actionButton {
+  flex: 1;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .header {
+    align-items: flex-start;
+  }
+
+  .requestedDate {
+    display: none;
+  }
+
+  .compactRequestedDate {
+    display: flex;
+  }
+
+  .compactActions {
+    display: flex;
+  }
+
+  .actions {
+    display: none;
+  }
+
+  .summary .defaultTitle {
+    display: none;
+  }
+
+  .summary .compactTitle {
+    display: inline;
+  }
+
+  .summary .serviceTypeRow {
+    display: none;
+  }
+
+  .summary .details {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .summary .detailRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+}
+
+@media (max-width: 540px) {
+  .container {
+    padding: 32px 24px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .requestedDate,
+  .label,
+  .value {
+    font-size: 18px;
+  }
+
+  .value {
+    justify-content: flex-end;
+  }
+
+  .details {
+    margin-top: 40px;
+    gap: 20px;
+  }
+
+  .detailRow {
+    grid-template-columns: 112px minmax(0, 1fr);
+  }
+
+  .notice {
+    font-size: 14px;
+  }
+
+  .summary .details {
+    grid-template-columns: 1fr;
+  }
+
+  .summary .detailRow {
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 0;
+  }
+}
