@@ -90,3 +90,10 @@
     border-radius: 32px 32px 0 0;
   }
 }
+
+/* 하단 고정 버튼 영역 */
+.footer {
+  flex-shrink: 0;
+  padding: 0 24px 24px;
+  background-color: var(--color-bg-wh);
+}

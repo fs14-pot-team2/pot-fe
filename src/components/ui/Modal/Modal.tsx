@@ -9,20 +9,36 @@ interface ModalProps {
   onClose: () => void;
   title?: string;
   children: ReactNode;
+  footer?: ReactNode;
   className?: string;
 }
 
-export default function Modal({ isOpen, onClose, title, children, className = "" }: ModalProps) {
+export default function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  footer,
+  className = "",
+}: ModalProps) {
   const titleId = useId();
   const modalRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
 
+  // 최신 onClose 함수 유지
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  // 모달 열림·닫힘에 따른 이벤트 및 포커스 관리
   useEffect(() => {
     if (!isOpen) return;
 
     previousFocusRef.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
+    // 배경 스크롤 차단
     const previousBodyOverflow = document.body.style.overflow;
     const previousHtmlOverflow = document.documentElement.style.overflow;
 
@@ -35,12 +51,14 @@ export default function Modal({ isOpen, onClose, title, children, className = ""
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!modal) return;
 
+      // ESC 키로 모달 닫기
       if (event.key === "Escape") {
         event.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
 
+      // 모달 내부 포커스 순환
       if (event.key !== "Tab") return;
 
       const focusableElements = Array.from(
@@ -63,7 +81,7 @@ export default function Modal({ isOpen, onClose, title, children, className = ""
           event.preventDefault();
           lastElement.focus();
         }
-      } else if (document.activeElement === lastElement || document.activeElement === modal) {
+      } else if (document.activeElement === lastElement) {
         event.preventDefault();
         firstElement.focus();
       }
@@ -74,19 +92,21 @@ export default function Modal({ isOpen, onClose, title, children, className = ""
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
 
+      // 배경 스크롤 복구
       document.body.style.overflow = previousBodyOverflow;
       document.documentElement.style.overflow = previousHtmlOverflow;
 
+      // 이전 포커스 복구
       previousFocusRef.current?.focus();
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   return (
     <div
       className={styles.overlay}
-      onMouseDown={(event) => {
+      onPointerDown={(event) => {
         if (event.target === event.currentTarget) {
           onClose();
         }
@@ -121,6 +141,8 @@ export default function Modal({ isOpen, onClose, title, children, className = ""
         </div>
 
         <div className={styles.content}>{children}</div>
+
+        {footer && <div className={styles.footer}>{footer}</div>}
       </div>
     </div>
   );
