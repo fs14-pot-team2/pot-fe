@@ -1,0 +1,28 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background-color: var(--color-bg-wh);
+  color: var(--color-brand);
+  cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+  background-color: var(--color-bg-tag);
+}
+
+.button:focus-visible {
+  outline: none;
+  border-color: var(--color-brand);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

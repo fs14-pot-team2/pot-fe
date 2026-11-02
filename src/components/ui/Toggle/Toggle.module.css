@@ -62,6 +62,16 @@
     width 250ms ease;
 }
 
+.filter {
+  --toggle-active-color: var(--color-brand);
+  --toggle-line-height: 3px;
+}
+
+.filter .option {
+  font-size: 14px;
+  font-weight: var(--font-medium);
+}
+
 @media (max-width: 768px) {
   .option {
     font-size: 14px;

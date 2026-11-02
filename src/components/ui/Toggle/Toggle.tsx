@@ -12,7 +12,7 @@ type ToggleProps = {
   options: ToggleOption[];
   value: string;
   onChange: (value: string) => void;
-  variant?: "default" | "auth";
+  variant?: "default" | "auth" | "filter";
   className?: string;
 };
 
