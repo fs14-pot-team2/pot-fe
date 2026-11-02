@@ -115,6 +115,11 @@ export default function BottomSheet({
     }
   };
 
+  const handleApply = () => {
+    onApply();
+    onClose();
+  };
+
   return (
     <dialog
       ref={dialogRef}
@@ -150,7 +155,7 @@ export default function BottomSheet({
           <FilterReset onReset={onReset} />
         </div>
 
-        <Button className={styles.applyButton} variant="solid" onClick={onApply}>
+        <Button className={styles.applyButton} variant="solid" onClick={handleApply}>
           적용
         </Button>
       </footer>
