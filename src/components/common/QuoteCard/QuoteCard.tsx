@@ -1,18 +1,22 @@
+"use client";
+
 import Image from "next/image";
 import type { ReactNode } from "react";
 
 import Button from "@/components/ui/Button/Button";
+import CardStatusOverlay from "@/components/ui/CardStatusOverlay/CardStatusOverlay";
+import QuoteStatus, { type QuoteStatusType } from "@/components/ui/QuoteStatus/QuoteStatus";
+
 import styles from "./QuoteCard.module.css";
 
 interface BaseQuoteCardProps {
   tags?: ReactNode;
-  status?: ReactNode;
-  isConfirmed?: boolean;
+  status?: QuoteStatusType;
   price?: number;
   className?: string;
 }
 
-interface OwnerQuoteCardProps extends BaseQuoteCardProps {
+interface BaseOwnerQuoteCardProps extends BaseQuoteCardProps {
   variant: "owner";
   comment: string;
   sitter: {
@@ -25,9 +29,37 @@ interface OwnerQuoteCardProps extends BaseQuoteCardProps {
   };
   onDetailClick?: () => void;
   onConfirmClick?: () => void;
+  isCompleted?: never;
+  onCompletedDetailClick?: never;
 }
 
-interface SitterQuoteCardProps extends BaseQuoteCardProps {
+// 반려 상태에서는 반려 사유 확인 콜백 필수
+type RejectedOwnerProps = {
+  status: "rejected";
+  onRejectReasonClick: () => void;
+};
+
+// 일반 견적에서는 반려 사유 확인 콜백 사용 불가
+type DefaultOwnerProps = {
+  status?: Exclude<QuoteStatusType, "rejected">;
+  onRejectReasonClick?: never;
+};
+
+type OwnerQuoteCardProps = BaseOwnerQuoteCardProps & (RejectedOwnerProps | DefaultOwnerProps);
+
+// 돌봄 완료 시 상세보기 콜백 필수
+type CompletedProps = {
+  isCompleted: true;
+  onCompletedDetailClick: () => void;
+};
+
+// 일반 견적에서는 완료 상세보기 콜백 사용 불가
+type DefaultProps = {
+  isCompleted?: false;
+  onCompletedDetailClick?: never;
+};
+
+interface BaseSitterQuoteCardProps extends BaseQuoteCardProps {
   variant: "sitter";
   ownerNickname: string;
   startDate: string;
@@ -37,34 +69,31 @@ interface SitterQuoteCardProps extends BaseQuoteCardProps {
   onConfirmClick?: never;
 }
 
+type SitterQuoteCardProps = BaseSitterQuoteCardProps & (CompletedProps | DefaultProps);
+
 type QuoteCardProps = OwnerQuoteCardProps | SitterQuoteCardProps;
 
 const formatPrice = (price: number) => `${price.toLocaleString("ko-KR")}원`;
 
 export default function QuoteCard(props: QuoteCardProps) {
-  const { variant, tags, status, isConfirmed = false, price, className = "" } = props;
+  const { variant, tags, status, price, className = "" } = props;
+
+  const canConfirm = status === "waiting";
+
+  const cardClassName = [
+    styles.card,
+    variant === "owner" ? styles.ownerCard : styles.sitterCard,
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <article
-      className={[
-        styles.card,
-        variant === "owner" ? styles.ownerCard : styles.sitterCard,
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
-    >
+    <article className={cardClassName}>
       <div className={styles.top}>
         <div className={styles.tags}>{tags}</div>
 
-        {isConfirmed ? (
-          <div className={styles.confirmedStatus}>
-            <Image src="/icons/ic_confirm.svg" alt="" width={16} height={16} />
-            <span>확정견적</span>
-          </div>
-        ) : (
-          status && <div className={styles.status}>{status}</div>
-        )}
+        {status && <QuoteStatus status={status} />}
       </div>
 
       {variant === "owner" ? (
@@ -143,6 +172,7 @@ export default function QuoteCard(props: QuoteCardProps) {
                 <strong>{props.endDate}</strong>
               </div>
             </div>
+
             <div className={styles.locationWrap}>
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>돌봄 장소</span>
@@ -156,24 +186,46 @@ export default function QuoteCard(props: QuoteCardProps) {
       {price != null && (
         <div className={styles.priceWrap}>
           <span className={styles.priceLabel}>견적가</span>
+
           <strong className={styles.price}>{formatPrice(price)}</strong>
         </div>
       )}
 
-      {variant === "owner" && (props.onDetailClick || (!isConfirmed && props.onConfirmClick)) && (
-        <div className={styles.buttonWrap}>
-          {props.onDetailClick && (
-            <Button variant="outlined" size="md" onClick={props.onDetailClick}>
-              상세보기
-            </Button>
-          )}
+      {variant === "owner" &&
+        (props.onDetailClick ||
+          (canConfirm && props.onConfirmClick) ||
+          props.status === "rejected") && (
+          <div className={styles.buttonWrap}>
+            {props.status === "rejected" ? (
+              <Button variant="outlined" size="md" onClick={props.onRejectReasonClick}>
+                반려 사유 확인
+              </Button>
+            ) : (
+              <>
+                {props.onDetailClick && (
+                  <Button variant="outlined" size="md" onClick={props.onDetailClick}>
+                    상세보기
+                  </Button>
+                )}
 
-          {!isConfirmed && props.onConfirmClick && (
-            <Button variant="solid" size="md" onClick={props.onConfirmClick}>
-              견적 확정하기
-            </Button>
-          )}
-        </div>
+                {canConfirm && props.onConfirmClick && (
+                  <Button variant="solid" size="md" onClick={props.onConfirmClick}>
+                    견적 확정하기
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+      {variant === "sitter" && props.isCompleted && (
+        <CardStatusOverlay
+          message="돌봄 완료된 견적이에요"
+          action={{
+            label: "견적 상세보기",
+            onClick: props.onCompletedDetailClick,
+          }}
+        />
       )}
     </article>
   );
