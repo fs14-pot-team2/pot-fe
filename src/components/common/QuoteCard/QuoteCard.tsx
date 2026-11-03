@@ -29,6 +29,7 @@ interface OwnerQuoteCardProps extends BaseQuoteCardProps {
   };
   onDetailClick?: () => void;
   onConfirmClick?: () => void;
+  onRejectReasonClick?: () => void;
   isCompleted?: never;
   onCompletedDetailClick?: never;
 }
@@ -177,21 +178,34 @@ export default function QuoteCard(props: QuoteCardProps) {
         </div>
       )}
 
-      {variant === "owner" && (props.onDetailClick || (canConfirm && props.onConfirmClick)) && (
-        <div className={styles.buttonWrap}>
-          {props.onDetailClick && (
-            <Button variant="outlined" size="md" onClick={props.onDetailClick}>
-              상세보기
-            </Button>
-          )}
+      {variant === "owner" &&
+        (props.onDetailClick ||
+          (canConfirm && props.onConfirmClick) ||
+          (status === "rejected" && props.onRejectReasonClick)) && (
+          <div className={styles.buttonWrap}>
+            {status === "rejected" ? (
+              props.onRejectReasonClick && (
+                <Button variant="outlined" size="md" onClick={props.onRejectReasonClick}>
+                  반려 사유 확인
+                </Button>
+              )
+            ) : (
+              <>
+                {props.onDetailClick && (
+                  <Button variant="outlined" size="md" onClick={props.onDetailClick}>
+                    상세보기
+                  </Button>
+                )}
 
-          {canConfirm && props.onConfirmClick && (
-            <Button variant="solid" size="md" onClick={props.onConfirmClick}>
-              견적 확정하기
-            </Button>
-          )}
-        </div>
-      )}
+                {canConfirm && props.onConfirmClick && (
+                  <Button variant="solid" size="md" onClick={props.onConfirmClick}>
+                    견적 확정하기
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+        )}
 
       {variant === "sitter" && props.isCompleted && (
         <CardStatusOverlay
