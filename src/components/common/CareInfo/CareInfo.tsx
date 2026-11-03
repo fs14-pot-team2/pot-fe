@@ -36,6 +36,10 @@ export default function CareInfo(props: CareInfoProps) {
 
   const serviceTypeLabel = SERVICE_TYPE_LABEL[props.serviceType];
 
+  const editAction = props.canEdit ? props.onEdit : undefined;
+  const cancelAction = props.canCancel ? props.onCancel : undefined;
+  const hasAction = Boolean(editAction || cancelAction);
+
   const careInfoClassName = [styles.container, styles[variant], props.className]
     .filter(Boolean)
     .join(" ");
@@ -64,17 +68,25 @@ export default function CareInfo(props: CareInfoProps) {
               {requestedDate}
             </time>
 
-            {(props.canEdit || props.canCancel) && (
+            {hasAction && (
               <div className={styles.compactActions}>
-                {props.canEdit && (
-                  <IconButton aria-label="돌봄 요청 수정" onClick={props.onEdit}>
-                    <Image src="/icons/ic_edit.svg" alt="" width={19} height={19} />
+                {editAction && (
+                  <IconButton
+                    className={styles.compactActionButton}
+                    aria-label="돌봄 요청 수정"
+                    onClick={editAction}
+                  >
+                    <Image src="/icons/ic_edit.svg" alt="" width={24} height={24} />
                   </IconButton>
                 )}
 
-                {props.canCancel && (
-                  <IconButton aria-label="돌봄 요청 삭제" onClick={props.onCancel}>
-                    <Image src="/icons/ic_delete.svg" alt="" width={20} height={20} />
+                {cancelAction && (
+                  <IconButton
+                    className={styles.compactActionButton}
+                    aria-label="돌봄 요청 삭제"
+                    onClick={cancelAction}
+                  >
+                    <Image src="/icons/ic_delete.svg" alt="" width={24} height={24} />
                   </IconButton>
                 )}
               </div>
@@ -122,16 +134,16 @@ export default function CareInfo(props: CareInfoProps) {
         </div>
       </dl>
 
-      {!isDetail && (props.canEdit || props.canCancel) && (
+      {!isDetail && hasAction && (
         <div className={styles.actions}>
-          {props.canEdit && (
-            <Button className={styles.actionButton} variant="outlined" onClick={props.onEdit}>
+          {editAction && (
+            <Button className={styles.actionButton} variant="outlined" onClick={editAction}>
               수정
             </Button>
           )}
 
-          {props.canCancel && (
-            <Button className={styles.actionButton} variant="solid" onClick={props.onCancel}>
+          {cancelAction && (
+            <Button className={styles.actionButton} variant="solid" onClick={cancelAction}>
               삭제
             </Button>
           )}
