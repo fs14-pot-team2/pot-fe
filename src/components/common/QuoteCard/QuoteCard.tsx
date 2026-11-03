@@ -33,17 +33,29 @@ interface OwnerQuoteCardProps extends BaseQuoteCardProps {
   onCompletedDetailClick?: never;
 }
 
-interface SitterQuoteCardProps extends BaseQuoteCardProps {
+// 돌봄 완료 시 상세보기 콜백 필수
+type CompletedProps = {
+  isCompleted: true;
+  onCompletedDetailClick: () => void;
+};
+
+// 일반 견적에서는 완료 상세보기 콜백 사용 불가
+type DefaultProps = {
+  isCompleted?: false;
+  onCompletedDetailClick?: never;
+};
+
+interface BaseSitterQuoteCardProps extends BaseQuoteCardProps {
   variant: "sitter";
   ownerNickname: string;
   startDate: string;
   endDate: string;
   location: string;
-  isCompleted?: boolean;
-  onCompletedDetailClick?: () => void;
   onDetailClick?: never;
   onConfirmClick?: never;
 }
+
+type SitterQuoteCardProps = BaseSitterQuoteCardProps & (CompletedProps | DefaultProps);
 
 type QuoteCardProps = OwnerQuoteCardProps | SitterQuoteCardProps;
 
@@ -160,6 +172,7 @@ export default function QuoteCard(props: QuoteCardProps) {
       {price != null && (
         <div className={styles.priceWrap}>
           <span className={styles.priceLabel}>견적가</span>
+
           <strong className={styles.price}>{formatPrice(price)}</strong>
         </div>
       )}
@@ -183,14 +196,10 @@ export default function QuoteCard(props: QuoteCardProps) {
       {variant === "sitter" && props.isCompleted && (
         <CardStatusOverlay
           message="돌봄 완료된 견적이에요"
-          action={
-            props.onCompletedDetailClick
-              ? {
-                  label: "견적 상세보기",
-                  onClick: props.onCompletedDetailClick,
-                }
-              : undefined
-          }
+          action={{
+            label: "견적 상세보기",
+            onClick: props.onCompletedDetailClick,
+          }}
         />
       )}
     </article>
