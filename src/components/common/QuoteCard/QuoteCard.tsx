@@ -1,13 +1,16 @@
+"use client";
+
 import Image from "next/image";
 import type { ReactNode } from "react";
 
 import Button from "@/components/ui/Button/Button";
+import QuoteStatus, { type QuoteStatusType } from "@/components/ui/QuoteStatus/QuoteStatus";
+
 import styles from "./QuoteCard.module.css";
 
 interface BaseQuoteCardProps {
   tags?: ReactNode;
-  status?: ReactNode;
-  isConfirmed?: boolean;
+  status?: QuoteStatusType;
   price?: number;
   className?: string;
 }
@@ -25,6 +28,8 @@ interface OwnerQuoteCardProps extends BaseQuoteCardProps {
   };
   onDetailClick?: () => void;
   onConfirmClick?: () => void;
+  isCompleted?: never;
+  onCompletedDetailClick?: never;
 }
 
 interface SitterQuoteCardProps extends BaseQuoteCardProps {
@@ -33,6 +38,8 @@ interface SitterQuoteCardProps extends BaseQuoteCardProps {
   startDate: string;
   endDate: string;
   location: string;
+  isCompleted?: boolean;
+  onCompletedDetailClick?: () => void;
   onDetailClick?: never;
   onConfirmClick?: never;
 }
@@ -42,29 +49,26 @@ type QuoteCardProps = OwnerQuoteCardProps | SitterQuoteCardProps;
 const formatPrice = (price: number) => `${price.toLocaleString("ko-KR")}원`;
 
 export default function QuoteCard(props: QuoteCardProps) {
-  const { variant, tags, status, isConfirmed = false, price, className = "" } = props;
+  const { variant, tags, status, price, className = "" } = props;
+
+  const canConfirm = status === "waiting";
+
+  const isSitterCompleted = variant === "sitter" && props.isCompleted === true;
+
+  const cardClassName = [
+    styles.card,
+    variant === "owner" ? styles.ownerCard : styles.sitterCard,
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <article
-      className={[
-        styles.card,
-        variant === "owner" ? styles.ownerCard : styles.sitterCard,
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
-    >
+    <article className={cardClassName}>
       <div className={styles.top}>
         <div className={styles.tags}>{tags}</div>
 
-        {isConfirmed ? (
-          <div className={styles.confirmedStatus}>
-            <Image src="/icons/ic_confirm.svg" alt="" width={16} height={16} />
-            <span>확정견적</span>
-          </div>
-        ) : (
-          status && <div className={styles.status}>{status}</div>
-        )}
+        {status && <QuoteStatus status={status} />}
       </div>
 
       {variant === "owner" ? (
@@ -143,6 +147,7 @@ export default function QuoteCard(props: QuoteCardProps) {
                 <strong>{props.endDate}</strong>
               </div>
             </div>
+
             <div className={styles.locationWrap}>
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>돌봄 장소</span>
@@ -156,11 +161,12 @@ export default function QuoteCard(props: QuoteCardProps) {
       {price != null && (
         <div className={styles.priceWrap}>
           <span className={styles.priceLabel}>견적가</span>
+
           <strong className={styles.price}>{formatPrice(price)}</strong>
         </div>
       )}
 
-      {variant === "owner" && (props.onDetailClick || (!isConfirmed && props.onConfirmClick)) && (
+      {variant === "owner" && (props.onDetailClick || (canConfirm && props.onConfirmClick)) && (
         <div className={styles.buttonWrap}>
           {props.onDetailClick && (
             <Button variant="outlined" size="md" onClick={props.onDetailClick}>
@@ -168,11 +174,30 @@ export default function QuoteCard(props: QuoteCardProps) {
             </Button>
           )}
 
-          {!isConfirmed && props.onConfirmClick && (
+          {canConfirm && props.onConfirmClick && (
             <Button variant="solid" size="md" onClick={props.onConfirmClick}>
               견적 확정하기
             </Button>
           )}
+        </div>
+      )}
+
+      {isSitterCompleted && variant === "sitter" && (
+        <div className={styles.completedOverlay}>
+          <div className={styles.completedContent}>
+            <p className={styles.completedMessage}>돌봄 완료된 견적이에요</p>
+
+            {props.onCompletedDetailClick && (
+              <Button
+                variant="outlined"
+                size="sm"
+                className={styles.completedButton}
+                onClick={props.onCompletedDetailClick}
+              >
+                견적 상세보기
+              </Button>
+            )}
+          </div>
         </div>
       )}
     </article>
