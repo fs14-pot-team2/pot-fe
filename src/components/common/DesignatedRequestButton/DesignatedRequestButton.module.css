@@ -1,0 +1,21 @@
+.wrapper {
+  width: 100%;
+}
+
+.guide {
+  margin: 0 0 12px;
+  color: #262524;
+  font-size: 18px;
+  font-weight: var(--font-medium);
+  line-height: 1.5;
+}
+
+.button {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .guide {
+    display: none;
+  }
+}
