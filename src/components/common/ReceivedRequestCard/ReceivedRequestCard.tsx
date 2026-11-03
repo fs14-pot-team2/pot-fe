@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/components/ui/Button/Button";
+import CardStatusOverlay from "@/components/ui/CardStatusOverlay/CardStatusOverlay";
 import Tag from "@/components/ui/Tag/Tag";
 import { formatDateOnly, formatRelativeTime } from "@/utils/dateFormat";
 import styles from "./ReceivedRequestCard.module.css";
@@ -19,34 +20,40 @@ type ReceivedRequest = {
   bname?: string | null;
 };
 
-type ReceivedRequestCardProps = {
+type BaseReceivedRequestCardProps = {
   request: ReceivedRequest;
   isDesignated: boolean;
-  onClick: () => void;
-  onHide: () => void;
-  onReject: () => void;
-  onSendQuote: () => void;
   className?: string;
 };
 
-export default function ReceivedRequestCard({
-  request,
-  isDesignated,
-  onClick,
-  onHide,
-  onReject,
-  onSendQuote,
-  className = "",
-}: ReceivedRequestCardProps) {
+type ActiveReceivedRequestCardProps = BaseReceivedRequestCardProps & {
+  displayStatus?: "active";
+  onHide: () => void;
+  onReject: () => void;
+  onSendQuote: () => void;
+};
+
+type RejectedReceivedRequestCardProps = BaseReceivedRequestCardProps & {
+  displayStatus: "rejected";
+  onHide?: never;
+  onReject?: never;
+  onSendQuote?: never;
+};
+
+type ReceivedRequestCardProps = ActiveReceivedRequestCardProps | RejectedReceivedRequestCardProps;
+
+export default function ReceivedRequestCard(props: ReceivedRequestCardProps) {
+  const { request, isDesignated, className = "" } = props;
+  const isRejected = props.displayStatus === "rejected";
   const address = [request.sido, request.sigungu, request.bname].filter(Boolean).join(" ");
   const startDateText = formatDateOnly(request.startDate, "korean");
   const endDateText = formatDateOnly(request.endDate, "korean");
 
   const leftButtonText = isDesignated ? "반려하기" : "숨기기";
-  const handleLeftButtonClick = isDesignated ? onReject : onHide;
+  const cardClassNames = [styles.card, className].filter(Boolean).join(" ");
 
   return (
-    <article className={`${styles.card} ${className}`} onClick={onClick}>
+    <article className={cardClassNames}>
       <div className={styles.topRow}>
         <div className={styles.tags}>
           <Tag variant="request" serviceType={request.serviceType} size="sm" />
@@ -84,39 +91,44 @@ export default function ReceivedRequestCard({
         </div>
       </dl>
 
-      <div className={styles.actions}>
-        <Button
-          variant="outlined"
-          size="sm"
-          className={styles.actionButton}
-          onClick={(event) => {
-            event.stopPropagation();
+      {props.displayStatus !== "rejected" && (
+        <div className={styles.actions}>
+          <Button
+            variant="outlined"
+            size="sm"
+            className={styles.actionButton}
+            onClick={(event) => {
+              event.stopPropagation();
 
-            handleLeftButtonClick();
-          }}
-        >
-          {leftButtonText}
-        </Button>
+              const handleLeftButtonClick = isDesignated ? props.onReject : props.onHide;
+              handleLeftButtonClick();
+            }}
+          >
+            {leftButtonText}
+          </Button>
 
-        <Button
-          variant="solid"
-          size="sm"
-          className={styles.actionButton}
-          onClick={(event) => {
-            event.stopPropagation();
-            onSendQuote();
-          }}
-        >
-          <span>견적 보내기</span>
-          <Image
-            className={styles.quoteIcon}
-            src="/icons/ic_quote_edit.svg"
-            alt=""
-            width={24}
-            height={24}
-          />
-        </Button>
-      </div>
+          <Button
+            variant="solid"
+            size="sm"
+            className={styles.actionButton}
+            onClick={(event) => {
+              event.stopPropagation();
+              props.onSendQuote();
+            }}
+          >
+            <span>견적 보내기</span>
+            <Image
+              className={styles.quoteIcon}
+              src="/icons/ic_quote_edit.svg"
+              alt=""
+              width={24}
+              height={24}
+            />
+          </Button>
+        </div>
+      )}
+
+      {isRejected && <CardStatusOverlay message="반려한 요청이에요" />}
     </article>
   );
 }
