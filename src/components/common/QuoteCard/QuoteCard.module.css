@@ -1,0 +1,305 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 8%);
+  border-radius: 20px;
+  background-color: var(--color-bg-wh);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 24px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--color-brand);
+  font-size: 16px;
+}
+
+.confirmedStatus {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 4px;
+  color: var(--color-brand);
+  font-size: 14px;
+  font-weight: var(--font-bold);
+  white-space: nowrap;
+}
+
+.comment {
+  margin: 20px 0 16px;
+  font-size: 18px;
+  font-weight: var(--font-regular);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.sitterProfile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 10px;
+}
+
+.avatar {
+  position: relative;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #f7f7f7;
+}
+
+.avatarImage {
+  object-fit: cover;
+}
+
+.sitterInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* 팟트너 아이콘 + 닉네임 */
+.nicknameWrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+  min-width: 0;
+}
+
+.sitterIcon {
+  display: block;
+  flex-shrink: 0;
+  width: 9px;
+}
+
+.nickname {
+  margin: 0;
+  font-size: 16px;
+  font-weight: var(--font-medium, 500);
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: #888;
+  font-size: 13px;
+}
+
+/* 별점 / 성별 / 확정 건수 사이 구분선 */
+.meta > span + span::before {
+  content: "|";
+  margin-right: 6px;
+  color: #ddd;
+}
+
+/* 별점 영역 */
+.rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.star {
+  display: block;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+.ratingValue {
+  font-weight: var(--font-medium);
+}
+
+.reviewCount {
+  color: #999;
+  font-weight: var(--font-regular);
+}
+
+/* 성별 */
+.gender {
+  color: #999;
+}
+
+/* 확정 건수 영역 */
+.confirmedCount {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.confirmedValue {
+  font-weight: var(--font-medium, 500);
+}
+
+.confirmedLabel {
+  color: #999;
+  font-weight: var(--font-regular);
+}
+
+.ownerNickname {
+  margin: 24px 0 16px;
+  font-size: 20px;
+  font-weight: var(--font-medium, 500);
+  overflow-wrap: anywhere;
+}
+
+.careInfo {
+  display: flex;
+  justify-content: space-between;
+  padding: 24px 0;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+}
+
+.dateWrap {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.infoLabel {
+  color: #999;
+  font-size: 13px;
+}
+
+.infoItem strong {
+  font-size: 16px;
+  font-weight: var(--font-medium);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.priceWrap {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.priceLabel {
+  color: #808080;
+  font-size: 16px;
+}
+
+.price {
+  font-size: 22px;
+  font-weight: var(--font-bold, 700);
+  white-space: nowrap;
+}
+
+.buttonWrap {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.buttonWrap > * {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 팟트너 카드 견적가 */
+.sitterCard .priceWrap {
+  justify-content: space-between;
+}
+
+@media (max-width: 1024px) {
+  .card {
+    padding: 20px;
+  }
+
+  .sitterProfile {
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid #d9d9d9;
+    padding: 12px 12px 20px;
+  }
+
+  .nickname {
+    font-size: 14px;
+  }
+
+  .careInfo {
+    flex-direction: column;
+  }
+
+  .locationWrap {
+    margin-top: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sitterCard .top {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+  }
+
+  .dateWrap {
+    display: block;
+  }
+
+  .dateWrap,
+  .infoItem:last-child {
+    margin-top: 6px;
+  }
+}
+
+@media (max-width: 360px) {
+  .comment {
+    font-size: 16px;
+  }
+
+  .priceWrap {
+    justify-content: space-between;
+  }
+
+  .price {
+    font-size: 20px;
+  }
+
+  .buttonWrap {
+    flex-direction: column-reverse;
+  }
+
+  .buttonWrap > * {
+    width: 100%;
+  }
+}
