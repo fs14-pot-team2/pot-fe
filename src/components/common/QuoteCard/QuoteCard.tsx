@@ -4,6 +4,7 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 
 import Button from "@/components/ui/Button/Button";
+import CardStatusOverlay from "@/components/ui/CardStatusOverlay/CardStatusOverlay";
 import QuoteStatus, { type QuoteStatusType } from "@/components/ui/QuoteStatus/QuoteStatus";
 
 import styles from "./QuoteCard.module.css";
@@ -52,8 +53,6 @@ export default function QuoteCard(props: QuoteCardProps) {
   const { variant, tags, status, price, className = "" } = props;
 
   const canConfirm = status === "waiting";
-
-  const isSitterCompleted = variant === "sitter" && props.isCompleted === true;
 
   const cardClassName = [
     styles.card,
@@ -161,7 +160,6 @@ export default function QuoteCard(props: QuoteCardProps) {
       {price != null && (
         <div className={styles.priceWrap}>
           <span className={styles.priceLabel}>견적가</span>
-
           <strong className={styles.price}>{formatPrice(price)}</strong>
         </div>
       )}
@@ -182,23 +180,18 @@ export default function QuoteCard(props: QuoteCardProps) {
         </div>
       )}
 
-      {isSitterCompleted && variant === "sitter" && (
-        <div className={styles.completedOverlay}>
-          <div className={styles.completedContent}>
-            <p className={styles.completedMessage}>돌봄 완료된 견적이에요</p>
-
-            {props.onCompletedDetailClick && (
-              <Button
-                variant="outlined"
-                size="sm"
-                className={styles.completedButton}
-                onClick={props.onCompletedDetailClick}
-              >
-                견적 상세보기
-              </Button>
-            )}
-          </div>
-        </div>
+      {variant === "sitter" && props.isCompleted && (
+        <CardStatusOverlay
+          message="돌봄 완료된 견적이에요"
+          action={
+            props.onCompletedDetailClick
+              ? {
+                  label: "견적 상세보기",
+                  onClick: props.onCompletedDetailClick,
+                }
+              : undefined
+          }
+        />
       )}
     </article>
   );

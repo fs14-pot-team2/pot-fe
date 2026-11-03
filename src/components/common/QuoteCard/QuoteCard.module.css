@@ -1,4 +1,6 @@
 .card {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -188,9 +190,8 @@
 
 .priceWrap {
   display: flex;
-  align-items: baseline;
-  justify-content: flex-end;
   align-items: center;
+  justify-content: flex-end;
   gap: 12px;
   margin-top: 20px;
 }
@@ -282,67 +283,5 @@
 
   .buttonWrap > * {
     width: 100%;
-  }
-}
-
-/* ========================================
-   돌봄 완료 카드 오버레이 추가 스타일 - 준원 님 작업 후 맞춰 스타일 수정될 예정입니다.
-======================================== */
-
-/* 오버레이 배치 기준 */
-.card {
-  position: relative;
-  isolation: isolate;
-}
-
-/* 돌봄 완료 딤 처리 */
-.completedOverlay {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  border-radius: inherit;
-  background-color: rgb(0 0 0 / 55%);
-}
-
-/* 중앙 안내 문구 및 버튼 */
-.completedContent {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  width: 100%;
-  text-align: center;
-}
-
-.completedMessage {
-  margin: 0;
-  color: #fff;
-  font-size: 18px;
-  font-weight: var(--font-medium);
-  line-height: 1.5;
-}
-
-/* 상세보기 버튼 */
-.completedButton {
-  position: relative;
-  z-index: 2;
-  width: auto;
-  min-width: 160px;
-  background-color: var(--color-bg-wh);
-  color: var(--color-brand);
-}
-
-@media (max-width: 360px) {
-  .completedMessage {
-    font-size: 16px;
-  }
-
-  .completedContent {
-    gap: 16px;
   }
 }
