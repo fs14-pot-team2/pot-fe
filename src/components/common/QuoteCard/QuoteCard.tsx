@@ -16,7 +16,7 @@ interface BaseQuoteCardProps {
   className?: string;
 }
 
-interface OwnerQuoteCardProps extends BaseQuoteCardProps {
+interface BaseOwnerQuoteCardProps extends BaseQuoteCardProps {
   variant: "owner";
   comment: string;
   sitter: {
@@ -29,10 +29,23 @@ interface OwnerQuoteCardProps extends BaseQuoteCardProps {
   };
   onDetailClick?: () => void;
   onConfirmClick?: () => void;
-  onRejectReasonClick?: () => void;
   isCompleted?: never;
   onCompletedDetailClick?: never;
 }
+
+// 반려 상태에서는 반려 사유 확인 콜백 필수
+type RejectedOwnerProps = {
+  status: "rejected";
+  onRejectReasonClick: () => void;
+};
+
+// 일반 견적에서는 반려 사유 확인 콜백 사용 불가
+type DefaultOwnerProps = {
+  status?: Exclude<QuoteStatusType, "rejected">;
+  onRejectReasonClick?: never;
+};
+
+type OwnerQuoteCardProps = BaseOwnerQuoteCardProps & (RejectedOwnerProps | DefaultOwnerProps);
 
 // 돌봄 완료 시 상세보기 콜백 필수
 type CompletedProps = {
@@ -181,14 +194,12 @@ export default function QuoteCard(props: QuoteCardProps) {
       {variant === "owner" &&
         (props.onDetailClick ||
           (canConfirm && props.onConfirmClick) ||
-          (status === "rejected" && props.onRejectReasonClick)) && (
+          props.status === "rejected") && (
           <div className={styles.buttonWrap}>
-            {status === "rejected" ? (
-              props.onRejectReasonClick && (
-                <Button variant="outlined" size="md" onClick={props.onRejectReasonClick}>
-                  반려 사유 확인
-                </Button>
-              )
+            {props.status === "rejected" ? (
+              <Button variant="outlined" size="md" onClick={props.onRejectReasonClick}>
+                반려 사유 확인
+              </Button>
             ) : (
               <>
                 {props.onDetailClick && (
