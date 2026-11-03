@@ -67,23 +67,21 @@ export default function OwnerProfilePage() {
     const maxSize = 5 * 1024 * 1024;
 
     if (!allowedTypes.includes(file.type)) {
-      alert("JPG, JPEG, PNG, WEBP 이미지만 등록할 수 있어요.");
+      showToast({
+        message: "JPG, JPEG, PNG, WEBP 이미지만 등록할 수 있어요.",
+      });
       return;
     }
 
     if (file.size > maxSize) {
-      alert("이미지는 최대 5MB까지 등록할 수 있어요.");
+      showToast({
+        message: "이미지는 최대 5MB까지 등록할 수 있어요.",
+      });
       return;
     }
 
     setImageFile(file);
     setPreviewUrl(URL.createObjectURL(file));
-  };
-
-  // 이미지 변경 취소
-  const handleImageCancel = () => {
-    setImageFile(null);
-    setPreviewUrl(null);
   };
 
   // 이용 서비스 선택 및 해제 (0~2개)
@@ -142,12 +140,6 @@ export default function OwnerProfilePage() {
                 >
                   <ProfileImage src={previewUrl} alt="팟오너 프로필 이미지" sizes="160px" />
                 </button>
-
-                {imageFile && (
-                  <button type="button" onClick={handleImageCancel}>
-                    변경 취소
-                  </button>
-                )}
               </div>
             </div>
 
