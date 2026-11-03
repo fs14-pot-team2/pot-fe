@@ -69,6 +69,7 @@ export default function Header({ isLoggedIn, userRole, nickname }: HeaderProps) 
             alt="POT"
             width={90}
             height={56}
+            loading="eager"
             className={styles.desktopLogo}
           />
           <Image
@@ -76,6 +77,7 @@ export default function Header({ isLoggedIn, userRole, nickname }: HeaderProps) 
             alt=""
             width={80}
             height={40}
+            loading="eager"
             className={styles.tabletLogo}
           />
           <Image
@@ -83,6 +85,7 @@ export default function Header({ isLoggedIn, userRole, nickname }: HeaderProps) 
             alt=""
             width={24}
             height={33}
+            loading="eager"
             className={styles.mobileLogo}
           />
         </Link>
