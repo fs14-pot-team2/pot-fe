@@ -1,0 +1,13 @@
+.wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 10px;
+  background-color: #f7f7f7;
+}
+
+.image {
+  object-fit: cover;
+}
