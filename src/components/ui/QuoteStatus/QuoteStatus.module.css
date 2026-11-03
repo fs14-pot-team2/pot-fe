@@ -1,0 +1,28 @@
+.status {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 4px;
+  font-size: 16px;
+  font-weight: var(--font-regular);
+  white-space: nowrap;
+}
+
+.confirmed {
+  font-size: 16px;
+  font-weight: var(--font-bold);
+}
+
+.icon {
+  display: block;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.waiting {
+  color: #ababab;
+}
+.rejected {
+  color: #ff4f64;
+}
