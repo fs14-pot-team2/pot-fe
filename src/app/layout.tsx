@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
-import QueryProvider from "@/lib/react-query/QueryProvider";
-import "@/styles/variables.css";
-import "@/styles/reset.css";
-import "./globals.css";
 import Header from "@/components/layout/Header/Header";
+import ToastProvider from "@/components/ui/Toast/ToastProvider";
+import QueryProvider from "@/lib/react-query/QueryProvider";
+import "@/styles/reset.css";
+import "@/styles/variables.css";
+import type { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "POT | Plant On Trust",
@@ -15,8 +16,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="ko">
       <body>
         <QueryProvider>
-          <Header isLoggedIn={false} />
-          {children}
+          <ToastProvider>
+            <Header isLoggedIn={false} />
+            {children}
+          </ToastProvider>
         </QueryProvider>
       </body>
     </html>
