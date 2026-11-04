@@ -91,7 +91,7 @@
 .filterChipWrap {
   display: flex;
   flex-wrap: wrap;
-  gap: 12;
+  gap: 12px;
 }
 
 .profileChip {
