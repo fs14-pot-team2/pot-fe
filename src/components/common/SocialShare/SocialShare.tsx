@@ -30,7 +30,25 @@ const shareButtons = [
 export default function SocialShare({ url, title, className = "" }: SocialShareProps) {
   const { showToast } = useToast();
 
+  const validateShareUrl = () => {
+    try {
+      const parseUrl = new URL(url);
+
+      if (parseUrl.protocol === "http:" || parseUrl.protocol === "https:") {
+        return true;
+      }
+    } catch {
+      showToast({ message: "올바른 공유 링크가 아닙니다." });
+      return false;
+    }
+
+    showToast({ message: "지원하지 않는 공유 링크입니다." });
+    return false;
+  };
+
   const handleCopy = async () => {
+    if (!validateShareUrl()) return;
+
     try {
       await navigator.clipboard.writeText(url);
       showToast({ message: "링크가 복사되었습니다." });
@@ -40,19 +58,27 @@ export default function SocialShare({ url, title, className = "" }: SocialShareP
   };
 
   const handleFacebookShare = () => {
+    if (!validateShareUrl()) return;
+
     const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
     window.open(facebookShareUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleKakaoShare = () => {
-    const kakao = (window as KakaoWindow).Kakao;
+    if (!validateShareUrl()) return;
 
-    if (!kakao?.isInitialized()) {
-      showToast({ message: "카카오톡 공유 기능을 사용할 수 없습니다." });
-      return;
+    try {
+      const kakao = (window as KakaoWindow).Kakao;
+
+      if (!kakao?.isInitialized()) {
+        showToast({ message: "카카오톡 공유 기능을 사용할 수 없습니다." });
+        return;
+      }
+
+      kakao.Share.sendScrap({ requestUrl: url });
+    } catch {
+      showToast({ message: "카카오톡 공유 요청 중 오류가 발생했습니다." });
     }
-
-    kakao.Share.sendScrap({ requestUrl: url });
   };
 
   const clickHandlers = {
@@ -68,14 +94,21 @@ export default function SocialShare({ url, title, className = "" }: SocialShareP
         integrity="sha384-BGX7Wb16GmRFagri4bLJV2DgipVZaU2AI812GZtHtHzzDQJnfHasDXN5houxv45w"
         crossOrigin="anonymous"
         strategy="afterInteractive"
+        onError={() => {
+          showToast({ message: "카카오톡 공유 기능을 불러오지 못했습니다." });
+        }}
         onReady={() => {
-          const kakao = (window as KakaoWindow).Kakao;
-          const kakaoKey = process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY;
+          try {
+            const kakao = (window as KakaoWindow).Kakao;
+            const kakaoKey = process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY;
 
-          if (!kakao || !kakaoKey) return;
+            if (!kakao || !kakaoKey) return;
 
-          if (!kakao.isInitialized()) {
-            kakao.init(kakaoKey);
+            if (!kakao.isInitialized()) {
+              kakao.init(kakaoKey);
+            }
+          } catch {
+            showToast({ message: "카카오톡 공유 기능을 초기화하지 못했습니다." });
           }
         }}
       />
