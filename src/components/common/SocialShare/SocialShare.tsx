@@ -7,6 +7,7 @@ import styles from "./SocialShare.module.css";
 
 type SocialShareProps = {
   url: string;
+  title: string;
   className?: string;
 };
 
@@ -26,7 +27,7 @@ const shareButtons = [
   { id: "facebook", label: "Facebook 공유" },
 ] as const;
 
-export default function SocialShare({ url, className = "" }: SocialShareProps) {
+export default function SocialShare({ url, title, className = "" }: SocialShareProps) {
   const { showToast } = useToast();
 
   const handleCopy = async () => {
@@ -79,8 +80,8 @@ export default function SocialShare({ url, className = "" }: SocialShareProps) {
         }}
       />
 
-      <section className={`${styles.wrapper} ${className}`} aria-label="팟트너 공유">
-        <p className={styles.title}>나만 알기엔 아쉬운 팟트너인가요?</p>
+      <section className={`${styles.wrapper} ${className}`} aria-label={title}>
+        <p className={styles.title}>{title}</p>
 
         <div className={styles.buttons}>
           {shareButtons.map(({ id, label }) => (
