@@ -13,6 +13,7 @@ interface InputProps {
   maxLength?: number;
   error?: string;
   disabled?: boolean;
+  readOnly?: boolean;
   className?: string;
   required?: boolean;
 }
@@ -26,6 +27,7 @@ export default function Input({
   maxLength,
   error,
   disabled = false,
+  readOnly = false,
   className = "",
   required = false,
 }: InputProps) {
@@ -59,12 +61,13 @@ export default function Input({
           placeholder={placeholder}
           maxLength={maxLength}
           disabled={disabled}
+          readOnly={readOnly}
           required={required}
           aria-invalid={!!error}
           aria-describedby={error ? errorId : undefined}
-          className={`${styles.input} ${error ? styles.errorInput : ""} ${
-            isPassword ? styles.passwordInput : ""
-          }`}
+          className={`${styles.input} ${
+            error ? styles.errorInput : ""
+          } ${isPassword ? styles.passwordInput : ""}`}
         />
 
         {isPassword && (
