@@ -1,0 +1,216 @@
+/* 공통 Modal의 크기 조정 */
+.modal {
+  width: min(92vw, 480px);
+  max-width: 480px;
+}
+
+/* 달력 전체 */
+.calendar {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 0 12px;
+}
+
+/* DayPicker 기본 변수 */
+.calendar :global(.rdp-root) {
+  --rdp-accent-color: var(--color-brand);
+  --rdp-accent-background-color: var(--color-bg-tag);
+  --rdp-day-height: 46px;
+  --rdp-day-width: 46px;
+  --rdp-day_button-height: 40px;
+  --rdp-day_button-width: 40px;
+
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  color: #262524;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+/* 월 영역과 날짜 테이블 너비 확장 */
+.calendar :global(.rdp-months),
+.calendar :global(.rdp-month),
+.calendar :global(.rdp-month_grid) {
+  width: 100%;
+  max-width: 100%;
+}
+
+.calendar :global(.rdp-month_grid) {
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+/* 이전 화살표 < 연월 > 다음 화살표 */
+.calendar :global(.rdp-month_caption) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: var(--font-bold);
+}
+
+.calendar :global(.rdp-caption_label) {
+  color: #262524;
+  font-size: 18px;
+  font-weight: var(--font-bold);
+}
+
+/* 월 이동 버튼 */
+.calendar :global(.rdp-nav) {
+  height: 52px;
+}
+
+.calendar :global(.rdp-button_previous),
+.calendar :global(.rdp-button_next) {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: var(--color-brand);
+  cursor: pointer;
+}
+
+.calendar :global(.rdp-button_previous:hover:not(:disabled)),
+.calendar :global(.rdp-button_next:hover:not(:disabled)) {
+  background-color: var(--color-bg-tag);
+}
+
+.calendar :global(.rdp-chevron) {
+  width: 18px;
+  height: 18px;
+  fill: var(--color-brand);
+}
+
+/* 요일 */
+.calendar :global(.rdp-weekday) {
+  height: 38px;
+  color: #777;
+  font-size: 13px;
+  font-weight: var(--font-medium);
+  text-align: center;
+}
+
+/* 날짜 셀 */
+.calendar :global(.rdp-day) {
+  padding: 2px 0;
+  text-align: center;
+}
+
+.calendar :global(.rdp-day_button) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  color: #262524;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* 날짜 Hover */
+.calendar :global(.rdp-day:not(.rdp-disabled):not(.rdp-selected) .rdp-day_button:hover) {
+  background-color: var(--color-bg-tag);
+  color: var(--color-brand);
+}
+
+/* 선택된 날짜 Active */
+.calendar :global(.rdp-selected .rdp-day_button) {
+  border: 1px solid var(--color-brand);
+  background-color: var(--color-brand);
+  color: #fff;
+  font-weight: var(--font-bold);
+}
+
+/* 오늘 날짜 */
+.calendar :global(.rdp-today:not(.rdp-selected) .rdp-day_button) {
+  color: var(--color-brand);
+  font-weight: var(--font-bold);
+}
+
+/* 선택 불가능한 날짜 */
+.calendar :global(.rdp-disabled) {
+  opacity: 0.35;
+}
+
+.calendar :global(.rdp-disabled .rdp-day_button) {
+  cursor: not-allowed;
+}
+
+/* 다른 달의 날짜 */
+.calendar :global(.rdp-outside:not(.rdp-selected)) {
+  opacity: 0.35;
+}
+
+/* 키보드 포커스 */
+.calendar :global(.rdp-day_button:focus-visible) {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+/* 하단 안내 문구 */
+.description {
+  margin: 12px 0 0;
+  color: #777;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* 모바일 */
+@media (max-width: 540px) {
+  .modal {
+    width: 94%;
+  }
+
+  .calendar :global(.rdp-root) {
+    --rdp-day-height: 40px;
+    --rdp-day-width: 40px;
+    --rdp-day_button-height: 36px;
+    --rdp-day_button-width: 36px;
+  }
+
+  .calendar :global(.rdp-day_button) {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+
+  .calendar :global(.rdp-month_caption) {
+    min-height: 46px;
+    font-size: 16px;
+  }
+
+  .calendar :global(.rdp-caption_label) {
+    font-size: 16px;
+  }
+
+  .calendar :global(.rdp-nav) {
+    height: 46px;
+  }
+
+  .description {
+    font-size: 12px;
+  }
+}
+
+/* 작은 모바일 */
+@media (max-width: 360px) {
+  .calendar :global(.rdp-root) {
+    --rdp-day-height: 36px;
+    --rdp-day-width: 36px;
+    --rdp-day_button-height: 32px;
+    --rdp-day_button-width: 32px;
+  }
+
+  .calendar :global(.rdp-day_button) {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+}
