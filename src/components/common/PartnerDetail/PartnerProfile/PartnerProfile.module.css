@@ -1,0 +1,57 @@
+.profile {
+  width: 100%;
+  min-width: 0;
+}
+
+.designatedTag {
+  margin-bottom: 12px;
+}
+
+.identity {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.avatar {
+  width: 72px;
+  flex-shrink: 0;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 8px;
+  font-size: 18px;
+}
+
+.name strong {
+  font-weight: var(--font-semibold);
+}
+
+.gender {
+  color: #808080;
+  font-size: 14px;
+}
+
+.introduction {
+  margin: 12px 0 0;
+  font-size: 16px;
+  font-weight: var(--font-semibold);
+  line-height: 1.5;
+}
+
+.description {
+  margin: 12px 0 0;
+  color: #808080;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+@media (max-width: 768px) {
+  .name {
+    font-size: 16px;
+  }
+}
