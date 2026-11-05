@@ -1,0 +1,159 @@
+.modal {
+  max-width: 600px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-width: 0;
+}
+
+/* 검색 전 안내 */
+.guide {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 0;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.guide strong {
+  color: #262524;
+  font-size: 18px;
+  font-weight: var(--font-semibold);
+}
+
+.guide p {
+  margin: 0;
+}
+
+.example {
+  color: var(--color-brand);
+}
+
+/* 검색 결과 영역 */
+.resultArea {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.resultCount {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.resultCount strong {
+  color: var(--color-brand);
+  font-weight: var(--font-bold);
+}
+
+.resultList {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid #e9e9e9;
+}
+
+.resultItem {
+  border-bottom: 1px solid #e9e9e9;
+}
+
+.resultButton {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 18px 12px;
+  border: 0;
+  background-color: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.resultButton:hover {
+  background-color: var(--color-bg-tag);
+}
+
+.resultButton:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: -2px;
+}
+
+.zipcode {
+  color: var(--color-brand);
+  font-size: 14px;
+  font-weight: var(--font-semibold);
+}
+
+.addressLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  color: #262524;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.addressBadge {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-brand);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.pagination {
+  margin-top: 8px;
+}
+
+/* 로딩, 오류, 검색 결과 없음 */
+.statusMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  margin: 0;
+  color: #777;
+  font-size: 14px;
+  text-align: center;
+}
+
+.errorMessage {
+  margin: 0;
+  color: #d14343;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* 모바일 */
+@media (max-width: 540px) {
+  .container {
+    gap: 20px;
+  }
+
+  .guide {
+    padding: 16px 0;
+    font-size: 13px;
+  }
+
+  .resultButton {
+    padding: 16px 8px;
+  }
+
+  .addressLine {
+    font-size: 13px;
+  }
+}
