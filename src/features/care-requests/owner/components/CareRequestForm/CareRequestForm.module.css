@@ -1,0 +1,224 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.section,
+.addressSection {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: #262524;
+  font-size: 20px;
+  font-weight: var(--font-bold);
+}
+
+.dateFields,
+.addressFields {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.fieldRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  min-width: 0;
+}
+
+.fieldLabel {
+  flex-shrink: 0;
+  color: #262524;
+  font-size: 16px;
+  font-weight: var(--font-medium);
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+.fieldControl {
+  flex: 0 1 400px;
+  width: 100%;
+  max-width: 400px;
+  min-width: 0;
+  margin-left: auto;
+}
+
+.fieldTrigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  padding: 0 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background-color: #fff;
+  color: #999;
+  font: inherit;
+  font-size: 16px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.fieldTrigger:hover:not(:disabled) {
+  border-color: var(--color-brand);
+}
+
+.fieldTrigger:focus-visible {
+  outline: 1px solid var(--color-brand);
+}
+
+.fieldTrigger:disabled {
+  background-color: var(--color-bg-input);
+  color: #999;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.fieldSelected,
+.fieldTrigger.fieldSelected {
+  background-color: var(--color-bg-input);
+  color: #262524;
+}
+
+.fieldTriggerIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.fieldTrigger span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detailAddressInput {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background-color: #fff;
+  color: #262524;
+  font: inherit;
+  font-size: 16px;
+  outline: none;
+}
+
+.detailAddressInput::placeholder {
+  color: #999;
+}
+
+.detailAddressInput:focus {
+  border-color: var(--color-brand);
+}
+
+.submitArea {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.submitButton {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .form {
+    gap: 36px;
+  }
+
+  .fieldRow {
+    gap: 16px;
+  }
+
+  .fieldLabel {
+    font-size: 15px;
+  }
+
+  .fieldTrigger,
+  .detailAddressInput {
+    min-height: 50px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 540px) {
+  .sectionTitle {
+    font-size: 18px;
+  }
+
+  .form {
+    gap: 28px;
+  }
+
+  .section,
+  .addressSection {
+    gap: 16px;
+  }
+
+  .dateFields,
+  .addressFields {
+    gap: 16px;
+  }
+
+  .fieldRow {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  .fieldLabel {
+    font-size: 14px;
+  }
+
+  .fieldControl {
+    flex: none;
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+  }
+
+  .fieldTrigger,
+  .detailAddressInput {
+    min-height: 48px;
+    padding: 0 14px;
+    font-size: 14px;
+  }
+
+  .fieldTriggerIcon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .submitArea {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .fieldTrigger,
+  .detailAddressInput {
+    padding: 0 12px;
+    font-size: 13px;
+  }
+
+  .fieldRow {
+    gap: 8px;
+  }
+}
