@@ -58,8 +58,8 @@ export default function RejectRequestModal({
     >
       <div className={styles.requestSummary}>
         <div className={styles.tags}>
-          <Tag variant="request" serviceType={request.serviceType} size="sm" />
-          <Tag variant="designated" size="sm" />
+          <Tag variant="request" serviceType={request.serviceType} size="md" />
+          <Tag variant="designated" size="md" />
         </div>
 
         <h3 className={styles.ownerName}>{request.owner.nickname} 팟오너</h3>
