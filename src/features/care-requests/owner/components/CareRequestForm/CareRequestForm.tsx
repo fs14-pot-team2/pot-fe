@@ -362,7 +362,7 @@ export default function CareRequestForm({
                 : "돌봄 요청 수정 중..."
               : mode === "create"
                 ? "돌봄 요청하기"
-                : "수정 완료"}
+                : "돌봄 요청 수정하기"}
           </Button>
         </div>
       </form>
