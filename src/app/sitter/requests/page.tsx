@@ -19,6 +19,10 @@ import EmptyState from "@/components/ui/EmptyState/EmptyState";
 import { useIgnoreReceivedRequest } from "@/features/care-requests/sitter/useIgnoreReceivedRequest";
 import RejectRequestModal from "@/features/care-requests/sitter/RejectRequestModal";
 import { useRejectDesignatedRequest } from "@/features/care-requests/sitter/useRejectDesignatedRequest";
+import SendQuoteModal, {
+  type QuoteFormValues,
+} from "@/features/care-requests/sitter/SendQuoteModal";
+import { useCreateQuote } from "@/features/care-requests/sitter/useCreateQuote";
 import type {
   ReceivedRequestItem,
   ReceivedRequestSort,
@@ -92,10 +96,13 @@ export default function ReceivedRequestsPage() {
   const [draftRegions, setDraftRegions] = useState<(Region | "ALL")[]>([]);
   const [draftServiceType, setDraftServiceType] = useState<ServiceType | "ALL" | "">("");
   const [rejectTarget, setRejectTarget] = useState<ReceivedRequestItem | null>(null);
+  const [quoteTarget, setQuoteTarget] = useState<ReceivedRequestItem | null>(null);
 
   const { mutate: ignoreRequest, isPending: isIgnoring } = useIgnoreReceivedRequest();
 
   const { mutate: rejectRequest, isPending: isRejecting } = useRejectDesignatedRequest();
+
+  const { mutate: sendQuote, isPending: isSendingQuote } = useCreateQuote();
 
   const handleHideRequest = (careRequestId: string) => {
     if (isIgnoring) return;
@@ -174,6 +181,33 @@ export default function ReceivedRequestsPage() {
       {
         onSuccess: () => {
           setRejectTarget(null);
+        },
+      },
+    );
+  };
+
+  const handleQuoteModalOpen = (request: ReceivedRequestItem) => {
+    setQuoteTarget(request);
+  };
+
+  const handleQuoteModalClose = () => {
+    if (isSendingQuote) return;
+
+    setQuoteTarget(null);
+  };
+
+  const handleQuoteSubmit = ({ price, comment }: QuoteFormValues) => {
+    if (!quoteTarget || isSendingQuote) return;
+
+    sendQuote(
+      {
+        careRequestId: quoteTarget.careRequest.id,
+        price,
+        comment,
+      },
+      {
+        onSuccess: () => {
+          setQuoteTarget(null);
         },
       },
     );
@@ -317,7 +351,12 @@ export default function ReceivedRequestsPage() {
                     designatedRequestId,
                   })
                 }
-                onSendQuote={() => window.alert("견적 보내기 모달을 연결할 예정입니다.")}
+                onSendQuote={() =>
+                  handleQuoteModalOpen({
+                    careRequest,
+                    designatedRequestId,
+                  })
+                }
               />
             ))}
         </section>
@@ -386,6 +425,17 @@ export default function ReceivedRequestsPage() {
           isSubmitting={isRejecting}
           onClose={handleRejectModalClose}
           onSubmit={handleRejectSubmit}
+        />
+      )}
+
+      {quoteTarget && (
+        <SendQuoteModal
+          isOpen
+          request={quoteTarget.careRequest}
+          isDesignated={quoteTarget.designatedRequestId !== null}
+          isSubmitting={isSendingQuote}
+          onClose={handleQuoteModalClose}
+          onSubmit={handleQuoteSubmit}
         />
       )}
     </main>
