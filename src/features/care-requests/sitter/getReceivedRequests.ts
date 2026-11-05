@@ -2,13 +2,14 @@ import { apiClient } from "@/lib/api/apiClient";
 
 import type { ReceivedRequestsParams, ReceivedRequestsResponse } from "@/types/receivedRequest";
 
-export type GetReceivedRequestsParams = Omit<ReceivedRequestsParams, "region">;
+export type GetReceivedRequestsParams = ReceivedRequestsParams;
 
 export async function getReceivedRequests({
   page,
   pageSize,
   serviceTypes,
   designatedOnly,
+  regions,
   keyword,
   sort,
 }: GetReceivedRequestsParams): Promise<ReceivedRequestsResponse> {
@@ -18,6 +19,7 @@ export async function getReceivedRequests({
       pageSize,
       serviceTypes: serviceTypes.length > 0 ? serviceTypes.join(",") : undefined,
       designatedOnly,
+      regions: regions.length > 0 ? regions.join(",") : undefined,
       keyword: keyword || undefined,
       sort,
     },

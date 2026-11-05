@@ -26,8 +26,14 @@
   width: 160px;
 }
 
-.careTypeChip {
-  width: auto;
+.careTypeFilter {
+  width: 160px;
+}
+
+.desktopResetButton {
+  flex: 0 0 55px;
+  width: 55px;
+  height: 55px;
 }
 
 .listToolbar {
@@ -118,10 +124,8 @@
     width: 140px;
   }
 
-  .careTypeChip {
-    height: 48px;
-    padding: 0 18px;
-    font-size: 16px;
+  .careTypeFilter {
+    width: 140px;
   }
 
   .listToolbar {

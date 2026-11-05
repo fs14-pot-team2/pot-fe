@@ -29,7 +29,7 @@ export interface ReceivedRequestItem {
     startDate: string;
     endDate: string;
     sido: string;
-    sigungu: string;
+    sigungu: string | null;
     bname: string | null;
     owner: {
       nickname: string;
@@ -52,7 +52,7 @@ export interface ReceivedRequestsParams {
   pageSize: 8;
   serviceTypes: ServiceType[];
   designatedOnly: boolean;
-  region?: Region;
+  regions: Region[];
   keyword: string;
   sort: ReceivedRequestSort;
 }

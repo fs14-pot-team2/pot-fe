@@ -10,7 +10,7 @@ import BottomSheet, {
 } from "@/components/ui/BottomSheet/BottomSheet";
 import CheckBox from "@/components/ui/CheckBox/CheckBox";
 import DropDown from "@/components/ui/DropDown/DropDown";
-import FilterChip from "@/components/ui/FilterChip/FilterChip";
+import FilterReset from "@/components/ui/FilterReset/FilterReset";
 import IconButton from "@/components/ui/IconButton/IconButton";
 import Pagination from "@/components/ui/Pagination/Pagination";
 import SearchInput from "@/components/ui/SearchInput/SearchInput";
@@ -27,26 +27,27 @@ import type {
 } from "@/types/receivedRequest";
 import styles from "./ReceivedRequestsPage.module.css";
 
-const REGION_OPTIONS: { value: Region | "ALL"; label: string }[] = [
-  { value: "ALL", label: "전체" },
-  { value: "SEOUL", label: "서울" },
-  { value: "GYEONGGI", label: "경기" },
-  { value: "INCHEON", label: "인천" },
-  { value: "GANGWON", label: "강원" },
-  { value: "CHUNGBUK", label: "충북" },
-  { value: "CHUNGNAM", label: "충남" },
-  { value: "SEJONG", label: "세종" },
-  { value: "DAEJEON", label: "대전" },
-  { value: "JEONBUK", label: "전북" },
-  { value: "JEONNAM", label: "전남" },
-  { value: "GWANGJU", label: "광주" },
-  { value: "GYEONGBUK", label: "경북" },
-  { value: "GYEONGNAM", label: "경남" },
-  { value: "DAEGU", label: "대구" },
-  { value: "ULSAN", label: "울산" },
-  { value: "BUSAN", label: "부산" },
-  { value: "JEJU", label: "제주" },
-];
+const REGION_LABELS: Record<Region, string> = {
+  SEOUL: "서울",
+  GYEONGGI: "경기",
+  INCHEON: "인천",
+  GANGWON: "강원",
+  CHUNGBUK: "충북",
+  CHUNGNAM: "충남",
+  SEJONG: "세종",
+  DAEJEON: "대전",
+  JEONBUK: "전북",
+  JEONNAM: "전남",
+  GWANGJU: "광주",
+  GYEONGBUK: "경북",
+  GYEONGNAM: "경남",
+  DAEGU: "대구",
+  ULSAN: "울산",
+  BUSAN: "부산",
+  JEJU: "제주",
+};
+
+const REGION_ORDER = Object.keys(REGION_LABELS) as Region[];
 
 const SORT_OPTIONS: { value: ReceivedRequestSort; label: string }[] = [
   { value: "LATEST", label: "요청일 빠른순" },
@@ -58,7 +59,7 @@ const MOBILE_FILTER_TABS: BottomSheetTab[] = [
   { label: "돌봄 방식", value: "careType" },
 ];
 
-const MOBILE_CARE_TYPE_OPTIONS: { value: ServiceType | "ALL"; label: string }[] = [
+const CARE_TYPE_OPTIONS: { value: ServiceType | "ALL"; label: string }[] = [
   { value: "ALL", label: "전체" },
   { value: "SHORT_CARE", label: "잠깐만 돌봄" },
   { value: "REGULAR_CARE", label: "꾸준히 돌봄" },
@@ -83,13 +84,13 @@ export default function ReceivedRequestsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [appliedKeyword, setAppliedKeyword] = useState("");
-  const [selectedRegions, setSelectedRegions] = useState<(Region | "ALL")[]>(["ALL"]);
-  const [selectedServiceTypes, setSelectedServiceTypes] = useState<ServiceType[]>([]);
+  const [selectedRegions, setSelectedRegions] = useState<(Region | "ALL")[]>([]);
+  const [selectedServiceType, setSelectedServiceType] = useState<ServiceType | "ALL" | "">("");
   const [designatedOnly, setDesignatedOnly] = useState(false);
   const [sort, setSort] = useState<ReceivedRequestSort>("LATEST");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [draftRegions, setDraftRegions] = useState<(Region | "ALL")[]>(["ALL"]);
-  const [draftServiceType, setDraftServiceType] = useState<ServiceType | "ALL">("ALL");
+  const [draftRegions, setDraftRegions] = useState<(Region | "ALL")[]>([]);
+  const [draftServiceType, setDraftServiceType] = useState<ServiceType | "ALL" | "">("");
   const [rejectTarget, setRejectTarget] = useState<ReceivedRequestItem | null>(null);
 
   const { mutate: ignoreRequest, isPending: isIgnoring } = useIgnoreReceivedRequest();
@@ -103,34 +104,36 @@ export default function ReceivedRequestsPage() {
   };
 
   const handleRegionChange = (regions: string[]) => {
-    setSelectedRegions(regions.length > 0 ? (regions as (Region | "ALL")[]) : ["ALL"]);
+    setSelectedRegions(regions as (Region | "ALL")[]);
     setCurrentPage(1);
   };
 
-  const handleServiceTypeToggle = (serviceType: ServiceType) => {
-    setSelectedServiceTypes((previous) =>
-      previous.includes(serviceType)
-        ? previous.filter((value) => value !== serviceType)
-        : [...previous, serviceType],
-    );
+  const handleServiceTypeChange = (value: string) => {
+    setSelectedServiceType(value as ServiceType | "ALL" | "");
     setCurrentPage(1);
   };
 
   const handleFilterOpen = () => {
     setDraftRegions(selectedRegions);
-    setDraftServiceType(selectedServiceTypes.length === 1 ? selectedServiceTypes[0] : "ALL");
+    setDraftServiceType(selectedServiceType);
     setIsFilterOpen(true);
   };
 
   const handleFilterApply = () => {
     setSelectedRegions(draftRegions);
-    setSelectedServiceTypes(draftServiceType === "ALL" ? [] : [draftServiceType]);
+    setSelectedServiceType(draftServiceType);
     setCurrentPage(1);
   };
 
   const handleFilterReset = () => {
-    setDraftRegions(["ALL"]);
-    setDraftServiceType("ALL");
+    setDraftRegions([]);
+    setDraftServiceType("");
+  };
+
+  const handleDesktopFilterReset = () => {
+    setSelectedRegions([]);
+    setSelectedServiceType("");
+    setCurrentPage(1);
   };
 
   const handleSearch = (value: string) => {
@@ -176,14 +179,30 @@ export default function ReceivedRequestsPage() {
     );
   };
 
+  const appliedRegions = selectedRegions.includes("ALL") ? [] : (selectedRegions as Region[]);
+
   const { data, isPending, isError, refetch } = useReceivedRequests({
     page: currentPage,
     pageSize: PAGE_SIZE,
-    serviceTypes: selectedServiceTypes,
+    serviceTypes:
+      selectedServiceType === "" || selectedServiceType === "ALL" ? [] : [selectedServiceType],
     designatedOnly,
+    regions: appliedRegions,
     keyword: appliedKeyword,
     sort,
   });
+
+  const availableRegionSet = new Set(data?.availableRegions ?? []);
+
+  const regionOptions: { value: Region | "ALL"; label: string }[] = [
+    { value: "ALL", label: "전체" },
+    ...REGION_ORDER.filter((region) => availableRegionSet.has(region)).map((region) => ({
+      value: region,
+      label: REGION_LABELS[region],
+    })),
+  ];
+
+  const maxRegionSelections = Math.max((data?.availableRegions.length ?? 0) - 1, 0);
 
   const requests = data?.items ?? [];
 
@@ -203,29 +222,28 @@ export default function ReceivedRequestsPage() {
           <div className={styles.regionFilter}>
             <DropDown
               placeholder="지역"
-              options={REGION_OPTIONS}
+              options={regionOptions}
               value={selectedRegions}
               multiple
               exclusiveValue="ALL"
-              maxSelections={16}
+              maxSelections={maxRegionSelections}
               menuColumns={2}
               onChange={handleRegionChange}
             />
           </div>
 
-          <FilterChip
-            label="잠깐만 돌봄"
-            selected={selectedServiceTypes.includes("SHORT_CARE")}
-            onClick={() => handleServiceTypeToggle("SHORT_CARE")}
-            className={styles.careTypeChip}
-          />
+          <div className={styles.careTypeFilter}>
+            <DropDown
+              placeholder="돌봄 방식"
+              options={CARE_TYPE_OPTIONS}
+              value={selectedServiceType}
+              onChange={handleServiceTypeChange}
+            />
+          </div>
 
-          <FilterChip
-            label="꾸준히 돌봄"
-            selected={selectedServiceTypes.includes("REGULAR_CARE")}
-            onClick={() => handleServiceTypeToggle("REGULAR_CARE")}
-            className={styles.careTypeChip}
-          />
+          <div className={styles.desktopResetButton}>
+            <FilterReset onReset={handleDesktopFilterReset} />
+          </div>
         </div>
 
         <div className={styles.listToolbar}>
@@ -322,13 +340,15 @@ export default function ReceivedRequestsPage() {
         {{
           region: (
             <div>
-              {REGION_OPTIONS.map((region) => {
+              {regionOptions.map((region) => {
                 const individualRegionCount = draftRegions.filter(
                   (value) => value !== "ALL",
                 ).length;
                 const isSelected = draftRegions.includes(region.value);
                 const isDisabled =
-                  region.value !== "ALL" && !isSelected && individualRegionCount >= 16;
+                  region.value !== "ALL" &&
+                  !isSelected &&
+                  individualRegionCount >= maxRegionSelections;
 
                 return (
                   <BottomSheetOption
@@ -346,7 +366,7 @@ export default function ReceivedRequestsPage() {
           ),
           careType: (
             <div>
-              {MOBILE_CARE_TYPE_OPTIONS.map((careType) => (
+              {CARE_TYPE_OPTIONS.map((careType) => (
                 <BottomSheetOption
                   key={careType.value}
                   label={careType.label}
