@@ -38,17 +38,6 @@ interface ApiErrorResponse {
   message?: string;
 }
 
-type AddressFields = SelectedAddress & {
-  zonecode?: string;
-  zipNo?: string;
-  sido?: string;
-  siNm?: string;
-  sigungu?: string;
-  sggNm?: string;
-  bname?: string;
-  emdNm?: string;
-};
-
 function getApiError(error: unknown): ApiErrorResponse {
   if (isAxiosError<ApiErrorResponse>(error)) {
     return {
@@ -106,7 +95,7 @@ export default function NewCareRequestPage() {
   // 종료일은 시작일과 같거나 이후
   const minEndDate = startDate ? parseDate(startDate) : minStartDate;
 
-  // 버튼 활성화는 입력값 기준으로만 판단
+  // 버튼 활성화는 입력값 기준으로 판단
   const isFormComplete =
     careType !== null &&
     startDate !== "" &&
@@ -115,16 +104,15 @@ export default function NewCareRequestPage() {
     endDate >= startDate &&
     selectedAddress !== null;
 
-  // 주소 정보 확인
+  // 주소 데이터 정리
+  // sigungu와 bname은 null을 유지하여 백엔드에 전달
   const getAddressFields = (selected: SelectedAddress) => {
-    const address = selected as AddressFields;
-
     return {
-      zonecode: address.zonecode ?? address.zipNo ?? "",
-      address: address.address,
-      sido: address.sido ?? address.siNm ?? "",
-      sigungu: address.sigungu ?? address.sggNm ?? "",
-      bname: address.bname ?? address.emdNm ?? "",
+      zonecode: selected.zonecode,
+      address: selected.address,
+      sido: selected.sido,
+      sigungu: selected.sigungu,
+      bname: selected.bname,
     };
   };
 
@@ -273,12 +261,9 @@ export default function NewCareRequestPage() {
 
     const address = getAddressFields(selectedAddress);
 
-    if (
-      !/^\d{5}$/.test(address.zonecode) ||
-      !address.address?.trim() ||
-      !address.sido.trim() ||
-      !address.sigungu.trim()
-    ) {
+    // 주소 유효성 검사
+    // 세종시 등 sigungu가 없는 주소도 허용
+    if (!/^\d{5}$/.test(address.zonecode) || !address.address?.trim() || !address.sido.trim()) {
       showToast({
         message: "주소 정보가 올바르지 않습니다. 주소를 다시 검색해 주세요.",
       });
@@ -294,7 +279,7 @@ export default function NewCareRequestPage() {
       detailAddress: detailAddress.trim() || null,
       sido: address.sido,
       sigungu: address.sigungu,
-      bname: address.bname.trim() || null,
+      bname: address.bname?.trim() || null,
     };
 
     try {

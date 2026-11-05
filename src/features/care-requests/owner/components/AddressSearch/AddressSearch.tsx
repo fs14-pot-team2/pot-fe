@@ -12,8 +12,8 @@ export interface SelectedAddress {
   zonecode: string;
   address: string;
   sido: string;
-  sigungu: string;
-  bname: string;
+  sigungu: string | null;
+  bname: string | null;
 }
 
 interface AddressResult extends SelectedAddress {

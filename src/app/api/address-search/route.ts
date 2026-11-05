@@ -12,6 +12,7 @@ interface JusoItem {
   siNm: string;
   sggNm: string;
   emdNm: string;
+  liNm: string;
   bdMgtSn: string;
 }
 
@@ -94,8 +95,8 @@ export async function GET(request: NextRequest) {
       address: item.roadAddrPart1 || item.roadAddr,
       jibunAddress: item.jibunAddr,
       sido: item.siNm,
-      sigungu: item.sggNm,
-      bname: item.emdNm,
+      sigungu: item.sggNm.trim() || null,
+      bname: item.liNm?.trim() || item.emdNm?.trim() || null,
     }));
 
     return NextResponse.json({

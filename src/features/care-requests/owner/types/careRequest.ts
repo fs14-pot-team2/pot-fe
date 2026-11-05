@@ -5,7 +5,7 @@ export interface CareRequestAddress {
   address: string;
   detailAddress: string | null;
   sido: string;
-  sigungu: string;
+  sigungu: string | null;
   bname: string | null;
 }
 
