@@ -1,0 +1,26 @@
+.modal {
+  width: calc(100% - 80px);
+  max-width: 540px;
+}
+
+/* 태블릿 */
+@media (max-width: 768px) {
+  .modal {
+    width: 384px;
+    max-width: calc(100% - 64px);
+  }
+}
+
+/* 모바일 */
+@media (max-width: 540px) {
+  .modal.modal {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-width: none;
+    max-height: calc(100dvh - 80px);
+    border-radius: 24px 24px 0 0;
+  }
+}
