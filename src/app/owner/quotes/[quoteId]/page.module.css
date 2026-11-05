@@ -1,0 +1,246 @@
+.main {
+  min-height: 100vh;
+  background-color: #fff;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-height: 100px;
+}
+
+.pageHeader h1 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.backButton {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.hero {
+  height: 200px;
+  background-color: var(--color-brand, #6e7048);
+}
+
+.content {
+  position: relative;
+  margin-top: -52px;
+  padding-bottom: 100px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 64px;
+}
+
+.detail {
+  min-width: 0;
+}
+
+.profile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.avatar {
+  width: 112px;
+  height: 112px;
+  margin-bottom: 12px;
+}
+
+.introductionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  margin-top: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.introduction {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.nickname {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 16px;
+}
+
+.partnerIcon {
+  color: var(--color-brand, #6e7048);
+}
+
+.activity {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  color: #777;
+  font-size: 13px;
+}
+
+.rating {
+  color: #e9a322;
+}
+
+.reviewCount {
+  color: #999;
+}
+
+.separator {
+  width: 1px;
+  height: 12px;
+  background-color: #ddd;
+}
+
+.quoteSection {
+  margin-top: 28px;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+}
+
+.priceRow {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 0;
+}
+
+.priceRow dt {
+  font-size: 15px;
+}
+
+.priceRow dd {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.comment {
+  padding: 24px 0;
+  border-top: 1px solid #eee;
+}
+
+.comment h2 {
+  margin-bottom: 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.comment p {
+  color: #555;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.shareArea {
+  padding-top: 160px;
+}
+
+.feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  min-height: 300px;
+  text-align: center;
+}
+
+.feedback button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  background-color: var(--color-brand, #6e7048);
+  color: white;
+  cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 200px;
+    gap: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .pageHeader {
+    min-height: 76px;
+  }
+
+  .hero {
+    height: 160px;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .shareArea {
+    padding-top: 0;
+  }
+
+  .content {
+    padding-bottom: 60px;
+  }
+}
+
+@media (max-width: 540px) {
+  .pageHeader {
+    gap: 16px;
+  }
+
+  .pageHeader h1 {
+    font-size: 18px;
+  }
+
+  .hero {
+    height: 120px;
+  }
+
+  .content {
+    margin-top: -32px;
+  }
+
+  .avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .introductionRow {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .introduction {
+    font-size: 16px;
+  }
+
+  .priceRow {
+    grid-template-columns: 80px 1fr;
+  }
+
+  .priceRow dd {
+    font-size: 18px;
+  }
+}
