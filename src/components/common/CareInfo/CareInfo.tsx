@@ -6,25 +6,39 @@ import styles from "./CareInfo.module.css";
 import Image from "next/image";
 import IconButton from "@/components/ui/IconButton/IconButton";
 
-type CareInfoProps = {
-  variant?: "summary" | "detail";
-  createdAt: string;
-  serviceType: "SHORT_CARE" | "REGULAR_CARE";
-  startDate: string;
-  endDate: string;
+type LegacyLocationProps = {
+  location: string;
+  sido?: never;
+  sigungu?: never;
+  bname?: never;
+  zonecode?: never;
+  address?: never;
+  detailAddress?: never;
+};
+
+type StructuredLocationProps = {
+  location?: never;
   sido: string;
   sigungu?: string | null;
   bname: string;
   zonecode?: string | null;
   address?: string | null;
   detailAddress?: string | null;
+};
+
+type CareInfoProps = {
+  variant?: "summary" | "detail";
+  createdAt: string;
+  serviceType: "SHORT_CARE" | "REGULAR_CARE";
+  startDate: string;
+  endDate: string;
   locationNotice?: string; // 일부 주소에 대한 안내문구
   canEdit?: boolean;
   canCancel?: boolean;
   onEdit?: () => void;
   onCancel?: () => void;
   className?: string;
-};
+} & (LegacyLocationProps | StructuredLocationProps);
 
 const SERVICE_TYPE_LABEL = {
   SHORT_CARE: "잠깐만 돌봄",
@@ -40,7 +54,8 @@ export default function CareInfo(props: CareInfoProps) {
   const formattedEndDate = formatDateOnly(props.endDate, "korean");
 
   const serviceTypeLabel = SERVICE_TYPE_LABEL[props.serviceType];
-  const parcelAddress = [props.sido, props.sigungu, props.bname].filter(Boolean).join(" ");
+  const parcelAddress =
+    props.location ?? [props.sido, props.sigungu, props.bname].filter(Boolean).join(" ");
   const roadAddress = [props.address, props.detailAddress].filter(Boolean).join(" ");
   const hasFullAddress = Boolean(props.zonecode && roadAddress);
 
