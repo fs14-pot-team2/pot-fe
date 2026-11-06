@@ -6,20 +6,39 @@ import styles from "./CareInfo.module.css";
 import Image from "next/image";
 import IconButton from "@/components/ui/IconButton/IconButton";
 
+type LegacyLocationProps = {
+  location: string;
+  sido?: never;
+  sigungu?: never;
+  bname?: never;
+  zonecode?: never;
+  address?: never;
+  detailAddress?: never;
+};
+
+type StructuredLocationProps = {
+  location?: never;
+  sido: string;
+  sigungu?: string | null;
+  bname: string;
+  zonecode?: string | null;
+  address?: string | null;
+  detailAddress?: string | null;
+};
+
 type CareInfoProps = {
   variant?: "summary" | "detail";
   createdAt: string;
   serviceType: "SHORT_CARE" | "REGULAR_CARE";
   startDate: string;
   endDate: string;
-  location: string;
   locationNotice?: string; // 일부 주소에 대한 안내문구
   canEdit?: boolean;
   canCancel?: boolean;
   onEdit?: () => void;
   onCancel?: () => void;
   className?: string;
-};
+} & (LegacyLocationProps | StructuredLocationProps);
 
 const SERVICE_TYPE_LABEL = {
   SHORT_CARE: "잠깐만 돌봄",
@@ -35,6 +54,10 @@ export default function CareInfo(props: CareInfoProps) {
   const formattedEndDate = formatDateOnly(props.endDate, "korean");
 
   const serviceTypeLabel = SERVICE_TYPE_LABEL[props.serviceType];
+  const parcelAddress =
+    props.location ?? [props.sido, props.sigungu, props.bname].filter(Boolean).join(" ");
+  const roadAddress = [props.address, props.detailAddress].filter(Boolean).join(" ");
+  const hasFullAddress = Boolean(props.zonecode && roadAddress);
 
   const editAction = props.canEdit ? props.onEdit : undefined;
   const cancelAction = props.canCancel ? props.onCancel : undefined;
@@ -125,9 +148,19 @@ export default function CareInfo(props: CareInfoProps) {
         <div className={styles.detailRow}>
           <dt className={styles.label}>돌봄 장소</dt>
           <dd className={styles.value}>
-            {props.location}
+            <span className={styles.parcelAddress}>{parcelAddress}</span>
 
-            {isDetail && props.locationNotice && (
+            {isDetail && hasFullAddress && (
+              <small className={styles.fullAddress}>
+                <span className={styles.addressLabel}>우편번호 </span>
+                <span className={styles.addressValue}>{props.zonecode}</span>
+                <span> · </span>
+                <span className={styles.addressLabel}>도로명주소 </span>
+                <span className={styles.addressValue}>{roadAddress}</span>
+              </small>
+            )}
+
+            {isDetail && !hasFullAddress && props.locationNotice && (
               <small className={styles.notice}>{props.locationNotice}</small>
             )}
           </dd>
