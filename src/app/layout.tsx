@@ -1,5 +1,6 @@
-import Header from "@/components/layout/Header/Header";
+import AuthHeader from "@/components/layout/Header/AuthHeader";
 import ToastProvider from "@/components/ui/Toast/ToastProvider";
+import AuthProvider from "@/lib/auth/AuthProvider";
 import QueryProvider from "@/lib/react-query/QueryProvider";
 import "@/styles/reset.css";
 import "@/styles/variables.css";
@@ -21,10 +22,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="ko">
       <body>
         <QueryProvider>
-          <ToastProvider>
-            <Header isLoggedIn={false} />
-            {children}
-          </ToastProvider>
+          <AuthProvider>
+            <ToastProvider>
+              <AuthHeader />
+              {children}
+            </ToastProvider>
+          </AuthProvider>
         </QueryProvider>
       </body>
     </html>

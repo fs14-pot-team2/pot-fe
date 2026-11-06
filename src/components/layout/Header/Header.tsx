@@ -13,6 +13,7 @@ type HeaderProps = {
   isLoggedIn: boolean;
   userRole?: "OWNER" | "SITTER";
   nickname?: string;
+  onLogout?: () => void;
 };
 
 const MENU_ITEMS = {
@@ -28,7 +29,7 @@ const MENU_ITEMS = {
   ],
 };
 
-export default function Header({ isLoggedIn, userRole, nickname }: HeaderProps) {
+export default function Header({ isLoggedIn, userRole, nickname, onLogout }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -125,7 +126,7 @@ export default function Header({ isLoggedIn, userRole, nickname }: HeaderProps) 
         )}
 
         {isLoggedIn && userRole && nickname && (
-          <ProfileMenu userRole={userRole} nickname={nickname} />
+          <ProfileMenu userRole={userRole} nickname={nickname} onLogout={onLogout} />
         )}
 
         <button
