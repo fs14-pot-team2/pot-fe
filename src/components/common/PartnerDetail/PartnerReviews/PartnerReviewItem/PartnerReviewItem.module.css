@@ -1,0 +1,54 @@
+.item {
+  width: 100%;
+  padding: 24px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.nickname {
+  font-size: 14px;
+  font-weight: var(--font-medium);
+  overflow-wrap: anywhere;
+}
+
+.divider {
+  width: 1px;
+  height: 14px;
+  background-color: #e6e6e6;
+}
+
+.date {
+  color: #b0b0b0;
+  font-size: 14px;
+}
+
+.stars {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 10px;
+}
+
+.content {
+  margin: 14px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 540px) {
+  .item {
+    padding: 20px 0;
+  }
+
+  .date {
+    font-size: 12px;
+  }
+}

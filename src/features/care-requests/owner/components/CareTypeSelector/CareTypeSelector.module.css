@@ -1,0 +1,174 @@
+/* 돌봄 유형 선택 영역 */
+.container {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+/* 돌봄 유형 카드 */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+  min-height: 220px;
+  padding: 24px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background-color: #f7f7f7;
+  color: #262524;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+/* 마우스 오버 */
+.card:hover:not(:disabled) {
+  border-color: var(--color-border);
+  background-color: var(--color-bg-input);
+}
+
+/* 키보드 접근성 */
+.card:focus-visible {
+  outline: 3px solid var(--color-brand);
+  outline-offset: 3px;
+}
+
+/* 선택된 카드 */
+.selected {
+  border-color: var(--color-border);
+  background-color: var(--color-bg-input);
+}
+
+/* 비활성화 */
+.card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 제목 + 설명 */
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+/* 돌봄 유형명 */
+.label {
+  color: #262524;
+  font-size: 16px;
+  font-weight: var(--font-semibold);
+  line-height: 1.4;
+}
+
+/* 돌봄 유형 설명 */
+.description {
+  color: #888;
+  font-size: 14px;
+  font-weight: var(--font-regular);
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+/* 오른쪽 아래 일러스트 */
+.imageWrapper {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: 120px;
+  height: 120px;
+  pointer-events: none;
+}
+
+.image {
+  object-fit: contain;
+  object-position: right bottom;
+}
+
+/* 태블릿 */
+@media (max-width: 1024px) {
+  .card {
+    min-height: 200px;
+    padding: 20px;
+  }
+}
+
+/* 모바일 */
+@media (max-width: 540px) {
+  .container {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .card {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 96px;
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .content {
+    gap: 4px;
+    max-width: calc(100% - 100px);
+  }
+
+  .label {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .description {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .imageWrapper {
+    position: absolute;
+    right: 12px;
+    bottom: 8px;
+    width: 80px;
+    height: 76px;
+  }
+}
+
+/* 작은 모바일 */
+@media (max-width: 360px) {
+  .container {
+    gap: 8px;
+  }
+
+  .card {
+    min-height: 88px;
+    padding: 12px;
+  }
+
+  .content {
+    max-width: calc(100% - 80px);
+  }
+
+  .label {
+    font-size: 13px;
+  }
+
+  .description {
+    font-size: 10px;
+  }
+
+  .imageWrapper {
+    right: 8px;
+    bottom: 6px;
+    width: 68px;
+    height: 65px;
+  }
+}

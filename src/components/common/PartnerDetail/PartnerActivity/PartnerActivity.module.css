@@ -1,0 +1,56 @@
+.activity {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  min-height: 96px;
+  padding: 20px 24px;
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  background-color: #fff;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: var(--font-medium);
+}
+
+.value {
+  font-size: 20px;
+  font-weight: var(--font-bold);
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.reviewCount {
+  color: #999;
+  font-size: 16px;
+}
+
+@media (max-width: 540px) {
+  .activity {
+    padding: 20px 12px;
+  }
+
+  .label {
+    font-size: 13px;
+  }
+
+  .value {
+    font-size: 16px;
+  }
+
+  .reviewCount {
+    font-size: 13px;
+  }
+}

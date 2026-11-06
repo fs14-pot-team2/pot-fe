@@ -1,0 +1,47 @@
+.reviews {
+  width: 100%;
+  padding-top: 44px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.title {
+  margin: 0 0 24px;
+  font-size: 20px;
+  font-weight: var(--font-bold);
+}
+
+.list {
+  margin-top: 32px;
+}
+
+.empty {
+  padding: 48px 0;
+  color: #999;
+  font-size: 14px;
+  text-align: center;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+@media (max-width: 540px) {
+  .reviews {
+    padding-top: 32px;
+  }
+
+  .title {
+    margin-bottom: 20px;
+    font-size: 18px;
+  }
+
+  .list {
+    margin-top: 24px;
+  }
+
+  .pagination {
+    margin-top: 32px;
+  }
+}
