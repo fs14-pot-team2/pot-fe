@@ -1,18 +1,15 @@
-/* 페이지 전체 */
 .main {
   min-height: 100vh;
   padding: 80px 0;
   background-color: var(--color-bg);
 }
 
-/* 콘텐츠 영역 */
 .careRequestWrap {
   width: 100%;
   max-width: 860px;
   margin: 0 auto;
 }
 
-/* 페이지 상단 */
 .header {
   margin-bottom: 48px;
   text-align: center;
@@ -35,7 +32,6 @@
   word-break: keep-all;
 }
 
-/* API 상태 안내 */
 .apiNotice {
   margin: -16px 0 28px;
   color: #777;
@@ -45,158 +41,6 @@
   word-break: keep-all;
 }
 
-/* 입력 폼 */
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 48px;
-}
-
-/* 섹션 */
-.section,
-.addressSection {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.sectionTitle {
-  margin: 0;
-  color: #262524;
-  font-size: 20px;
-  font-weight: var(--font-bold);
-}
-
-/* 날짜 및 주소 필드 */
-.dateFields,
-.addressFields {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: 100%;
-}
-
-/* 라벨 + 입력 영역 */
-.fieldRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  width: 100%;
-  min-width: 0;
-}
-
-.fieldLabel {
-  flex-shrink: 0;
-  color: #262524;
-  font-size: 16px;
-  font-weight: var(--font-medium);
-  line-height: 1.5;
-  word-break: keep-all;
-}
-
-/* 입력창 최대 400px, 오른쪽 정렬 */
-.fieldControl {
-  flex: 0 1 400px;
-  width: 100%;
-  max-width: 400px;
-  min-width: 0;
-  margin-left: auto;
-}
-
-/* 날짜 및 주소 선택 버튼 */
-.fieldTrigger {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  min-width: 0;
-  min-height: 52px;
-  padding: 0 16px;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  background-color: #fff;
-  color: #999;
-  font: inherit;
-  font-size: 16px;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease;
-}
-
-.fieldTrigger:hover:not(:disabled) {
-  border-color: var(--color-brand);
-}
-
-.fieldTrigger:focus-visible {
-  outline: 2px solid var(--color-brand);
-  outline-offset: 2px;
-}
-
-.fieldTrigger:disabled {
-  background-color: var(--color-bg-input);
-  color: #999;
-  cursor: not-allowed;
-  opacity: 1;
-}
-
-/* 선택된 입력 */
-.fieldSelected,
-.fieldTrigger.fieldSelected {
-  background-color: var(--color-bg-input);
-  color: #262524;
-}
-
-/* 날짜 아이콘 */
-.fieldTriggerIcon {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-}
-
-/* 주소 말줄임 처리 */
-.fieldTrigger span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* 상세 주소 입력창 */
-.detailAddressInput {
-  width: 100%;
-  min-height: 52px;
-  padding: 0 16px;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  background-color: #fff;
-  color: #262524;
-  font: inherit;
-  font-size: 16px;
-  outline: none;
-}
-
-.detailAddressInput::placeholder {
-  color: #999;
-}
-
-.detailAddressInput:focus {
-  border-color: var(--color-brand);
-}
-
-/* 돌봄 요청 등록 버튼 */
-.submitArea {
-  width: 100%;
-  margin-top: 8px;
-}
-
-.submitButton {
-  width: 100%;
-}
-
-/* 활성 요청 안내 화면 */
 .feedbackSection {
   display: flex;
   flex-direction: column;
@@ -219,7 +63,6 @@
   max-width: 400px;
 }
 
-/* 태블릿 */
 @media (max-width: 768px) {
   .main {
     padding: 48px 0;
@@ -233,30 +76,11 @@
     font-size: 24px;
   }
 
-  .form {
-    gap: 36px;
-  }
-
-  .fieldRow {
-    gap: 16px;
-  }
-
-  .fieldLabel {
-    font-size: 15px;
-  }
-
-  .fieldTrigger,
-  .detailAddressInput {
-    min-height: 50px;
-    font-size: 15px;
-  }
-
   .feedbackSection {
     padding: 64px 20px;
   }
 }
 
-/* 모바일 */
 @media (max-width: 540px) {
   .main {
     padding: 32px 0;
@@ -275,59 +99,6 @@
     font-size: 13px;
   }
 
-  .sectionTitle {
-    font-size: 18px;
-  }
-
-  .form {
-    gap: 28px;
-  }
-
-  .section,
-  .addressSection {
-    gap: 16px;
-  }
-
-  .dateFields,
-  .addressFields {
-    gap: 16px;
-  }
-
-  /* 모바일에서는 세로 배치 */
-  .fieldRow {
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
-    gap: 10px;
-  }
-
-  .fieldLabel {
-    font-size: 14px;
-  }
-
-  .fieldControl {
-    flex: none;
-    width: 100%;
-    max-width: 100%;
-    margin-left: 0;
-  }
-
-  .fieldTrigger,
-  .detailAddressInput {
-    min-height: 48px;
-    padding: 0 14px;
-    font-size: 14px;
-  }
-
-  .fieldTriggerIcon {
-    width: 18px;
-    height: 18px;
-  }
-
-  .submitArea {
-    margin-top: 0;
-  }
-
   .feedbackSection {
     min-height: 240px;
     padding: 48px 12px;
@@ -335,18 +106,5 @@
 
   .actionButton {
     max-width: 100%;
-  }
-}
-
-/* 작은 모바일 */
-@media (max-width: 360px) {
-  .fieldTrigger,
-  .detailAddressInput {
-    padding: 0 12px;
-    font-size: 13px;
-  }
-
-  .fieldRow {
-    gap: 8px;
   }
 }
