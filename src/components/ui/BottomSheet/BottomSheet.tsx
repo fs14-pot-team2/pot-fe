@@ -7,13 +7,10 @@ import Button from "@/components/ui/Button/Button";
 import FilterReset from "@/components/ui/FilterReset/FilterReset";
 import Toggle from "@/components/ui/Toggle/Toggle";
 
-type FilterTab = "region" | "careType" | "gender";
-
-const FILTER_TABS: { label: string; value: FilterTab }[] = [
-  { label: "지역", value: "region" },
-  { label: "돌봄 방식", value: "careType" },
-  { label: "성별", value: "gender" },
-];
+export type BottomSheetTab = {
+  label: string;
+  value: string;
+};
 
 type BottomSheetOptionProps = {
   label: string;
@@ -49,7 +46,8 @@ type BottomSheetProps = {
   onClose: () => void;
   onApply: () => void;
   onReset: () => void;
-  children: Record<FilterTab, React.ReactNode>;
+  tabs: BottomSheetTab[];
+  children: Record<string, React.ReactNode>;
   className?: string;
 };
 
@@ -58,10 +56,11 @@ export default function BottomSheet({
   onClose,
   onApply,
   onReset,
+  tabs,
   children,
   className = "",
 }: BottomSheetProps) {
-  const [activeTab, setActiveTab] = useState<FilterTab>("region");
+  const [activeTab, setActiveTab] = useState(tabs[0]?.value ?? "");
   const dialogRef = useRef<HTMLDialogElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
@@ -141,12 +140,7 @@ export default function BottomSheet({
         </button>
       </header>
 
-      <Toggle
-        options={FILTER_TABS}
-        value={activeTab}
-        onChange={(value) => setActiveTab(value as FilterTab)}
-        variant="filter"
-      />
+      <Toggle options={tabs} value={activeTab} onChange={setActiveTab} variant="filter" />
 
       <div className={styles.content}>{children[activeTab]}</div>
 

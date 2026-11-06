@@ -22,7 +22,22 @@ export interface CareRequest extends CreateCareRequestInput {
   createdAt: string;
 }
 
+// 활성 돌봄 요청 조회 응답
 export interface ActiveCareRequestResponse {
   hasActiveCareRequest: boolean;
   careRequest: Omit<CareRequest, "region" | "status" | "createdAt"> | null;
 }
+
+// 돌봄 요청 수정 시 부분 수정도 허용
+export type UpdateCareRequestInput = Partial<CreateCareRequestInput>;
+
+// 수정 API 호출에 필요한 데이터
+export interface UpdateCareRequestParams {
+  careRequestId: string;
+  input: UpdateCareRequestInput;
+}
+
+// 수정 API 응답
+export type UpdatedCareRequest = Omit<CareRequest, "createdAt"> & {
+  updatedAt: string;
+};
