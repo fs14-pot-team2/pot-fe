@@ -16,6 +16,7 @@ import Pagination from "@/components/ui/Pagination/Pagination";
 import SearchInput from "@/components/ui/SearchInput/SearchInput";
 import Sort from "@/components/ui/Sort/Sort";
 import EmptyState from "@/components/ui/EmptyState/EmptyState";
+import { useToast } from "@/components/ui/Toast/ToastProvider";
 import { useIgnoreReceivedRequest } from "@/features/care-requests/sitter/useIgnoreReceivedRequest";
 import RejectRequestModal from "@/features/care-requests/sitter/RejectRequestModal";
 import { useRejectDesignatedRequest } from "@/features/care-requests/sitter/useRejectDesignatedRequest";
@@ -54,7 +55,7 @@ const REGION_LABELS: Record<Region, string> = {
 const REGION_ORDER = Object.keys(REGION_LABELS) as Region[];
 
 const SORT_OPTIONS: { value: ReceivedRequestSort; label: string }[] = [
-  { value: "LATEST", label: "요청일 빠른순" },
+  { value: "LATEST", label: "등록일 최신순" },
   { value: "START_DATE_ASC", label: "시작일 빠른순" },
 ];
 
@@ -85,6 +86,7 @@ function toggleRegion(currentRegions: (Region | "ALL")[], selectedRegion: Region
 }
 
 export default function ReceivedRequestsPage() {
+  const { showToast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [appliedKeyword, setAppliedKeyword] = useState("");
@@ -107,7 +109,11 @@ export default function ReceivedRequestsPage() {
   const handleHideRequest = (careRequestId: string) => {
     if (isIgnoring) return;
 
-    ignoreRequest(careRequestId);
+    ignoreRequest(careRequestId, {
+      onError: () => {
+        showToast({ message: "요청을 숨기지 못했습니다. 잠시 후 다시 시도해 주세요." });
+      },
+    });
   };
 
   const handleRegionChange = (regions: string[]) => {
@@ -182,6 +188,9 @@ export default function ReceivedRequestsPage() {
         onSuccess: () => {
           setRejectTarget(null);
         },
+        onError: () => {
+          showToast({ message: "요청을 반려하지 못했습니다. 잠시 후 다시 시도해 주세요." });
+        },
       },
     );
   };
@@ -208,6 +217,9 @@ export default function ReceivedRequestsPage() {
       {
         onSuccess: () => {
           setQuoteTarget(null);
+        },
+        onError: () => {
+          showToast({ message: "견적을 보내지 못했습니다. 잠시 후 다시 시도해 주세요." });
         },
       },
     );
