@@ -1,7 +1,5 @@
+import AuthForm from "@/features/auth/components/AuthForm/AuthForm";
+
 export default function LoginPage() {
-  return (
-    <main>
-      <h1>로그인 페이지</h1>
-    </main>
-  );
+  return <AuthForm mode="login" />;
 }
