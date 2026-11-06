@@ -56,6 +56,12 @@ export default function SendQuoteModal({
     setPrice(numbersOnly);
   };
 
+  const handleCommentChange = (value: string) => {
+    if (value.replace(/\s/g, "").length <= 1_000) {
+      setComment(value);
+    }
+  };
+
   const handleSubmit = () => {
     if (!isFormValid || isSubmitting) return;
 
@@ -129,14 +135,13 @@ export default function SendQuoteModal({
           label="코멘트를 입력해 주세요"
           value={comment}
           placeholder="최소 10자 이상 입력해 주세요"
-          maxLength={1_000}
           error={
             comment !== "" && !isCommentValid
               ? "코멘트는 10자 이상 1,000자 이하로 입력해 주세요."
               : undefined
           }
           disabled={isSubmitting}
-          onChange={setComment}
+          onChange={handleCommentChange}
         />
       </div>
     </Modal>

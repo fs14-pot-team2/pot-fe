@@ -32,6 +32,12 @@ export default function RejectRequestModal({
   const reasonLength = reason.replace(/\s/g, "").length;
   const isReasonValid = reasonLength >= 10 && reasonLength <= 100;
 
+  const handleReasonChange = (value: string) => {
+    if (value.replace(/\s/g, "").length <= 100) {
+      setReason(value);
+    }
+  };
+
   const handleSubmit = () => {
     const trimmedReason = reason.trim();
 
@@ -87,9 +93,8 @@ export default function RejectRequestModal({
         label="반려 사유를 입력해 주세요"
         value={reason}
         placeholder="최소 10자 이상 입력해주세요"
-        maxLength={100}
         disabled={isSubmitting}
-        onChange={setReason}
+        onChange={handleReasonChange}
       />
     </Modal>
   );
