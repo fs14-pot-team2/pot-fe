@@ -1,0 +1,50 @@
+.form {
+  width: 100%;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  margin-top: 48px;
+}
+
+.submitButton {
+  width: 100%;
+  margin-top: 56px;
+}
+
+.switchRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 28px;
+  font-size: 18px;
+  line-height: 26px;
+}
+
+.switchLink {
+  color: var(--color-brand);
+  font-weight: var(--font-semibold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 540px) {
+  .fields {
+    gap: 24px;
+    margin-top: 40px;
+  }
+
+  .submitButton {
+    margin-top: 48px;
+  }
+
+  .switchRow {
+    gap: 6px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+}
