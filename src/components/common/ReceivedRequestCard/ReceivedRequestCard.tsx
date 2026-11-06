@@ -16,7 +16,7 @@ type ReceivedRequest = {
   endDate: string;
   createdAt: string;
   sido: string;
-  sigungu: string;
+  sigungu: string | null;
   bname?: string | null;
 };
 

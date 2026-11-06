@@ -31,7 +31,7 @@ export interface MyQuoteItem {
   status: QuoteStatus;
   comment: string;
   price?: number;
-  isDesignated?: boolean;
+  designatedRequestId: string | null;
   sitter: {
     nickname: string;
     profileImage?: string | null;
@@ -173,9 +173,10 @@ export default function MyQuoteManagement({
           ) : (
             <div className={styles.quoteList}>
               {visibleQuotes.map((quote) => {
-                const tags = quote.isDesignated ? (
-                  <Tag variant="designated" size="md" />
-                ) : undefined;
+                const tags =
+                  quote.designatedRequestId !== null ? (
+                    <Tag variant="designated" size="md" />
+                  ) : undefined;
 
                 // 반려된 지정 요청
                 if (quote.status === "rejected") {
