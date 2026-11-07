@@ -107,6 +107,14 @@
   font-weight: var(--font-semibold);
 }
 
+.reviewState {
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
 @media (max-width: 768px) {
   .titleArea {
     padding: 24px 32px;
