@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatDateOnly } from "@/utils/dateFormat";
 
 import CareInfo from "@/components/common/CareInfo/CareInfo";
 import QuoteCard from "@/components/common/QuoteCard/QuoteCard";
@@ -32,6 +33,7 @@ export interface MyQuoteItem {
   comment: string;
   price?: number;
   designatedRequestId: string | null;
+  rejectionReason?: string | null;
   sitter: {
     nickname: string;
     profileImage?: string | null;
@@ -53,7 +55,6 @@ interface MyQuoteManagementProps {
   onDelete: (requestId: string) => Promise<void>;
   onQuoteDetail?: (quoteId: string) => void;
   onQuoteConfirm?: (quoteId: string) => void;
-  onRejectReasonClick: (quoteId: string) => void;
   className?: string;
 }
 
@@ -68,12 +69,12 @@ export default function MyQuoteManagement({
   onDelete,
   onQuoteDetail,
   onQuoteConfirm,
-  onRejectReasonClick,
   className = "",
 }: MyQuoteManagementProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
+  const [selectedRejectedQuote, setSelectedRejectedQuote] = useState<MyQuoteItem | null>(null);
 
   // 받았던 견적에서만 사용하는 체크박스 상태
   const [showConfirmedOnly, setShowConfirmedOnly] = useState(false);
@@ -91,6 +92,9 @@ export default function MyQuoteManagement({
       ? quotes.filter((quote) => quote.status === "confirmed")
       : quotes;
 
+  const formattedStartDate = formatDateOnly(careInfo.startDate, "korean");
+  const formattedEndDate = formatDateOnly(careInfo.endDate, "korean");
+
   const openDeleteModal = () => {
     setDeleteError(false);
     setIsDeleteModalOpen(true);
@@ -101,6 +105,14 @@ export default function MyQuoteManagement({
 
     setDeleteError(false);
     setIsDeleteModalOpen(false);
+  };
+
+  const openRejectReasonModal = (quote: MyQuoteItem) => {
+    setSelectedRejectedQuote(quote);
+  };
+
+  const closeRejectReasonModal = () => {
+    setSelectedRejectedQuote(null);
   };
 
   const confirmDelete = async () => {
@@ -189,7 +201,7 @@ export default function MyQuoteManagement({
                       tags={tags}
                       comment={quote.comment}
                       sitter={quote.sitter}
-                      onRejectReasonClick={() => onRejectReasonClick(quote.id)}
+                      onRejectReasonClick={() => openRejectReasonModal(quote)}
                     />
                   );
                 }
@@ -259,6 +271,54 @@ export default function MyQuoteManagement({
           )}
         </Modal>
       )}
+      <Modal
+        isOpen={selectedRejectedQuote !== null}
+        onClose={closeRejectReasonModal}
+        title="반려 사유 확인"
+        className={styles.rejectReasonModal}
+      >
+        {selectedRejectedQuote && (
+          <div className={styles.rejectReasonContent}>
+            <div className={styles.rejectReasonTags}>
+              <Tag variant="request" serviceType={careInfo.serviceType} size="md" />
+              <Tag variant="designated" size="md" />
+            </div>
+
+            <strong className={styles.rejectReasonNickname}>
+              {selectedRejectedQuote.sitter.nickname} 팟트너
+            </strong>
+
+            <div className={styles.rejectReasonInfo}>
+              <div className={styles.rejectReasonDates}>
+                <div className={styles.rejectReasonInfoItem}>
+                  <span>시작일</span>
+                  <strong>{formattedStartDate}</strong>
+                </div>
+
+                <div className={styles.rejectReasonInfoItem}>
+                  <span>종료일</span>
+                  <strong>{formattedEndDate}</strong>
+                </div>
+              </div>
+
+              <div className={styles.rejectReasonLocation}>
+                <div className={styles.rejectReasonInfoItem}>
+                  <span>돌봄 장소</span>
+                  <strong>{careInfo.location}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.rejectReasonBody}>
+              <h3>반려 사유</h3>
+              <p>
+                {selectedRejectedQuote.rejectionReason?.trim() ||
+                  "반려 사유를 불러오지 못했습니다."}
+              </p>
+            </div>
+          </div>
+        )}
+      </Modal>
     </>
   );
 }
