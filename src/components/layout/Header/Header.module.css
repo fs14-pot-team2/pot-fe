@@ -6,6 +6,7 @@
   height: 88px;
   border-bottom: 1px solid #d3d4c2;
   background-color: var(--color-bg);
+  color: #111111;
 }
 
 .inner {
