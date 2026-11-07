@@ -185,6 +185,10 @@ export default function PartnerProfileForm({
                 return "한 줄 소개를 입력해주세요.";
               }
 
+              if (countWithoutSpaces(value) > 18) {
+                return "공백을 제외하고 18자 이내로 입력해주세요.";
+              }
+
               return true;
             },
           }}
@@ -193,10 +197,13 @@ export default function PartnerProfileForm({
               label="한 줄 소개"
               required
               value={field.value}
-              onChange={field.onChange}
+              onChange={(value) => {
+                if (countWithoutSpaces(value) <= 18) {
+                  field.onChange(value);
+                }
+              }}
               className={styles.fieldSection}
               placeholder="한 줄 소개를 입력해 주세요"
-              maxLength={18}
               error={fieldState.error?.message}
             />
           )}
