@@ -1,8 +1,5 @@
-export type QuoteType = "GENERAL" | "DESIGNATED";
-
 export type QuoteDetail = {
   id: string;
-  type: QuoteType;
   price: number;
   comment: string;
   createdAt: string;
@@ -19,8 +16,8 @@ export type QuoteDetailCareRequest = {
   sido: string;
   sigungu: string | null;
   bname: string | null;
-  zonecode: string;
-  address: string;
+  zonecode: string | null;
+  address: string | null;
   detailAddress: string | null;
 };
 
@@ -41,6 +38,7 @@ export type QuoteDetailSitter = {
 
 export type QuoteDetailResponse = {
   quote: QuoteDetail;
+  designatedRequestId: string | null;
   careRequest: QuoteDetailCareRequest;
   owner: QuoteDetailOwner;
   sitter: QuoteDetailSitter;

@@ -1,18 +1,67 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
+import { useParams } from "next/navigation";
 import { isAxiosError } from "axios";
 
+import Button from "@/components/ui/Button/Button";
 import CareInfo from "@/components/common/CareInfo/CareInfo";
 import SocialShare from "@/components/common/SocialShare/SocialShare";
 import ProfileImage from "@/components/ui/ProfileImage/ProfileImage";
 import QuoteStatus from "@/components/ui/QuoteStatus/QuoteStatus";
 import Tag from "@/components/ui/Tag/Tag";
+import { useToast } from "@/components/ui/Toast/ToastProvider";
+
 import { useQuoteDetail } from "@/features/quotes/owner/hooks/useQuotes";
 import type { QuoteDetailResponse } from "@/features/quotes/owner/types/quote";
 
 import styles from "./page.module.css";
+
+// UI 테스트: true / 실제 API 요청: false
+const USE_MOCK: boolean = false;
+
+const mockQuoteDetail: QuoteDetailResponse = {
+  quote: {
+    id: "10",
+    price: 50000,
+    comment: "정성껏 식물을 돌봐드리겠습니다. 물주기와 햇빛 관리도 꼼꼼하게 진행할게요.",
+    createdAt: "2026-11-05T04:00:00.000Z",
+  },
+
+  designatedRequestId: "30",
+
+  careRequest: {
+    id: "1",
+    status: "OPEN",
+    confirmedQuoteId: null,
+    createdAt: "2026-11-05T01:00:00.000Z",
+    serviceType: "SHORT_CARE",
+    startDate: "2026-11-15",
+    endDate: "2026-11-17",
+    sido: "서울특별시",
+    sigungu: "강남구",
+    bname: "역삼동",
+    zonecode: "06236",
+    address: "서울특별시 강남구 테헤란로 123",
+    detailAddress: "101동 1001호",
+  },
+
+  owner: {
+    nickname: "초록집사",
+  },
+
+  sitter: {
+    id: "20",
+    nickname: "여진최고123",
+    profileImageUrl: null,
+    gender: "FEMALE",
+    shortIntroduction: "집을 비우는 동안 반려식물을 정성껏 돌봐드려요.",
+    averageRating: 4.6,
+    reviewCount: 8,
+    confirmedQuoteCount: 5,
+  },
+};
 
 const subscribe = () => () => {};
 
@@ -40,10 +89,15 @@ function getErrorMessage(error: unknown) {
       return "로그인이 필요합니다.";
 
     case "QUOTE_ACCESS_FORBIDDEN":
+    case "FORBIDDEN":
       return "해당 견적을 조회할 권한이 없습니다.";
 
     case "QUOTE_NOT_FOUND":
+    case "RESOURCE_NOT_FOUND":
       return "견적을 찾을 수 없습니다.";
+
+    case "SITTER_PROFILE_INCONSISTENT":
+      return "팟트너 프로필 정보를 확인할 수 없습니다.";
 
     default:
       return "견적 정보를 불러오지 못했습니다.";
@@ -51,61 +105,104 @@ function getErrorMessage(error: unknown) {
 }
 
 function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
-  const { quote, careRequest, sitter } = data;
+  const { quote, designatedRequestId, careRequest, sitter } = data;
 
   const shareUrl = useShareUrl();
+  const { showToast } = useToast();
+
+  const isDesignated = designatedRequestId !== null;
 
   const isConfirmed = careRequest.confirmedQuoteId === quote.id;
 
-  const isExpired = careRequest.status === "EXPIRED";
+  const isWaiting = careRequest.status === "OPEN" && careRequest.confirmedQuoteId === null;
 
-  const location = [careRequest.address, careRequest.detailAddress].filter(Boolean).join(" ");
+  const quoteStatus: "waiting" | "confirmed" | "expired" | null =
+    careRequest.status === "EXPIRED"
+      ? "expired"
+      : isConfirmed
+        ? "confirmed"
+        : isWaiting
+          ? "waiting"
+          : null;
+
+  const handleConfirmQuote = () => {
+    showToast({
+      message: "견적 확정 기능은 추후 API 연동 예정입니다.",
+    });
+  };
 
   return (
     <>
+      {/* 올리브색 영역 */}
       <div className={styles.hero} aria-hidden="true" />
 
       <div className={`container ${styles.content}`}>
         <div className={styles.layout}>
           <article className={styles.detail}>
-            <div className={styles.profile}>
+            {/* 팟트너 프로필 */}
+            <section className={styles.profile} aria-label="팟트너 프로필">
+              {/* 지정 견적 요청 + 견적 상태 */}
+              <div className={styles.profileTopWrap}>
+                <div className={styles.designatedTag}>
+                  {isDesignated && <Tag variant="designated" size="md" />}
+                </div>
+
+                {quoteStatus && (
+                  <div className={styles.quoteStatus}>
+                    <QuoteStatus status={quoteStatus} />
+                  </div>
+                )}
+              </div>
+
+              {/* 프로필 이미지 */}
               <div className={styles.avatar}>
                 <ProfileImage
                   src={sitter.profileImageUrl}
                   alt={`${sitter.nickname} 프로필 이미지`}
-                  sizes="96px"
+                  sizes="84px"
                 />
               </div>
 
-              {quote.type === "DESIGNATED" && <Tag variant="designated" />}
-
+              {/* 한 줄 소개 */}
               <div className={styles.introductionRow}>
                 <p className={styles.introduction}>{sitter.shortIntroduction}</p>
-
-                {isConfirmed && <QuoteStatus status="confirmed" />}
-
-                {isExpired && <QuoteStatus status="expired" />}
               </div>
 
-              <div className={styles.nickname}>
-                <span className={styles.partnerIcon}>✿</span>
+              {/* 팟트너 정보 */}
+              <div className={styles.sitterInfo}>
+                {/* 닉네임 + 성별 */}
+                <div className={styles.nickname}>
+                  <Image
+                    src="/icons/ic_sitter.svg"
+                    alt=""
+                    width={24}
+                    height={24}
+                    className={styles.partnerIcon}
+                  />
 
-                <strong>{sitter.nickname} 팟트너</strong>
+                  <strong>{sitter.nickname} 팟트너</strong>
+
+                  <span className={styles.gender}>
+                    {sitter.gender === "MALE" ? "남성" : "여성"}
+                  </span>
+                </div>
+
+                {/* 별점 + 리뷰 + 확정 건수 */}
+                <div className={styles.activity}>
+                  <span className={styles.rating}>★ {sitter.averageRating.toFixed(1)}</span>
+
+                  <span className={styles.reviewCount}>({sitter.reviewCount})</span>
+
+                  <span className={styles.separator} aria-hidden="true" />
+
+                  <span>확정 {sitter.confirmedQuoteCount}건</span>
+                </div>
               </div>
+            </section>
 
-              <div className={styles.activity}>
-                <span className={styles.rating}>★ {sitter.averageRating.toFixed(1)}</span>
-
-                <span className={styles.reviewCount}>({sitter.reviewCount})</span>
-
-                <span className={styles.separator} aria-hidden="true" />
-
-                <span>확정 {sitter.confirmedQuoteCount}건</span>
-              </div>
-            </div>
-
+            {/* 견적 정보 */}
             <section className={styles.quoteSection}>
-              <dl className={styles.priceRow}>
+              <dl className={styles.priceWrap}>
                 <dt>견적가</dt>
 
                 <dd>{quote.price.toLocaleString("ko-KR")}원</dd>
@@ -113,23 +210,50 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
 
               <div className={styles.comment}>
                 <h2>견적 내용</h2>
-
                 <p>{quote.comment}</p>
               </div>
             </section>
 
-            <CareInfo
-              variant="detail"
-              createdAt={careRequest.createdAt}
-              serviceType={careRequest.serviceType}
-              startDate={careRequest.startDate}
-              endDate={careRequest.endDate}
-              location={location}
-            />
+            {/* 돌봄 정보 */}
+            <div className={styles.careInfo}>
+              <CareInfo
+                variant="detail"
+                createdAt={careRequest.createdAt}
+                serviceType={careRequest.serviceType}
+                startDate={careRequest.startDate}
+                endDate={careRequest.endDate}
+                sido={careRequest.sido}
+                sigungu={careRequest.sigungu}
+                bname={careRequest.bname ?? ""}
+                zonecode={careRequest.zonecode}
+                address={careRequest.address}
+                detailAddress={careRequest.detailAddress}
+              />
+            </div>
           </article>
 
+          {/* 견적 확정 및 공유하기 */}
           <aside className={styles.shareArea}>
-            {shareUrl && <SocialShare url={shareUrl} title="견적서 공유하기" />}
+            {/* 대기 중인 견적에만 확정 버튼 표시 */}
+            {isWaiting && (
+              <div className={styles.confirmArea}>
+                <Button
+                  variant="solid"
+                  size="md"
+                  className={styles.confirmButton}
+                  onClick={handleConfirmQuote}
+                  disabled={!USE_MOCK}
+                >
+                  견적 확정하기
+                </Button>
+              </div>
+            )}
+
+            {shareUrl && (
+              <div className={styles.socialShare}>
+                <SocialShare url={shareUrl} title="견적서 공유하기" />
+              </div>
+            )}
           </aside>
         </div>
       </div>
@@ -138,26 +262,22 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
 }
 
 export default function OwnerQuoteDetailPage() {
-  const router = useRouter();
-
   const params = useParams<{ quoteId: string }>();
   const quoteId = params.quoteId;
 
-  const { data, isPending, isError, error, refetch } = useQuoteDetail(quoteId);
+  const { data, isPending, isError, error, refetch } = useQuoteDetail(quoteId, !USE_MOCK);
 
   return (
     <main className={styles.main}>
       <div className="container">
         <header className={styles.pageHeader}>
-          <button type="button" className={styles.backButton} onClick={() => router.back()}>
-            ← 뒤로가기
-          </button>
-
           <h1>견적 상세</h1>
         </header>
       </div>
 
-      {isPending ? (
+      {USE_MOCK ? (
+        <QuoteDetailContent data={mockQuoteDetail} />
+      ) : isPending ? (
         <div className={`container ${styles.feedback}`}>
           <p>견적 정보를 불러오는 중입니다.</p>
         </div>
