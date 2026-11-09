@@ -19,6 +19,7 @@ export async function getSitterReviews({
         page,
         pageSize,
       },
+      authMode: "optional",
     },
   );
 
