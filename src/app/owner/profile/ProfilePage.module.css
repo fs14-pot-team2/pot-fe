@@ -87,7 +87,9 @@
   outline: 1px solid var(--color-brand);
   outline-offset: 3px;
 }
-
+.imgDeleteButton {
+  width: 160px;
+}
 .filterChipWrap {
   display: flex;
   flex-wrap: wrap;
@@ -131,10 +133,6 @@
   .profileImage {
     width: 100px;
     height: 100px;
-  }
-
-  .imageUploadButton {
-    width: 100px;
   }
 
   .filterChipWrap .profileChip {
