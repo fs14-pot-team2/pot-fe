@@ -117,8 +117,97 @@
   min-width: 0;
 }
 
+/* 반려 사유 확인 모달 */
+.rejectReasonModal {
+  width: calc(100% - 48px);
+  max-width: 728px;
+}
+
+.rejectReasonContent {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rejectReasonTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.rejectReasonNickname {
+  margin-bottom: 28px;
+  color: #222;
+  font-size: 24px;
+  font-weight: var(--font-semibold);
+  line-height: 1.4;
+}
+
+.rejectReasonInfo {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 28px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #eee;
+}
+
+.rejectReasonDates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+}
+
+.rejectReasonInfoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.rejectReasonInfoItem span {
+  color: #888;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.rejectReasonInfoItem strong {
+  overflow-wrap: anywhere;
+  color: #222;
+  font-size: 18px;
+  font-weight: var(--font-medium);
+  line-height: 1.5;
+}
+
+.rejectReasonBody {
+  padding-top: 36px;
+}
+
+.rejectReasonBody h3 {
+  margin: 0 0 24px;
+  color: #222;
+  font-size: 22px;
+  font-weight: var(--font-semibold);
+  line-height: 1.4;
+}
+
+.rejectReasonBody p {
+  margin: 0;
+  padding: 0 28px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #222;
+  font-size: 18px;
+  line-height: 1.8;
+}
+
 /* 태블릿: 1024px 이하부터 상하 배치 */
 @media (max-width: 1024px) {
+  .rejectReasonModal {
+    width: calc(100% - 80px);
+    max-width: 560px;
+  }
+
   .wrapper {
     grid-template-columns: minmax(0, 1fr);
     gap: 32px;
@@ -138,6 +227,38 @@
 
   .quoteList {
     gap: 20px;
+  }
+
+  .rejectReasonInfo {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .rejectReasonLocation {
+    width: 100%;
+  }
+
+  .rejectReasonNickname {
+    margin-bottom: 20px;
+    font-size: 22px;
+  }
+
+  .rejectReasonInfoItem span {
+    font-size: 14px;
+  }
+
+  .rejectReasonInfoItem strong {
+    font-size: 18px;
+  }
+
+  .rejectReasonBody h3 {
+    margin-bottom: 18px;
+    font-size: 20px;
+  }
+
+  .rejectReasonBody p {
+    padding: 0 12px;
+    font-size: 18px;
   }
 }
 
@@ -179,6 +300,47 @@
 
   .modalDescription {
     font-size: 14px;
+  }
+
+  .rejectReasonModal {
+    width: calc(100% - 32px);
+  }
+
+  .rejectReasonTags {
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .rejectReasonNickname {
+    margin-bottom: 24px;
+    font-size: 20px;
+  }
+
+  .rejectReasonInfo,
+  .rejectReasonDates {
+    gap: 20px;
+  }
+
+  .rejectReasonInfoItem span {
+    font-size: 14px;
+  }
+
+  .rejectReasonInfoItem strong {
+    font-size: 16px;
+  }
+
+  .rejectReasonBody {
+    padding-top: 28px;
+  }
+
+  .rejectReasonBody h3 {
+    margin-bottom: 20px;
+    font-size: 20px;
+  }
+
+  .rejectReasonBody p {
+    padding: 0 12px;
+    font-size: 16px;
   }
 }
 
