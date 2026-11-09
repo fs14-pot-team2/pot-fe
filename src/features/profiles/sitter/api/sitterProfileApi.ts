@@ -7,6 +7,7 @@ import type {
   PartnerProfileResponse,
   ProfileImagePresignedUrlRequest,
   ProfileImagePresignedUrlResponse,
+  UpdatePartnerProfileRequest,
 } from "../types";
 
 export async function createProfileImagePresignedUrl(
@@ -32,6 +33,20 @@ export async function createPartnerProfile(
   input: CreatePartnerProfileRequest,
 ): Promise<PartnerProfileResponse> {
   const { data } = await apiClient.post<PartnerProfileResponse>("/sitters/me/profile", input);
+
+  return data;
+}
+
+export async function getPartnerProfile(): Promise<PartnerProfileResponse> {
+  const { data } = await apiClient.get<PartnerProfileResponse>("/sitters/me/profile");
+
+  return data;
+}
+
+export async function updatePartnerProfile(
+  input: UpdatePartnerProfileRequest,
+): Promise<PartnerProfileResponse> {
+  const { data } = await apiClient.patch<PartnerProfileResponse>("/sitters/me/profile", input);
 
   return data;
 }

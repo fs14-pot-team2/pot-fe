@@ -4,6 +4,7 @@ import { useState } from "react";
 import { formatDateOnly } from "@/utils/dateFormat";
 import { useRejectedRequestReason } from "@/features/care-requests/owner/hooks/useCareRequests";
 
+
 import CareInfo from "@/components/common/CareInfo/CareInfo";
 import QuoteCard from "@/components/common/QuoteCard/QuoteCard";
 import Tag from "@/components/ui/Tag/Tag";
@@ -35,6 +36,7 @@ export interface MyQuoteItem {
   price?: number;
   designatedRequestId: string | null;
   rejectedRequestId: string | null;
+
   sitter: {
     nickname: string;
     profileImage?: string | null;
