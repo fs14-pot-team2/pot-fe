@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import { formatDateOnly } from "@/utils/dateFormat";
 import { useRejectedRequestReason } from "@/features/care-requests/owner/hooks/useCareRequests";
 
@@ -18,7 +19,7 @@ type CareType = "SHORT_CARE" | "REGULAR_CARE";
 
 export type RequestStatus = "OPEN" | "MATCHED" | "EXPIRED";
 
-type QuoteStatus = "waiting" | "confirmed" | "rejected" | "expired";
+type QuoteStatus = "waiting" | "confirmed" | "rejected" | "expired" | null;
 
 export interface MyQuoteCareInfo {
   createdAt: string;
@@ -51,6 +52,10 @@ interface MyQuoteManagementProps {
   requestId: string;
   careInfo: MyQuoteCareInfo;
   requestStatus: RequestStatus;
+
+  // 받았던 견적의 확정 견적 식별
+  confirmedQuoteId?: string | null;
+
   quotes: MyQuoteItem[];
   canEdit: boolean;
   onEdit: (requestId: string) => void;
@@ -65,6 +70,7 @@ export default function MyQuoteManagement({
   requestId,
   careInfo,
   requestStatus,
+  confirmedQuoteId = null,
   quotes,
   canEdit,
   onEdit,
@@ -74,9 +80,13 @@ export default function MyQuoteManagement({
   className = "",
 }: MyQuoteManagementProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
+
   const [selectedRejectedQuote, setSelectedRejectedQuote] = useState<MyQuoteItem | null>(null);
+
+  const [showConfirmedOnly, setShowConfirmedOnly] = useState(false);
 
   const {
     data: rejectedReasonData,
@@ -84,23 +94,22 @@ export default function MyQuoteManagement({
     isError: isRejectedReasonError,
   } = useRejectedRequestReason(selectedRejectedQuote?.rejectedRequestId);
 
-  // 받았던 견적에서만 사용하는 체크박스 상태
-  const [showConfirmedOnly, setShowConfirmedOnly] = useState(false);
-
   const isHistory = variant === "history";
   const isOpen = requestStatus === "OPEN";
 
-  // 받았던 견적에서는 수정·삭제 버튼을 표시하지 않음
   const showEdit = !isHistory && isOpen && canEdit;
   const showDelete = !isHistory && isOpen;
 
-  // 체크 시 확정 견적만 표시
+  // MATCHED 요청에서만 확정 견적 필터 활성화
+  const canFilterConfirmed = isHistory && requestStatus === "MATCHED";
+
   const visibleQuotes =
-    isHistory && showConfirmedOnly
-      ? quotes.filter((quote) => quote.status === "confirmed")
+    canFilterConfirmed && showConfirmedOnly
+      ? quotes.filter((quote) => quote.id === confirmedQuoteId)
       : quotes;
 
   const formattedStartDate = formatDateOnly(careInfo.startDate, "korean");
+
   const formattedEndDate = formatDateOnly(careInfo.endDate, "korean");
 
   const openDeleteModal = () => {
@@ -116,9 +125,7 @@ export default function MyQuoteManagement({
   };
 
   const openRejectReasonModal = (quote: MyQuoteItem) => {
-    if (!quote.rejectedRequestId) {
-      return;
-    }
+    if (!quote.rejectedRequestId) return;
 
     setSelectedRejectedQuote(quote);
   };
@@ -174,8 +181,8 @@ export default function MyQuoteManagement({
             </h3>
           </header>
 
-          {/* 받았던 견적에서만 체크박스 표시 */}
-          {isHistory && (
+          {/* 받았던 견적에서만 확정 견적 필터 표시 */}
+          {canFilterConfirmed && (
             <div className={styles.historyFilter}>
               <CheckBox
                 checked={showConfirmedOnly}
@@ -189,7 +196,7 @@ export default function MyQuoteManagement({
             <EmptyState
               className={styles.emptyState}
               messages={
-                isHistory && showConfirmedOnly
+                canFilterConfirmed && showConfirmedOnly
                   ? ["확정된 견적서가 없어요."]
                   : ["아직 도착한 견적서가 없어요."]
               }
@@ -202,7 +209,7 @@ export default function MyQuoteManagement({
                     <Tag variant="designated" size="md" />
                   ) : undefined;
 
-                // 반려된 지정 요청
+                // 지정 요청 반려 내역
                 if (quote.status === "rejected") {
                   return (
                     <QuoteCard
@@ -218,12 +225,13 @@ export default function MyQuoteManagement({
                   );
                 }
 
+                // 일반 견적
                 return (
                   <QuoteCard
                     key={quote.id}
                     className={styles.quoteCard}
                     variant="owner"
-                    status={quote.status}
+                    status={quote.status ?? undefined}
                     tags={tags}
                     comment={quote.comment}
                     price={quote.price}
@@ -242,7 +250,7 @@ export default function MyQuoteManagement({
         </div>
       </section>
 
-      {/* 요청한 견적 현황에서만 삭제 모달 사용 */}
+      {/* 돌봄 요청 삭제 확인 모달 */}
       {!isHistory && (
         <Modal
           isOpen={isDeleteModalOpen}
@@ -283,6 +291,8 @@ export default function MyQuoteManagement({
           )}
         </Modal>
       )}
+
+      {/* 반려 사유 확인 모달 */}
       <Modal
         isOpen={selectedRejectedQuote !== null}
         onClose={closeRejectReasonModal}
@@ -293,6 +303,7 @@ export default function MyQuoteManagement({
           <div className={styles.rejectReasonContent}>
             <div className={styles.rejectReasonTags}>
               <Tag variant="request" serviceType={careInfo.serviceType} size="md" />
+
               <Tag variant="designated" size="md" />
             </div>
 
@@ -323,6 +334,7 @@ export default function MyQuoteManagement({
 
             <div className={styles.rejectReasonBody}>
               <h3>반려 사유</h3>
+
               <p>
                 {isRejectedReasonPending
                   ? "반려 사유를 불러오는 중입니다."
