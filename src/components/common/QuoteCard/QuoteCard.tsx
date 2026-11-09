@@ -9,6 +9,8 @@ import QuoteStatus, { type QuoteStatusType } from "@/components/ui/QuoteStatus/Q
 
 import styles from "./QuoteCard.module.css";
 
+type SitterRequestStatus = "OPEN" | "MATCHED" | "EXPIRED";
+
 interface BaseQuoteCardProps {
   tags?: ReactNode;
   status?: QuoteStatusType;
@@ -29,6 +31,8 @@ interface BaseOwnerQuoteCardProps extends BaseQuoteCardProps {
   };
   onDetailClick?: () => void;
   onConfirmClick?: () => void;
+  onEditClick?: never;
+  requestStatus?: never;
   isCompleted?: never;
   onCompletedDetailClick?: never;
 }
@@ -47,13 +51,12 @@ type DefaultOwnerProps = {
 
 type OwnerQuoteCardProps = BaseOwnerQuoteCardProps & (RejectedOwnerProps | DefaultOwnerProps);
 
-// 돌봄 완료 시 상세보기 콜백 필수
+// 기존 완료 카드 사용처 호환성 유지
 type CompletedProps = {
   isCompleted: true;
   onCompletedDetailClick: () => void;
 };
 
-// 일반 견적에서는 완료 상세보기 콜백 사용 불가
 type DefaultProps = {
   isCompleted?: false;
   onCompletedDetailClick?: never;
@@ -65,7 +68,14 @@ interface BaseSitterQuoteCardProps extends BaseQuoteCardProps {
   startDate: string;
   endDate: string;
   location: string;
-  onDetailClick?: never;
+
+  // 돌봄 요청 상태
+  requestStatus?: SitterRequestStatus;
+
+  // 상세 조회 및 수정 모달 진입
+  onDetailClick?: () => void;
+  onEditClick?: () => void;
+
   onConfirmClick?: never;
 }
 
@@ -78,7 +88,19 @@ const formatPrice = (price: number) => `${price.toLocaleString("ko-KR")}원`;
 export default function QuoteCard(props: QuoteCardProps) {
   const { variant, tags, status, price, className = "" } = props;
 
+  // 팟오너: 견적 대기 상태에서만 확정 버튼 표시
   const canConfirm = status === "waiting";
+
+  // 팟트너: OPEN 요청에서만 상세보기 / 수정 버튼 표시
+  const isSitterOpen = variant === "sitter" && props.requestStatus === "OPEN";
+
+  // 팟트너: 확정 / 만료 요청은 마감
+  // 기존 isCompleted 사용처도 호환
+  const isSitterClosed =
+    variant === "sitter" &&
+    (props.requestStatus === "MATCHED" ||
+      props.requestStatus === "EXPIRED" ||
+      props.isCompleted === true);
 
   const cardClassName = [
     styles.card,
@@ -191,6 +213,7 @@ export default function QuoteCard(props: QuoteCardProps) {
         </div>
       )}
 
+      {/* 팟오너 버튼: 기존 동작 유지 */}
       {variant === "owner" &&
         (props.onDetailClick ||
           (canConfirm && props.onConfirmClick) ||
@@ -218,13 +241,43 @@ export default function QuoteCard(props: QuoteCardProps) {
           </div>
         )}
 
-      {variant === "sitter" && props.isCompleted && (
+      {/* 팟트너: OPEN 상태 버튼 */}
+      {variant === "sitter" &&
+        isSitterOpen &&
+        !isSitterClosed &&
+        (props.onDetailClick || props.onEditClick) && (
+          <div className={styles.buttonWrap}>
+            {props.onDetailClick && (
+              <Button variant="outlined" size="md" onClick={props.onDetailClick}>
+                상세보기
+              </Button>
+            )}
+
+            {props.onEditClick && (
+              <Button variant="solid" size="md" onClick={props.onEditClick}>
+                견적 수정하기
+              </Button>
+            )}
+          </div>
+        )}
+
+      {/* 팟트너: 확정/만료된 요청은 마감 오버레이 */}
+      {variant === "sitter" && isSitterClosed && (
         <CardStatusOverlay
-          message="돌봄 완료된 견적이에요"
-          action={{
-            label: "견적 상세보기",
-            onClick: props.onCompletedDetailClick,
-          }}
+          message="돌봄 요청이 마감되었습니다"
+          action={
+            props.onDetailClick
+              ? {
+                  label: "견적 상세보기",
+                  onClick: props.onDetailClick,
+                }
+              : props.isCompleted
+                ? {
+                    label: "견적 상세보기",
+                    onClick: props.onCompletedDetailClick,
+                  }
+                : undefined
+          }
         />
       )}
     </article>
