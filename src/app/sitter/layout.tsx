@@ -1,4 +1,5 @@
 import AuthGuard from "@/features/auth/components/AuthGuard/AuthGuard";
+import SitterProfileGuard from "@/features/profiles/sitter/components/SitterProfileGuard/SitterProfileGuard";
 import type { ReactNode } from "react";
 
 type SitterLayoutProps = {
@@ -6,5 +7,9 @@ type SitterLayoutProps = {
 };
 
 export default function SitterLayout({ children }: SitterLayoutProps) {
-  return <AuthGuard allowedRoles={["SITTER"]}>{children}</AuthGuard>;
+  return (
+    <AuthGuard allowedRoles={["SITTER"]}>
+      <SitterProfileGuard>{children}</SitterProfileGuard>
+    </AuthGuard>
+  );
 }

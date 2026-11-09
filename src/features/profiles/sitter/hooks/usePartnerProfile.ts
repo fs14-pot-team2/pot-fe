@@ -27,6 +27,8 @@ interface UpdatePartnerProfileVariables {
 export const partnerProfileQueryKey = ["partner-profile"] as const;
 
 export function useCreatePartnerProfile() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async ({ input, imageFile }: CreatePartnerProfileVariables) => {
       let profileImageUrl = input.profileImageUrl;
@@ -57,13 +59,19 @@ export function useCreatePartnerProfile() {
         profileImageUrl,
       });
     },
+
+    onSuccess: (profile) => {
+      queryClient.setQueryData(partnerProfileQueryKey, profile);
+    },
   });
 }
 
-export function usePartnerProfile() {
+export function usePartnerProfile(enabled = true) {
   return useQuery({
     queryKey: partnerProfileQueryKey,
     queryFn: getPartnerProfile,
+    enabled,
+    retry: false,
   });
 }
 
