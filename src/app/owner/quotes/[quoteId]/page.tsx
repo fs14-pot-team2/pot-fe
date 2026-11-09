@@ -18,51 +18,6 @@ import type { QuoteDetailResponse } from "@/features/quotes/owner/types/quote";
 
 import styles from "./page.module.css";
 
-// UI 테스트: true / 실제 API 요청: false
-const USE_MOCK: boolean = false;
-
-const mockQuoteDetail: QuoteDetailResponse = {
-  quote: {
-    id: "10",
-    price: 50000,
-    comment: "정성껏 식물을 돌봐드리겠습니다. 물주기와 햇빛 관리도 꼼꼼하게 진행할게요.",
-    createdAt: "2026-11-05T04:00:00.000Z",
-  },
-
-  designatedRequestId: "30",
-
-  careRequest: {
-    id: "1",
-    status: "OPEN",
-    confirmedQuoteId: null,
-    createdAt: "2026-11-05T01:00:00.000Z",
-    serviceType: "SHORT_CARE",
-    startDate: "2026-11-15",
-    endDate: "2026-11-17",
-    sido: "서울특별시",
-    sigungu: "강남구",
-    bname: "역삼동",
-    zonecode: "06236",
-    address: "서울특별시 강남구 테헤란로 123",
-    detailAddress: "101동 1001호",
-  },
-
-  owner: {
-    nickname: "초록집사",
-  },
-
-  sitter: {
-    id: "20",
-    nickname: "여진최고123",
-    profileImageUrl: null,
-    gender: "FEMALE",
-    shortIntroduction: "집을 비우는 동안 반려식물을 정성껏 돌봐드려요.",
-    averageRating: 4.6,
-    reviewCount: 8,
-    confirmedQuoteCount: 5,
-  },
-};
-
 const subscribe = () => () => {};
 
 function useShareUrl() {
@@ -242,7 +197,7 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
                   size="md"
                   className={styles.confirmButton}
                   onClick={handleConfirmQuote}
-                  disabled={!USE_MOCK}
+                  disabled
                 >
                   견적 확정하기
                 </Button>
@@ -265,7 +220,10 @@ export default function OwnerQuoteDetailPage() {
   const params = useParams<{ quoteId: string }>();
   const quoteId = params.quoteId;
 
-  const { data, isPending, isError, error, refetch } = useQuoteDetail(quoteId, !USE_MOCK);
+  // 양의 정수 형태의 견적 ID만 허용
+  const isValidQuoteId = /^\d+$/.test(quoteId) && BigInt(quoteId) > 0n;
+
+  const { data, isPending, isError, error, refetch } = useQuoteDetail(quoteId);
 
   return (
     <main className={styles.main}>
@@ -275,10 +233,13 @@ export default function OwnerQuoteDetailPage() {
         </header>
       </div>
 
-      {USE_MOCK ? (
-        <QuoteDetailContent data={mockQuoteDetail} />
+      {/* 잘못된 ID는 로딩 상태보다 먼저 처리 */}
+      {!isValidQuoteId ? (
+        <div className={`container ${styles.feedback}`} role="alert">
+          <p>올바르지 않은 견적 번호입니다.</p>
+        </div>
       ) : isPending ? (
-        <div className={`container ${styles.feedback}`}>
+        <div className={`container ${styles.feedback}`} role="status">
           <p>견적 정보를 불러오는 중입니다.</p>
         </div>
       ) : isError ? (
