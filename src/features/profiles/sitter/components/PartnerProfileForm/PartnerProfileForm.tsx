@@ -18,6 +18,7 @@ type PartnerProfileFormProps = {
   initialValues?: PartnerProfileValues;
   isSubmitting?: boolean;
   onSubmit: (values: PartnerProfileValues, imageFile: File | null) => void;
+  onCancel?: () => void;
 };
 
 const countWithoutSpaces = (value: string) => {
@@ -38,6 +39,7 @@ export default function PartnerProfileForm({
   initialValues,
   isSubmitting = false,
   onSubmit,
+  onCancel,
 }: PartnerProfileFormProps) {
   const {
     control,
@@ -367,9 +369,23 @@ export default function PartnerProfileForm({
           }}
         />
 
-        <Button type="submit" disabled={isSubmitting || !isValid} className={styles.submitButton}>
-          저장하기
-        </Button>
+        <div className={styles.actionButtons}>
+          <Button type="submit" disabled={isSubmitting || !isValid} className={styles.actionButton}>
+            저장하기
+          </Button>
+
+          {!isCreateMode && (
+            <Button
+              type="button"
+              variant="outlined"
+              disabled={isSubmitting}
+              className={styles.actionButton}
+              onClick={onCancel}
+            >
+              취소
+            </Button>
+          )}
+        </div>
       </form>
     </section>
   );

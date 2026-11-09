@@ -1,0 +1,162 @@
+.page {
+  width: 100%;
+}
+
+.titleArea {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  box-sizing: border-box;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: var(--font-medium);
+}
+
+.banner {
+  width: 100%;
+  height: 150px;
+  background-color: var(--color-brand);
+}
+
+.content {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+  box-sizing: border-box;
+}
+
+.pageState {
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.profileSection {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  align-items: start;
+  gap: 64px;
+  padding-bottom: 32px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.actionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 54px;
+  padding: 0 16px;
+  border-radius: 12px;
+  box-sizing: border-box;
+  font-size: 16px;
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+}
+
+.primaryAction {
+  border: 1px solid var(--color-brand);
+  background-color: var(--color-brand);
+  color: var(--color-bg-wh);
+}
+
+.secondaryAction {
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-wh);
+  color: #969696;
+}
+
+.editIcon {
+  filter: brightness(0) opacity(0.5);
+}
+
+.secondaryAction:disabled {
+  cursor: not-allowed;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: calc(100% - 304px);
+  max-width: 656px;
+  margin-top: 32px;
+}
+
+.activitySection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: var(--font-semibold);
+}
+
+.reviewState {
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .titleArea {
+    padding: 24px 32px;
+  }
+
+  .banner {
+    height: 160px;
+  }
+
+  .content {
+    padding: 40px 32px 64px;
+  }
+
+  .profileSection {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .actions {
+    flex-direction: row-reverse;
+  }
+
+  .details {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 540px) {
+  .titleArea {
+    padding: 20px 24px;
+  }
+
+  .banner {
+    height: 120px;
+  }
+
+  .content {
+    padding: 24px 24px 48px;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+}

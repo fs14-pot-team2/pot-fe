@@ -31,7 +31,7 @@ export default function PartnerReviews({ reviews, pagination }: PartnerReviewsPr
         </>
       ) : (
         <div className={styles.empty}>
-          <EmptyState messages={["아직 등록된 리뷰가 없어요!", "가장 먼저 리뷰를 등록해보세요"]} />
+          <EmptyState messages={["아직 등록된 리뷰가 없어요!"]} />
         </div>
       )}
     </section>

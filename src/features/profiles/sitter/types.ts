@@ -25,6 +25,8 @@ export interface PartnerProfileResponse extends CreatePartnerProfileRequest {
   userId: string;
 }
 
+export type UpdatePartnerProfileRequest = CreatePartnerProfileRequest;
+
 export type ProfileImageContentType = "image/jpeg" | "image/png" | "image/webp";
 
 export interface ProfileImagePresignedUrlRequest {
