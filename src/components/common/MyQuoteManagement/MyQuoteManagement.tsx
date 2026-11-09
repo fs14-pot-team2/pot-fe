@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { formatDateOnly } from "@/utils/dateFormat";
+import { useRejectedRequestReason } from "@/features/care-requests/owner/hooks/useCareRequests";
 
 import CareInfo from "@/components/common/CareInfo/CareInfo";
 import QuoteCard from "@/components/common/QuoteCard/QuoteCard";
@@ -33,7 +34,7 @@ export interface MyQuoteItem {
   comment: string;
   price?: number;
   designatedRequestId: string | null;
-  rejectionReason?: string | null;
+  rejectedRequestId: string | null;
   sitter: {
     nickname: string;
     profileImage?: string | null;
@@ -76,6 +77,12 @@ export default function MyQuoteManagement({
   const [deleteError, setDeleteError] = useState(false);
   const [selectedRejectedQuote, setSelectedRejectedQuote] = useState<MyQuoteItem | null>(null);
 
+  const {
+    data: rejectedReasonData,
+    isPending: isRejectedReasonPending,
+    isError: isRejectedReasonError,
+  } = useRejectedRequestReason(selectedRejectedQuote?.rejectedRequestId);
+
   // 받았던 견적에서만 사용하는 체크박스 상태
   const [showConfirmedOnly, setShowConfirmedOnly] = useState(false);
 
@@ -108,6 +115,10 @@ export default function MyQuoteManagement({
   };
 
   const openRejectReasonModal = (quote: MyQuoteItem) => {
+    if (!quote.rejectedRequestId) {
+      return;
+    }
+
     setSelectedRejectedQuote(quote);
   };
 
@@ -312,8 +323,11 @@ export default function MyQuoteManagement({
             <div className={styles.rejectReasonBody}>
               <h3>반려 사유</h3>
               <p>
-                {selectedRejectedQuote.rejectionReason?.trim() ||
-                  "반려 사유를 불러오지 못했습니다."}
+                {isRejectedReasonPending
+                  ? "반려 사유를 불러오는 중입니다."
+                  : isRejectedReasonError
+                    ? "반려 사유를 불러오지 못했습니다."
+                    : rejectedReasonData?.reason}
               </p>
             </div>
           </div>

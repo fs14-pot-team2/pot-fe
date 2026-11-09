@@ -8,6 +8,10 @@ import type {
   UpdatedCareRequest,
 } from "@/features/care-requests/owner/types/careRequest";
 
+export type RejectedRequestReasonResponse = {
+  reason: string;
+};
+
 // 활성 돌봄 요청 조회
 export async function getActiveCareRequest(): Promise<ActiveCareRequestResponse> {
   const { data } = await apiClient.get<ActiveCareRequestResponse>("/care-requests/me/active");
@@ -30,6 +34,17 @@ export async function updateCareRequest({
   const { data } = await apiClient.patch<UpdatedCareRequest>(
     `/care-requests/${careRequestId}`,
     input,
+  );
+
+  return data;
+}
+
+// 지졍 요청 반려 사유 조회
+export async function getRejectedRequestReason(
+  rejectedRequestId: string,
+): Promise<RejectedRequestReasonResponse> {
+  const { data } = await apiClient.get<RejectedRequestReasonResponse>(
+    `/care-requests/rejected-requests/${encodeURIComponent(rejectedRequestId)}`,
   );
 
   return data;

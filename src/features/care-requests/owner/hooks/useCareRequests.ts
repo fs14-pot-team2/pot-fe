@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createCareRequest,
   getActiveCareRequest,
+  getRejectedRequestReason,
   updateCareRequest,
 } from "@/features/care-requests/owner/api/careRequestsApi";
 
@@ -47,5 +48,21 @@ export function useUpdateCareRequest() {
         queryKey: careRequestKeys.all,
       });
     },
+  });
+}
+
+// 지졍 요청 반려 사유 조회
+export function useRejectedRequestReason(rejectedRequestId?: string | null) {
+  return useQuery({
+    queryKey: careRequestKeys.rejectedReason(rejectedRequestId ?? ""),
+    queryFn: () => {
+      if (!rejectedRequestId) {
+        throw new Error("반려 요청 ID가 필요합니다.");
+      }
+
+      return getRejectedRequestReason(rejectedRequestId);
+    },
+    enabled: Boolean(rejectedRequestId),
+    retry: false,
   });
 }
