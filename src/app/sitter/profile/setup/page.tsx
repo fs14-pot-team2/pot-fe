@@ -2,19 +2,41 @@
 
 import { useRouter } from "next/navigation";
 
-import PartnerProfileForm from "@/features/profiles/sitter/components/PartnerProfileForm/PartnerProfileForm";
-import { useCreatePartnerProfile } from "@/features/profiles/sitter/hooks/usePartnerProfile";
 import { useToast } from "@/components/ui/Toast/ToastProvider";
+import PartnerProfileForm from "@/features/profiles/sitter/components/PartnerProfileForm/PartnerProfileForm";
+import {
+  useCreatePartnerProfile,
+  usePartnerProfile,
+} from "@/features/profiles/sitter/hooks/usePartnerProfile";
 
+import Button from "@/components/ui/Button/Button";
+import Loading from "@/components/ui/Loading/Loading";
 import type {
   CreatePartnerProfileRequest,
   PartnerProfileValues,
 } from "@/features/profiles/sitter/types";
+import { isAxiosError } from "axios";
+import { useEffect } from "react";
 
 export default function SitterProfileRegisterPage() {
   const router = useRouter();
   const createProfileMutation = useCreatePartnerProfile();
+  const { data: profile, isPending, isError, error, refetch } = usePartnerProfile();
+
+  const isRegistering = createProfileMutation.isPending || createProfileMutation.isSuccess;
   const { showToast } = useToast();
+
+  const isProfileMissing =
+    isError &&
+    isAxiosError<{ code?: string }>(error) &&
+    error.response?.status === 404 &&
+    error.response?.data?.code === "PROFILE_NOT_FOUND";
+
+  useEffect(() => {
+    if (profile && !isRegistering) {
+      router.replace("/sitter/profile/edit");
+    }
+  }, [profile, isRegistering, router]);
 
   const handleSubmit = async (values: PartnerProfileValues, imageFile: File | null) => {
     if (!values.gender) {
@@ -47,6 +69,30 @@ export default function SitterProfileRegisterPage() {
       });
     }
   };
+
+  if (isPending) {
+    return <Loading variant="content" />;
+  }
+
+  if (profile && !isRegistering) {
+    return <Loading variant="content" />;
+  }
+
+  if (isError && !isProfileMissing) {
+    return (
+      <div role="alert">
+        <p>프로필 정보를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.</p>
+
+        <Button size="sm" onClick={() => void refetch()}>
+          다시 시도
+        </Button>
+      </div>
+    );
+  }
+
+  if (!isProfileMissing) {
+    return <Loading variant="content" />;
+  }
 
   return (
     <PartnerProfileForm
