@@ -1,0 +1,125 @@
+.page {
+  min-height: 100dvh;
+  padding: 80px 24px 120px;
+  box-sizing: border-box;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  gap: 32px;
+}
+
+.title {
+  margin: 0;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 28px;
+  font-weight: var(--font-bold);
+}
+
+.field {
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.label {
+  margin: 0 0 24px;
+  font-size: 20px;
+  font-weight: var(--font-medium);
+}
+
+.email {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+/* 공통 Input을 감싸는 각 입력 영역의 구분선 */
+.form > div:not(.actions) {
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.form label {
+  font-size: 20px;
+}
+
+.form input {
+  font-size: 16px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.button {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 64px 24px 96px;
+  }
+
+  .form {
+    max-width: 360px;
+    gap: 28px;
+  }
+
+  .title {
+    padding-bottom: 24px;
+    font-size: 22px;
+  }
+
+  .field,
+  .form > div:not(.actions) {
+    padding-bottom: 24px;
+  }
+
+  .label,
+  .form label {
+    font-size: 16px;
+  }
+
+  .label {
+    margin-bottom: 16px;
+  }
+
+  .email {
+    font-size: 16px;
+  }
+
+  .actions {
+    gap: 12px;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .page {
+    padding: 48px 16px 72px;
+  }
+
+  .form {
+    max-width: none;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .form input {
+    font-size: 14px;
+  }
+
+  .email {
+    font-size: 14px;
+  }
+}
