@@ -8,7 +8,7 @@ import Modal from "@/components/ui/Modal/Modal";
 import Tag from "@/components/ui/Tag/Tag";
 import TextArea from "@/components/ui/TextArea/TextArea";
 
-import type { ReceivedRequestItem } from "@/types/receivedRequest";
+import type { ServiceType } from "@/types/receivedRequest";
 import { formatDateOnly } from "@/utils/dateFormat";
 import styles from "./SendQuoteModal.module.css";
 
@@ -17,9 +17,23 @@ export interface QuoteFormValues {
   comment: string;
 }
 
+interface QuoteRequestSummary {
+  serviceType: ServiceType;
+  startDate: string;
+  endDate: string;
+  sido: string;
+  sigungu: string | null;
+  bname: string | null;
+  owner: {
+    nickname: string;
+  };
+}
+
 interface SendQuoteModalProps {
   isOpen: boolean;
-  request: ReceivedRequestItem["careRequest"];
+  mode?: "create" | "edit";
+  request: QuoteRequestSummary;
+  initialValues?: QuoteFormValues;
   isDesignated: boolean;
   isSubmitting?: boolean;
   onClose: () => void;
@@ -28,14 +42,23 @@ interface SendQuoteModalProps {
 
 export default function SendQuoteModal({
   isOpen,
+  mode = "create",
   request,
+  initialValues,
   isDesignated,
   isSubmitting = false,
   onClose,
   onSubmit,
 }: SendQuoteModalProps) {
-  const [price, setPrice] = useState("");
-  const [comment, setComment] = useState("");
+  const [price, setPrice] = useState(() =>
+    mode === "edit" && initialValues ? String(initialValues.price) : "",
+  );
+
+  const [comment, setComment] = useState(() =>
+    mode === "edit" && initialValues ? initialValues.comment : "",
+  );
+
+  const isEditMode = mode === "edit";
 
   const numericPrice = Number(price);
   const commentLength = comment.replace(/\s/g, "").length;
@@ -75,7 +98,7 @@ export default function SendQuoteModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="견적 보내기"
+      title={isEditMode ? "견적 수정하기" : "견적 보내기"}
       className={styles.modal}
       footer={
         <Button
@@ -83,7 +106,13 @@ export default function SendQuoteModal({
           disabled={!isFormValid || isSubmitting}
           onClick={handleSubmit}
         >
-          견적 보내기
+          {isSubmitting
+            ? isEditMode
+              ? "수정 중..."
+              : "전송 중..."
+            : isEditMode
+              ? "견적 수정하기"
+              : "견적 보내기"}
         </Button>
       }
     >
