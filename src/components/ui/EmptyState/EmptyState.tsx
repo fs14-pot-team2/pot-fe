@@ -15,15 +15,23 @@ type EmptyStateProps = {
   messages: string[];
   action?: EmptyStateAction;
   className?: string;
+  size?: "md" | "lg";
 };
 
-export default function EmptyState({ messages, action, className = "" }: EmptyStateProps) {
-  const emptyStateClassName = [styles.container, className].filter(Boolean).join(" ");
+export default function EmptyState({
+  messages,
+  action,
+  className = "",
+  size = "md",
+}: EmptyStateProps) {
+  const emptyStateClassName = [styles.container, size === "lg" ? styles.large : "", className]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div className={emptyStateClassName}>
       <div className={styles.iconWrapper}>
-        <Image src="/icons/empty_state.svg" alt="" fill sizes="128px" />
+        <Image src="/icons/empty_state.svg" alt="" fill sizes={size === "lg" ? "160px" : "128px"} />
       </div>
 
       <div className={styles.messages}>
