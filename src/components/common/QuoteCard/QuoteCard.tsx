@@ -20,7 +20,7 @@ interface BaseQuoteCardProps {
 
 interface BaseOwnerQuoteCardProps extends BaseQuoteCardProps {
   variant: "owner";
-  comment: string;
+  comment?: string;
   sitter: {
     nickname: string;
     profileImage?: string | null;
@@ -120,7 +120,8 @@ export default function QuoteCard(props: QuoteCardProps) {
 
       {variant === "owner" ? (
         <>
-          <p className={styles.comment}>{props.comment}</p>
+          {/* 코멘트가 있는 경우에만 표시 */}
+          {props.comment && <p className={styles.comment}>{props.comment}</p>}
 
           <div className={styles.sitterProfile}>
             <div className={styles.avatar}>
@@ -213,7 +214,7 @@ export default function QuoteCard(props: QuoteCardProps) {
         </div>
       )}
 
-      {/* 팟오너 버튼: 기존 동작 유지 */}
+      {/* 팟오너 버튼 */}
       {variant === "owner" &&
         (props.onDetailClick ||
           (canConfirm && props.onConfirmClick) ||

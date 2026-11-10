@@ -1,0 +1,103 @@
+.main {
+  min-height: calc(100dvh - 160px);
+  padding: 48px 0 100px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* 견적 탭 */
+.tabsNav {
+  width: 100%;
+  border-bottom: 1px solid #e9e9e9;
+}
+
+.tabs {
+  width: max-content;
+  max-width: 100%;
+  border-bottom: 0;
+}
+
+.tabs :global(button) {
+  flex: 0 0 auto;
+  padding: 14px 20px;
+  font-size: 18px;
+}
+
+/* 탭 아래 페이지 콘텐츠 */
+.pageContent {
+  width: 100%;
+  min-width: 0;
+}
+
+/* 빈 상태 및 오류 상태 */
+.feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  min-height: 320px;
+  padding: 40px 20px;
+  border: 1px solid #e9e9e9;
+  border-radius: 16px;
+  background-color: var(--color-bg-wh);
+}
+
+.errorMessage {
+  margin: 0;
+  color: #555;
+  font-size: 16px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+@media (max-width: 1024px) {
+  .main {
+    padding: 40px 0 80px;
+  }
+
+  .content {
+    gap: 28px;
+  }
+
+  .tabs :global(button) {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 540px) {
+  .main {
+    padding: 28px 0 64px;
+  }
+
+  .content {
+    gap: 24px;
+  }
+
+  .tabs :global(button) {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+
+  .feedback {
+    min-height: 260px;
+    padding: 32px 16px;
+  }
+
+  .errorMessage {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .tabs :global(button) {
+    padding: 12px 10px;
+    font-size: 13px;
+  }
+}

@@ -12,6 +12,12 @@ export type RejectedRequestReasonResponse = {
   reason: string;
 };
 
+export type CanceledCareRequestResponse = {
+  id: string;
+  status: "CANCELED";
+  canceledAt: string;
+};
+
 // 활성 돌봄 요청 조회
 export async function getActiveCareRequest(): Promise<ActiveCareRequestResponse> {
   const { data } = await apiClient.get<ActiveCareRequestResponse>("/care-requests/me/active");
@@ -39,7 +45,18 @@ export async function updateCareRequest({
   return data;
 }
 
-// 지졍 요청 반려 사유 조회
+// 돌봄 요청 취소
+export async function cancelCareRequest(
+  careRequestId: string,
+): Promise<CanceledCareRequestResponse> {
+  const { data } = await apiClient.patch<CanceledCareRequestResponse>(
+    `/care-requests/${careRequestId}/cancel`,
+  );
+
+  return data;
+}
+
+// 지정 요청 반려 사유 조회
 export async function getRejectedRequestReason(
   rejectedRequestId: string,
 ): Promise<RejectedRequestReasonResponse> {
