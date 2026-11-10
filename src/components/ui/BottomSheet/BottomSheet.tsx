@@ -65,6 +65,26 @@ export default function BottomSheet({
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
+    if (!isOpen) return;
+
+    const mediaQuery = window.matchMedia("(min-width: 541px)");
+
+    const handleScreenChange = () => {
+      if (mediaQuery.matches) {
+        onClose();
+      }
+    };
+
+    handleScreenChange();
+
+    mediaQuery.addEventListener("change", handleScreenChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleScreenChange);
+    };
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
     const dialog = dialogRef.current;
 
     if (!dialog) {
@@ -78,6 +98,8 @@ export default function BottomSheet({
 
       return;
     }
+
+    dialog.removeAttribute("data-closing");
 
     previousFocusRef.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -103,20 +125,41 @@ export default function BottomSheet({
 
   const sheetClassName = [styles.sheet, className].filter(Boolean).join(" ");
 
-  const handleCancel = (event: React.SyntheticEvent<HTMLDialogElement>) => {
-    event.preventDefault();
-    onClose();
+  const handleClose = () => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      onClose();
+      return;
+    }
+
+    dialogRef.current?.setAttribute("data-closing", "");
   };
 
-  const handleBackdropClick = (event: React.MouseEvent<HTMLDialogElement>) => {
-    if (event.target === event.currentTarget) {
+  const handleTransitionEnd = (event: React.TransitionEvent<HTMLDialogElement>) => {
+    if (
+      event.target === event.currentTarget &&
+      event.propertyName === "transform" &&
+      dialogRef.current?.hasAttribute("data-closing")
+    ) {
       onClose();
     }
   };
 
+  const handleCancel = (event: React.SyntheticEvent<HTMLDialogElement>) => {
+    event.preventDefault();
+    handleClose();
+  };
+
+  const handleBackdropClick = (event: React.MouseEvent<HTMLDialogElement>) => {
+    if (event.target === event.currentTarget) {
+      handleClose();
+    }
+  };
+
   const handleApply = () => {
+    if (dialogRef.current?.hasAttribute("data-closing")) return;
+
     onApply();
-    onClose();
+    handleClose();
   };
 
   return (
@@ -126,6 +169,7 @@ export default function BottomSheet({
       aria-label="필터"
       onCancel={handleCancel}
       onClick={handleBackdropClick}
+      onTransitionEnd={handleTransitionEnd}
     >
       <header className={styles.header}>
         <h2 className={styles.title}>필터</h2>
@@ -134,7 +178,7 @@ export default function BottomSheet({
           className={styles.closeButton}
           type="button"
           aria-label="필터 닫기"
-          onClick={onClose}
+          onClick={handleClose}
         >
           <Image src="/icons/ic_close.svg" alt="" width={24} height={24} />
         </button>
