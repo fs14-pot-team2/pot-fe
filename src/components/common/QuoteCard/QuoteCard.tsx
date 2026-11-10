@@ -109,10 +109,12 @@ export default function QuoteCard(props: QuoteCardProps) {
       ? (props.onDetailClick ?? (props.isCompleted ? props.onCompletedDetailClick : undefined))
       : undefined;
 
-  const isSitterClickable = variant === "sitter" && Boolean(sitterDetailClick);
+  // OPEN 상태에서만 카드 전체 클릭 허용
+  const isSitterClickable =
+    variant === "sitter" && isSitterOpen && !isSitterClosed && Boolean(sitterDetailClick);
 
   const handleCardClick = () => {
-    if (variant !== "sitter") return;
+    if (!isSitterClickable) return;
 
     sitterDetailClick?.();
   };
@@ -324,12 +326,18 @@ export default function QuoteCard(props: QuoteCardProps) {
           </div>
         )}
 
-      {/* 팟트너: 마감 오버레이 유지 */}
-      {/* 상세보기는 카드 전체 클릭으로 처리 */}
+      {/* 팟트너: 마감된 견적은 오버레이 버튼으로만 상세 이동 */}
       {variant === "sitter" && isSitterClosed && (
         <CardStatusOverlay
           message="돌봄 요청이 마감되었습니다"
-          className={isSitterClickable ? styles.clickThroughOverlay : undefined}
+          action={
+            sitterDetailClick
+              ? {
+                  label: "견적 상세보기",
+                  onClick: sitterDetailClick,
+                }
+              : undefined
+          }
         />
       )}
     </article>
