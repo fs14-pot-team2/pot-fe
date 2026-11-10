@@ -11,12 +11,27 @@
   background-color: var(--color-bg-wh);
 }
 
+/* 팟트너 카드 전체 클릭 */
+.clickableCard {
+  cursor: pointer;
+}
+
+.clickableCard:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 3px;
+}
+
+/* 마감 오버레이가 카드 클릭을 가로막지 않도록 처리 */
+.clickThroughOverlay {
+  pointer-events: none;
+}
+
 .top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 24px;
+  min-height: 40px;
 }
 
 .tags {
@@ -27,6 +42,53 @@
   min-width: 0;
 }
 
+/* 팟트너 상단 상태 및 수정 아이콘 */
+.topActions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 팟트너 수정 / 팟오너 쪽지 공통 아이콘 버튼 */
+.editButton,
+.messageButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.editButton:hover,
+.messageButton:not(:disabled):hover {
+  background-color: #f3f0e6;
+}
+
+.editButton:focus-visible,
+.messageButton:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+.editButton img,
+.messageButton img {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* 쪽지 기능이 연결되기 전 */
+.messageButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .comment {
   margin: 20px 0 16px;
   font-size: 18px;
@@ -35,11 +97,13 @@
   overflow-wrap: anywhere;
 }
 
+/* 팟트너 프로필 */
 .sitterProfile {
   display: flex;
   align-items: center;
   gap: 12px;
   min-width: 0;
+  margin-top: 10px;
   padding: 12px;
   border: 1px solid #d9d9d9;
   border-radius: 10px;
@@ -127,12 +191,10 @@
   font-weight: var(--font-regular);
 }
 
-/* 성별 */
 .gender {
   color: #999;
 }
 
-/* 확정 건수 영역 */
 .confirmedCount {
   display: inline-flex;
   align-items: center;
@@ -148,6 +210,7 @@
   font-weight: var(--font-regular);
 }
 
+/* 팟오너 정보 */
 .ownerNickname {
   margin: 24px 0 16px;
   font-size: 20px;
@@ -188,6 +251,7 @@
   overflow-wrap: anywhere;
 }
 
+/* 견적 금액 */
 .priceWrap {
   display: flex;
   align-items: center;
@@ -207,6 +271,7 @@
   white-space: nowrap;
 }
 
+/* 팟오너 상세보기 및 확정 버튼 */
 .buttonWrap {
   display: flex;
   gap: 12px;
@@ -252,6 +317,11 @@
   .sitterCard .top {
     flex-direction: column-reverse;
     align-items: flex-start;
+  }
+
+  .sitterCard .topActions {
+    width: 100%;
+    justify-content: flex-end;
   }
 
   .dateWrap {
