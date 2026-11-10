@@ -3,8 +3,8 @@
 import { isAxiosError } from "axios";
 import { useRouter } from "next/navigation";
 
-import Button from "@/components/ui/Button/Button";
 import EmptyState from "@/components/ui/EmptyState/EmptyState";
+import ErrorState from "@/components/ui/ErrorState/ErrorState";
 import Loading from "@/components/ui/Loading/Loading";
 import Toggle from "@/components/ui/Toggle/Toggle";
 
@@ -137,6 +137,7 @@ export default function OwnerActiveQuotesPage() {
       return <Loading variant="content" />;
     }
 
+    // 진행 중인 돌봄 요청이 없는 정상적인 빈 상태
     if (isError && isNoActiveRequest(error)) {
       return (
         <div className={styles.feedback}>
@@ -151,15 +152,16 @@ export default function OwnerActiveQuotesPage() {
       );
     }
 
+    // 그 외 API 오류는 공통 ErrorState 사용
     if (isError) {
       return (
-        <div className={styles.feedback} role="alert">
-          <p className={styles.errorMessage}>{getErrorMessage(error)}</p>
-
-          <Button variant="solid" size="sm" onClick={() => void refetch()}>
-            다시 시도
-          </Button>
-        </div>
+        <ErrorState
+          variant="content"
+          title="견적 현황을 불러오지 못했어요"
+          description={getErrorMessage(error)}
+          actionLabel="다시 시도"
+          onAction={() => void refetch()}
+        />
       );
     }
 
@@ -178,6 +180,7 @@ export default function OwnerActiveQuotesPage() {
       .filter(Boolean)
       .join(" ");
 
+    // 실제 견적이 한 건이라도 있으면 수정 불가
     const canEdit = data.quotes.length === 0;
 
     return (
