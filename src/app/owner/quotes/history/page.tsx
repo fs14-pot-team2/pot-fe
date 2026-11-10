@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
 
-import Button from "@/components/ui/Button/Button";
 import DropDown from "@/components/ui/DropDown/DropDown";
 import EmptyState from "@/components/ui/EmptyState/EmptyState";
+import ErrorState from "@/components/ui/ErrorState/ErrorState";
 import Loading from "@/components/ui/Loading/Loading";
 import Toggle from "@/components/ui/Toggle/Toggle";
 
@@ -119,7 +119,6 @@ function HistoryRequestCard({ item, onQuoteDetail }: HistoryRequestCardProps) {
     .join(" ");
 
   const quoteItems = mapHistoryQuoteItems(item);
-
   const isMatched = careRequest.status === "MATCHED";
 
   return (
@@ -224,13 +223,13 @@ export default function OwnerHistoryQuotesPage() {
     // 첫 페이지 조회 실패
     if (isError && !data) {
       return (
-        <div className={quotePageStyles.feedback} role="alert">
-          <p className={quotePageStyles.errorMessage}>{getErrorMessage(error)}</p>
-
-          <Button variant="solid" size="sm" onClick={() => void refetch()}>
-            다시 시도
-          </Button>
-        </div>
+        <ErrorState
+          variant="content"
+          title="받았던 견적을 불러오지 못했어요"
+          description={getErrorMessage(error)}
+          actionLabel="다시 시도"
+          onAction={() => void refetch()}
+        />
       );
     }
 
@@ -262,15 +261,16 @@ export default function OwnerHistoryQuotesPage() {
           ))}
         </div>
 
-        {/* 다음 페이지 조회 실패 */}
+        {/* 다음 페이지 조회 실패: 기존 목록은 유지 */}
         {isFetchNextPageError && (
-          <div className={styles.loadMoreError} role="alert">
-            <p className={quotePageStyles.errorMessage}>다음 견적 내역을 불러오지 못했습니다.</p>
-
-            <Button variant="solid" size="sm" onClick={() => void fetchNextPage()}>
-              다시 시도
-            </Button>
-          </div>
+          <ErrorState
+            variant="content"
+            className={styles.loadMoreError}
+            title="다음 견적 내역을 불러오지 못했어요"
+            description="잠시 후 다시 시도해 주세요."
+            actionLabel="다시 시도"
+            onAction={() => void fetchNextPage()}
+          />
         )}
 
         {isFetchingNextPage && (
