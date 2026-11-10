@@ -28,7 +28,6 @@ import styles from "./ProfilePage.module.css";
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
-// 서비스 유형 순서와 무관하게 동일한 선택인지 비교합니다.
 function isSameServices(a: PartnerServiceType[], b: PartnerServiceType[]) {
   return a.length === b.length && a.every((service) => b.includes(service));
 }
@@ -74,10 +73,13 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
 
   const updateProfile = useUpdateOwnerProfile();
 
-  // 서버에서 마지막으로 확인된 프로필
+  // 마지막으로 전달받은 서버 프로필
+  const [previousProfile, setPreviousProfile] = useState(profile);
+
+  // 변경 여부를 비교할 서버 저장 기준값
   const [savedProfile, setSavedProfile] = useState(profile);
 
-  // 화면에서 수정 중인 값
+  // 화면에서 사용자가 편집 중인 값
   const [selectedServices, setSelectedServices] = useState<PartnerServiceType[]>(
     profile.preferredServiceTypes ?? [],
   );
@@ -89,6 +91,23 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isImageRemoved, setIsImageRemoved] = useState(false);
+
+  // 같은 사용자의 프로필이 재조회되면 서버 기준값을 갱신합니다.
+  // 사용자가 편집 중인 필드는 덮어쓰지 않습니다.
+  if (profile !== previousProfile) {
+    setPreviousProfile(profile);
+    setSavedProfile(profile);
+
+    setSelectedServices((current) =>
+      isSameServices(current, previousProfile.preferredServiceTypes ?? [])
+        ? (profile.preferredServiceTypes ?? [])
+        : current,
+    );
+
+    setSelectedRegion((current) =>
+      current === previousProfile.livingRegion ? (profile.livingRegion ?? null) : current,
+    );
+  }
 
   // Object URL 메모리 정리
   useEffect(() => {
@@ -127,7 +146,6 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
 
     if (!file) return;
 
-    // 같은 파일도 다시 선택할 수 있도록 초기화
     event.target.value = "";
 
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
@@ -186,19 +204,18 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
 
     try {
       if (imageFile) {
-        // 1. Presigned URL 발급
-        // 2. S3에 이미지 업로드
-        // 3. 반환된 imageUrl을 프로필 수정 요청에 포함
+        // Presigned URL 발급 후 이미지 업로드
         input.profileImageUrl = await uploadProfileImage(imageFile);
       } else if (isImageRemoved) {
         input.profileImageUrl = null;
       }
 
-      // 변경된 필드만 PATCH
+      // 변경된 필드만 PATCH 요청
       const updatedProfile = await updateProfile.mutateAsync(input);
 
-      // 저장 성공 후 비교 기준 갱신
+      // 저장된 프로필로 기준값 및 폼 동기화
       setSavedProfile(updatedProfile);
+      setPreviousProfile(updatedProfile);
 
       setSelectedServices(updatedProfile.preferredServiceTypes ?? []);
 
@@ -212,7 +229,7 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
         message: "프로필이 저장되었습니다.",
       });
     } catch (error) {
-      // 실패 시 기존 입력값과 이미지 미리보기 유지
+      // 저장 실패 시 사용자가 입력 중인 값 유지
       showToast({
         message: getErrorMessage(error),
       });
@@ -375,6 +392,5 @@ export default function OwnerProfilePage() {
     );
   }
 
-  // 데이터 조회 후 폼을 생성하여 초기값을 설정합니다.
   return <OwnerProfileForm key={data.userId} profile={data} />;
 }
