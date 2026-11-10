@@ -21,9 +21,12 @@ type AuthStatus = "checking" | "authenticated" | "guest" | "error";
 type AuthContextValue = {
   user: AuthUser | null;
   status: AuthStatus;
+  isAccountVerified: boolean;
   setSession: (session: AuthResponse) => void;
   clearSession: () => void;
   retrySession: () => void;
+  completeAccountVerification: () => void;
+  clearAccountVerification: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -34,6 +37,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [status, setStatus] = useState<AuthStatus>("checking");
   const [retryCount, setRetryCount] = useState(0);
+  const [isAccountVerified, setIsAccountVerified] = useState(false);
 
   const sessionVersion = useRef(0);
 
@@ -44,6 +48,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.clear();
       setUser(session.user);
       setStatus("authenticated");
+      setIsAccountVerified(false);
     },
     [queryClient],
   );
@@ -54,11 +59,20 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.clear();
     setUser(null);
     setStatus("guest");
+    setIsAccountVerified(false);
   }, [queryClient]);
 
   const retrySession = useCallback(() => {
     setStatus("checking");
     setRetryCount((current) => current + 1);
+  }, []);
+
+  const completeAccountVerification = useCallback(() => {
+    setIsAccountVerified(true);
+  }, []);
+
+  const clearAccountVerification = useCallback(() => {
+    setIsAccountVerified(false);
   }, []);
 
   useEffect(() => {
@@ -109,7 +123,18 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   }, [clearSession, setSession, retryCount]);
 
   return (
-    <AuthContext.Provider value={{ user, status, setSession, clearSession, retrySession }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        status,
+        isAccountVerified,
+        setSession,
+        clearSession,
+        retrySession,
+        completeAccountVerification,
+        clearAccountVerification,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

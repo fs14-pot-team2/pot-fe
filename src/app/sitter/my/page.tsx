@@ -3,6 +3,7 @@
 import styles from "./SitterMyPage.module.css";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import EmptyState from "@/components/ui/EmptyState/EmptyState";
 import { useState } from "react";
 
@@ -13,9 +14,14 @@ import PartnerReviews from "@/components/common/PartnerDetail/PartnerReviews/Par
 import Pagination from "@/components/ui/Pagination/Pagination";
 import { useSitterMyPage } from "@/features/profiles/sitter/hooks/useSitterMyPage";
 import { useSitterReviews } from "@/features/profiles/sitter/hooks/useSitterReviews";
+import PasswordVerificationModal from "@/features/account/components/PasswordVerificationModal/PasswordVerificationModal";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 export default function SitterMyPage() {
+  const router = useRouter();
+  const { completeAccountVerification } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   const { data: partner, isPending, isError, refetch } = useSitterMyPage();
 
@@ -69,7 +75,7 @@ export default function SitterMyPage() {
                 <button
                   type="button"
                   className={`${styles.actionButton} ${styles.secondaryAction}`}
-                  disabled
+                  onClick={() => setIsPasswordModalOpen(true)}
                 >
                   <span>기본 정보 수정</span>
                   <Image
@@ -122,6 +128,15 @@ export default function SitterMyPage() {
           </>
         )}
       </div>
+
+      <PasswordVerificationModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        onVerified={() => {
+          completeAccountVerification();
+          router.push("/sitter/account/edit");
+        }}
+      />
     </main>
   );
 }

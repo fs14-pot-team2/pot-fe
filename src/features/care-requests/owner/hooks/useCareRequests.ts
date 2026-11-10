@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
+  cancelCareRequest,
   createCareRequest,
   getActiveCareRequest,
   getRejectedRequestReason,
@@ -10,6 +11,8 @@ import {
 } from "@/features/care-requests/owner/api/careRequestsApi";
 
 import { careRequestKeys } from "@/features/care-requests/owner/queryKeys";
+import { activeQuotesKeys } from "@/features/quotes/owner/hooks/useActiveQuotes";
+import { ownerQuoteKeys } from "@/features/quotes/owner/queryKeys";
 
 // 활성 돌봄 요청 조회
 export function useActiveCareRequest(enabled = true) {
@@ -51,7 +54,30 @@ export function useUpdateCareRequest() {
   });
 }
 
-// 지졍 요청 반려 사유 조회
+// 돌봄 요청 취소
+export function useCancelCareRequest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: cancelCareRequest,
+
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: careRequestKeys.all,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: activeQuotesKeys.all,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ownerQuoteKeys.all,
+        }),
+      ]);
+    },
+  });
+}
+
+// 지정 요청 반려 사유 조회
 export function useRejectedRequestReason(rejectedRequestId?: string | null) {
   return useQuery({
     queryKey: careRequestKeys.rejectedReason(rejectedRequestId ?? ""),
