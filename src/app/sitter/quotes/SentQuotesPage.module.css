@@ -1,0 +1,81 @@
+.page {
+  min-height: calc(100vh - 80px);
+  padding-bottom: 80px;
+}
+
+.tabArea {
+  width: 100%;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.inner {
+  width: calc(100% - 80px);
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.tabs {
+  width: 280px;
+}
+
+.content {
+  padding-top: 20px;
+}
+
+.filter {
+  margin-top: 0;
+}
+
+.quoteList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.listState {
+  grid-column: 1 / -1;
+  min-height: 320px;
+}
+
+.pagination {
+  justify-content: center;
+  margin-top: 40px;
+}
+
+@media (max-width: 1024px) {
+  .page {
+    padding: 28px 28px 64px;
+  }
+
+  .inner {
+    max-width: 680px;
+  }
+
+  .quoteList {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 540px) {
+  .page {
+    padding: 24px 20px 56px;
+  }
+
+  .tabs {
+    width: 220px;
+  }
+
+  .filter {
+    margin-top: 16px;
+  }
+
+  .quoteList {
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  .pagination {
+    margin-top: 32px;
+  }
+}
