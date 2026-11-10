@@ -73,6 +73,12 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
 
   const updateProfile = useUpdateOwnerProfile();
 
+  // 중복 저장 요청을 즉시 차단하기 위한 잠금
+  const savingRef = useRef(false);
+
+  // 이미지 업로드부터 PATCH 완료까지의 저장 상태
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // 마지막으로 전달받은 서버 프로필
   const [previousProfile, setPreviousProfile] = useState(profile);
 
@@ -118,7 +124,8 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
     };
   }, [previewUrl]);
 
-  const isSaving = updateProfile.isPending;
+  // S3 업로드 및 PATCH 요청 전체 기간에 적용
+  const isSaving = isSubmitting || updateProfile.isPending;
 
   const imageSrc = isImageRemoved ? null : (previewUrl ?? savedProfile.profileImageUrl);
 
@@ -190,7 +197,11 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
   };
 
   const handleSave = async () => {
-    if (!hasChanges || isSaving) return;
+    // ref로 연속 클릭도 즉시 차단
+    if (!hasChanges || isSaving || savingRef.current) return;
+
+    savingRef.current = true;
+    setIsSubmitting(true);
 
     const input: UpdateOwnerProfileInput = {};
 
@@ -204,21 +215,22 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
 
     try {
       if (imageFile) {
-        // Presigned URL 발급 후 이미지 업로드
+        // 1. Presigned URL 발급
+        // 2. S3 이미지 업로드
+        // 이 단계부터 이미 저장 버튼은 비활성화 상태
         input.profileImageUrl = await uploadProfileImage(imageFile);
       } else if (isImageRemoved) {
         input.profileImageUrl = null;
       }
 
-      // 변경된 필드만 PATCH 요청
+      // 3. 변경된 필드만 PATCH 요청
       const updatedProfile = await updateProfile.mutateAsync(input);
 
-      // 저장된 프로필로 기준값 및 폼 동기화
+      // 4. 저장 성공 후 서버 기준값 및 폼 동기화
       setSavedProfile(updatedProfile);
       setPreviousProfile(updatedProfile);
 
       setSelectedServices(updatedProfile.preferredServiceTypes ?? []);
-
       setSelectedRegion(updatedProfile.livingRegion ?? null);
 
       setImageFile(null);
@@ -229,10 +241,14 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
         message: "프로필이 저장되었습니다.",
       });
     } catch (error) {
-      // 저장 실패 시 사용자가 입력 중인 값 유지
+      // 이미지 업로드 또는 PATCH 실패 시 입력값 유지
       showToast({
         message: getErrorMessage(error),
       });
+    } finally {
+      // 성공/실패와 관계없이 저장 잠금 해제
+      savingRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
