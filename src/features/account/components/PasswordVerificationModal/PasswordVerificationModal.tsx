@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import axios from "axios";
 import Modal from "@/components/ui/Modal/Modal";
 import Input from "@/components/ui/Input/Input";
+import Button from "@/components/ui/Button/Button";
 import { useVerifyPasswordMutation } from "../../hooks/useAccountMutations";
 import styles from "./PasswordVerificationModal.module.css";
 
@@ -84,6 +85,7 @@ export default function PasswordVerificationModal({
         <p className={styles.description}>본인확인을 위해 비밀번호를 입력해 주세요</p>
 
         <Input
+          label="비밀번호"
           type="password"
           value={password}
           onChange={handlePasswordChange}
@@ -91,6 +93,10 @@ export default function PasswordVerificationModal({
           error={passwordError}
           disabled={isPending}
         />
+
+        <Button type="submit" disabled={isPending}>
+          {isPending ? "확인 중..." : "확인"}
+        </Button>
       </form>
     </Modal>
   );

@@ -27,10 +27,6 @@ interface AccountEditFormValues {
   confirmPassword: string;
 }
 
-function removeWhitespace(value: string) {
-  return value.replace(/\s/g, "");
-}
-
 export default function SitterAccountEditPage() {
   const router = useRouter();
   const { user, status, isAccountVerified, clearAccountVerification } = useAuth();
@@ -82,7 +78,7 @@ export default function SitterAccountEditPage() {
     name: "nickname",
     control,
     rules: {
-      validate: (value) => NICKNAME_REGEX.test(removeWhitespace(value)) || NICKNAME_FORMAT_MESSAGE,
+      validate: (value) => NICKNAME_REGEX.test(value) || NICKNAME_FORMAT_MESSAGE,
     },
   });
 
@@ -95,13 +91,7 @@ export default function SitterAccountEditPage() {
     rules: {
       deps: ["confirmPassword"],
       validate: (value) => {
-        const normalizedPassword = removeWhitespace(value);
-
-        return (
-          normalizedPassword.length === 0 ||
-          PASSWORD_REGEX.test(normalizedPassword) ||
-          PASSWORD_FORMAT_MESSAGE
-        );
+        return value.length === 0 || PASSWORD_REGEX.test(value) || PASSWORD_FORMAT_MESSAGE;
       },
     },
   });
@@ -114,18 +104,17 @@ export default function SitterAccountEditPage() {
     control,
     rules: {
       validate: (value, values) => {
-        const normalizedPassword = removeWhitespace(values.password);
-        const normalizedConfirmPassword = removeWhitespace(value);
+        const password = values.password;
 
-        if (normalizedPassword.length === 0 && normalizedConfirmPassword.length === 0) {
+        if (password.length === 0 && value.length === 0) {
           return true;
         }
 
-        if (!PASSWORD_REGEX.test(normalizedConfirmPassword)) {
+        if (!PASSWORD_REGEX.test(value)) {
           return PASSWORD_FORMAT_MESSAGE;
         }
 
-        return normalizedConfirmPassword === normalizedPassword || PASSWORD_CONFIRM_MESSAGE;
+        return value === password || PASSWORD_CONFIRM_MESSAGE;
       },
     },
   });
@@ -145,8 +134,8 @@ export default function SitterAccountEditPage() {
 
     const input: UpdateAccountInput = {};
 
-    const nickname = removeWhitespace(values.nickname);
-    const password = removeWhitespace(values.password);
+    const nickname = values.nickname;
+    const password = values.password;
 
     if (nickname !== user.nickname) {
       input.nickname = nickname;
