@@ -12,11 +12,13 @@ import QuoteCard from "@/components/common/QuoteCard/QuoteCard";
 import Tag from "@/components/ui/Tag/Tag";
 import SendQuoteModal from "@/features/care-requests/sitter/SendQuoteModal";
 import Pagination from "@/components/ui/Pagination/Pagination";
+import ReceivedRequestCard from "@/components/common/ReceivedRequestCard/ReceivedRequestCard";
 import styles from "./SentQuotesPage.module.css";
 
 import { formatDateOnly } from "@/utils/dateFormat";
 import { useSentQuotes } from "@/features/quotes/sitter/hooks/useSentQuotes";
 import { useUpdateQuote } from "@/features/quotes/sitter/hooks/useUpdateQuote";
+import { useRejectedRequests } from "@/features/care-requests/sitter/useRejectedRequests";
 
 import type { SentQuoteItem } from "@/features/quotes/sitter/types/sentQuote";
 import type { QuoteFormValues } from "@/features/care-requests/sitter/SendQuoteModal";
@@ -25,11 +27,12 @@ type QuoteTab = "sent" | "rejected";
 
 const QUOTE_TABS = [
   { label: "보낸 견적 조회", value: "sent" },
-  { label: "반려 요청", value: "rejected" },
+  { label: "반려한 요청", value: "rejected" },
 ];
 
 export default function SitterSentQuotePage() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [rejectedPage, setRejectedPage] = useState(1);
   const [confirmedOnly, setConfirmedOnly] = useState(false);
   const [activeTab, setActiveTab] = useState<QuoteTab>("sent");
   const [editTarget, setEditTarget] = useState<SentQuoteItem | null>(null);
@@ -52,6 +55,21 @@ export default function SitterSentQuotePage() {
     pageSize: 8,
     confirmedOnly,
   });
+
+  const {
+    data: rejectedData,
+    isPending: isRejectedPending,
+    isError: isRejectedError,
+    refetch: refetchRejectedRequests,
+  } = useRejectedRequests(
+    {
+      page: rejectedPage,
+      pageSize: 8,
+    },
+    activeTab === "rejected",
+  );
+
+  const rejectedRequests = rejectedData?.items ?? [];
 
   const handleConfirmedOnlyChange = (checked: boolean) => {
     setConfirmedOnly(checked);
@@ -174,6 +192,70 @@ export default function SitterSentQuotePage() {
               currentPage={currentPage}
               totalPages={data?.totalPages ?? 0}
               onPageChange={setCurrentPage}
+            />
+          </>
+        )}
+
+        {activeTab === "rejected" && (
+          <>
+            <section className={styles.quoteList} aria-label="반려한 요청 목록">
+              {isRejectedPending && (
+                <Loading
+                  className={styles.listState}
+                  variant="content"
+                  message="반려 요청 목록을 불러오고 있어요."
+                />
+              )}
+
+              {isRejectedError && (
+                <EmptyState
+                  className={styles.listState}
+                  messages={["반려 요청 목록을 불러오지 못했어요."]}
+                  action={{
+                    label: "다시 시도",
+                    onClick: () => void refetchRejectedRequests(),
+                  }}
+                />
+              )}
+
+              {!isRejectedPending && !isRejectedError && rejectedRequests.length === 0 && (
+                <EmptyState
+                  className={styles.listState}
+                  messages={["아직 반려한 요청이 없어요."]}
+                />
+              )}
+
+              {!isRejectedPending &&
+                !isRejectedError &&
+                rejectedRequests.map((item) => {
+                  const { rejectedRequest, careRequest } = item;
+
+                  return (
+                    <ReceivedRequestCard
+                      key={rejectedRequest.id}
+                      className={styles.rejectedCard}
+                      displayStatus="rejected"
+                      isDesignated
+                      request={{
+                        ownerNickname: careRequest.owner.nickname,
+                        serviceType: careRequest.serviceType,
+                        startDate: careRequest.startDate,
+                        endDate: careRequest.endDate,
+                        createdAt: rejectedRequest.createdAt,
+                        sido: careRequest.sido,
+                        sigungu: careRequest.sigungu,
+                        bname: careRequest.bname,
+                      }}
+                    />
+                  );
+                })}
+            </section>
+
+            <Pagination
+              className={styles.pagination}
+              currentPage={rejectedPage}
+              totalPages={rejectedData?.totalPages ?? 0}
+              onPageChange={setRejectedPage}
             />
           </>
         )}
