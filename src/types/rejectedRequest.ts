@@ -12,7 +12,7 @@ export interface RejectedRequestItem {
     startDate: string;
     endDate: string;
     sido: string;
-    sigungu: string;
+    sigungu: string | null;
     bname: string | null;
     owner: {
       nickname: string;

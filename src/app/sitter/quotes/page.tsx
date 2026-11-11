@@ -27,7 +27,7 @@ type QuoteTab = "sent" | "rejected";
 
 const QUOTE_TABS = [
   { label: "보낸 견적 조회", value: "sent" },
-  { label: "반려 요청", value: "rejected" },
+  { label: "반려한 요청", value: "rejected" },
 ];
 
 export default function SitterSentQuotePage() {
