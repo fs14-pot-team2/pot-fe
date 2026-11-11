@@ -43,6 +43,14 @@
   margin-top: 40px;
 }
 
+.rejectedCard > dl {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rejectedCard > dl > div:last-child {
+  grid-column: 1 / -1;
+}
+
 @media (max-width: 1024px) {
   .page {
     padding: 28px 28px 64px;
