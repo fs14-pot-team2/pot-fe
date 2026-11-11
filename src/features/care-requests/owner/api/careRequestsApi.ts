@@ -66,3 +66,19 @@ export async function getRejectedRequestReason(
 
   return data;
 }
+
+export type CreateDesignatedRequestResponse = {
+  id: string;
+  careRequestId: string;
+  sitterId: string;
+  createdAt: string;
+};
+
+export async function createDesignatedRequest(careRequestId: string, sitterId: string) {
+  const { data } = await apiClient.post<CreateDesignatedRequestResponse>(
+    `/care-requests/${careRequestId}/designated-requests`,
+    { sitterId },
+  );
+
+  return data;
+}

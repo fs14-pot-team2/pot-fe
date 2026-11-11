@@ -8,9 +8,11 @@ import PartnerServiceInfo from "./PartnerServiceInfo/PartnerServiceInfo";
 
 type PartnerDetailProps = {
   partner: PartnerInfo;
-  reviews: PartnerReviewsData;
+  reviews?: PartnerReviewsData;
   showDesignatedTag?: boolean;
   pagination?: ReactNode;
+  reviewFallback?: ReactNode;
+  afterService?: ReactNode;
 };
 
 export default function PartnerDetail({
@@ -18,6 +20,8 @@ export default function PartnerDetail({
   reviews,
   showDesignatedTag,
   pagination,
+  reviewFallback,
+  afterService,
 }: PartnerDetailProps) {
   return (
     <div className={styles.detail}>
@@ -28,7 +32,9 @@ export default function PartnerDetail({
 
       <PartnerServiceInfo partner={partner} />
 
-      <PartnerReviews reviews={reviews} pagination={pagination} />
+      {afterService}
+
+      {reviews ? <PartnerReviews reviews={reviews} pagination={pagination} /> : reviewFallback}
     </div>
   );
 }

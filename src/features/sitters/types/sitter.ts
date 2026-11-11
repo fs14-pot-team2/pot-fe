@@ -18,3 +18,16 @@ export type SitterListResponse = {
   totalCount: number;
   totalPages: number;
 };
+
+export type SitterDetailResponse = PartnerInfo & {
+  designatedRequestId: string | null;
+  designatedRequestStatus:
+    | "AVAILABLE"
+    | "NO_ACTIVE_REQUEST"
+    | "ALREADY_DESIGNATED"
+    | "LIMIT_EXCEEDED"
+    | "ALREADY_SENT_QUOTE"
+    | null;
+};
+
+export type SitterRequestGuideType = "login" | "noActiveRequest" | null;

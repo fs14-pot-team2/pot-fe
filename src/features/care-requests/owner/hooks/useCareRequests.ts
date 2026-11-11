@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   cancelCareRequest,
   createCareRequest,
+  createDesignatedRequest,
   getActiveCareRequest,
   getRejectedRequestReason,
   updateCareRequest,
@@ -13,6 +14,7 @@ import {
 import { careRequestKeys } from "@/features/care-requests/owner/queryKeys";
 import { activeQuotesKeys } from "@/features/quotes/owner/hooks/useActiveQuotes";
 import { ownerQuoteKeys } from "@/features/quotes/owner/queryKeys";
+import { sitterKeys } from "@/features/sitters/queryKeys";
 
 // 활성 돌봄 요청 조회
 export function useActiveCareRequest(enabled = true) {
@@ -90,5 +92,21 @@ export function useRejectedRequestReason(rejectedRequestId?: string | null) {
     },
     enabled: Boolean(rejectedRequestId),
     retry: false,
+  });
+}
+
+// 팟트너 지정 요청 생성
+export function useCreateDesignatedRequest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ careRequestId, sitterId }: { careRequestId: string; sitterId: string }) =>
+      createDesignatedRequest(careRequestId, sitterId),
+
+    onSuccess: async (_data, { sitterId }) => {
+      await queryClient.invalidateQueries({
+        queryKey: sitterKeys.detail(sitterId),
+      });
+    },
   });
 }
