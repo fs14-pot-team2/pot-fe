@@ -20,15 +20,21 @@ interface BaseQuoteCardProps {
 
 interface BaseOwnerQuoteCardProps extends BaseQuoteCardProps {
   variant: "owner";
+
   comment?: string;
+
   sitter: {
     nickname: string;
+    shortIntroduction?: string | null;
     profileImage?: string | null;
     rating?: number | null;
     reviewCount?: number | null;
     confirmedCount?: number | null;
     gender?: string | null;
   };
+
+  showOwnerStatus?: boolean;
+  showMessageButton?: boolean;
 
   onDetailClick?: () => void;
   onConfirmClick?: () => void;
@@ -40,13 +46,11 @@ interface BaseOwnerQuoteCardProps extends BaseQuoteCardProps {
   onCompletedDetailClick?: never;
 }
 
-// 반려된 지정 요청
 type RejectedOwnerProps = {
   status: "rejected";
   onRejectReasonClick: () => void;
 };
 
-// 일반 견적
 type DefaultOwnerProps = {
   status?: Exclude<QuoteStatusType, "rejected">;
   onRejectReasonClick?: never;
@@ -54,7 +58,6 @@ type DefaultOwnerProps = {
 
 type OwnerQuoteCardProps = BaseOwnerQuoteCardProps & (RejectedOwnerProps | DefaultOwnerProps);
 
-// 기존 완료 카드 사용처 호환
 type CompletedProps = {
   isCompleted: true;
   onCompletedDetailClick: () => void;
@@ -67,6 +70,7 @@ type DefaultProps = {
 
 interface BaseSitterQuoteCardProps extends BaseQuoteCardProps {
   variant: "sitter";
+
   ownerNickname: string;
   startDate: string;
   endDate: string;
@@ -79,6 +83,8 @@ interface BaseSitterQuoteCardProps extends BaseQuoteCardProps {
 
   onConfirmClick?: never;
   onMessageClick?: never;
+  showOwnerStatus?: never;
+  showMessageButton?: never;
 }
 
 type SitterQuoteCardProps = BaseSitterQuoteCardProps & (CompletedProps | DefaultProps);
@@ -93,7 +99,7 @@ export default function QuoteCard(props: QuoteCardProps) {
   // 팟오너: 대기 견적만 확정 가능
   const canConfirm = status === "waiting";
 
-  // 팟트너: OPEN 요청에서만 수정 가능
+  // 팟트너: OPEN 상태에서만 수정 가능
   const isSitterOpen = variant === "sitter" && props.requestStatus === "OPEN";
 
   // 팟트너: 확정 또는 만료된 요청
@@ -103,7 +109,7 @@ export default function QuoteCard(props: QuoteCardProps) {
       props.requestStatus === "EXPIRED" ||
       props.isCompleted === true);
 
-  // 기존 완료 카드 콜백도 지원
+  // 기존 완료 카드 콜백 호환
   const sitterDetailClick =
     variant === "sitter"
       ? (props.onDetailClick ?? (props.isCompleted ? props.onCompletedDetailClick : undefined))
@@ -113,6 +119,14 @@ export default function QuoteCard(props: QuoteCardProps) {
   const isSitterClickable =
     variant === "sitter" && isSitterOpen && !isSitterClosed && Boolean(sitterDetailClick);
 
+  // 상단 영역에 표시할 내용 확인
+  const hasOwnerStatus = variant === "owner" && Boolean(props.showOwnerStatus && status);
+
+  const hasOwnerMessage =
+    variant === "owner" && Boolean(props.showMessageButton && status !== "rejected");
+
+  const hasTopContent = variant === "sitter" || Boolean(tags) || hasOwnerStatus || hasOwnerMessage;
+
   const handleCardClick = () => {
     if (!isSitterClickable) return;
 
@@ -120,7 +134,9 @@ export default function QuoteCard(props: QuoteCardProps) {
   };
 
   const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.target !== event.currentTarget) return;
+    if (event.target !== event.currentTarget) {
+      return;
+    }
 
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
@@ -128,7 +144,7 @@ export default function QuoteCard(props: QuoteCardProps) {
     }
   };
 
-  // 수정 아이콘 클릭 시 상세보기 이벤트 실행 방지
+  // 수정 아이콘 클릭 시 카드 상세 이동 방지
   const handleEditClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
 
@@ -155,52 +171,63 @@ export default function QuoteCard(props: QuoteCardProps) {
       tabIndex={isSitterClickable ? 0 : undefined}
       aria-label={isSitterClickable ? `${props.ownerNickname} 팟오너 견적 상세보기` : undefined}
     >
-      {/* 카드 상단 */}
-      <div className={styles.top}>
-        <div className={styles.tags}>{tags}</div>
+      {/* 내용이 있을 때만 상단 영역 렌더링 */}
+      {hasTopContent && (
+        <div className={styles.top}>
+          <div className={styles.tags}>{tags}</div>
 
-        {variant === "sitter" ? (
-          <div className={styles.topActions}>
-            {/* 팟트너 견적 상태 유지 */}
-            {status && <QuoteStatus status={status} />}
+          {variant === "sitter" ? (
+            <div className={styles.topActions}>
+              {status && <QuoteStatus status={status} />}
 
-            {/* OPEN 상태에서만 수정 아이콘 표시 */}
-            {isSitterOpen && !isSitterClosed && props.onEditClick && (
-              <button
-                type="button"
-                className={styles.editButton}
-                onClick={handleEditClick}
-                aria-label="견적 수정하기"
-                title="견적 수정하기"
-              >
-                <Image src="/icons/ic_edit.svg" alt="" width={24} height={24} />
-              </button>
-            )}
-          </div>
-        ) : (
-          /* 팟오너: 견적 상태 대신 쪽지 아이콘 */
-          <button
-            type="button"
-            className={styles.messageButton}
-            disabled={!props.onMessageClick}
-            onClick={(event) => {
-              event.stopPropagation();
-              props.onMessageClick?.();
-            }}
-            aria-label="쪽지 보내기"
-            title={props.onMessageClick ? "쪽지 보내기" : "쪽지 기능 연결 전"}
-          >
-            <Image src="/icons/ic_message.svg" alt="" width={24} height={24} />
-          </button>
-        )}
-      </div>
+              {isSitterOpen && !isSitterClosed && props.onEditClick && (
+                <button
+                  type="button"
+                  className={styles.editButton}
+                  onClick={handleEditClick}
+                  aria-label="견적 수정하기"
+                  title="견적 수정하기"
+                >
+                  <Image src="/icons/ic_edit.svg" alt="" width={24} height={24} />
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className={styles.topActions}>
+              {/* 팟오너 견적 상태 */}
+              {props.showOwnerStatus && status && <QuoteStatus status={status} />}
 
-      {/* 팟오너: 팟트너 정보 */}
+              {/* OPEN 요청의 쪽지 아이콘 */}
+              {props.showMessageButton && status !== "rejected" && (
+                <button
+                  type="button"
+                  className={styles.messageButton}
+                  disabled={!props.onMessageClick}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    props.onMessageClick?.();
+                  }}
+                  aria-label="쪽지 보내기"
+                  title={props.onMessageClick ? "쪽지 보내기" : "쪽지 기능 연결 전"}
+                >
+                  <Image src="/icons/ic_message.svg" alt="" width={24} height={24} />
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 팟오너: 팟트너 프로필 */}
       {variant === "owner" ? (
         <>
-          {props.comment && <p className={styles.comment}>{props.comment}</p>}
+          {/* 한 줄 소개: 프로필 박스 위 */}
+          {props.sitter.shortIntroduction && (
+            <p className={styles.comment}>{props.sitter.shortIntroduction}</p>
+          )}
 
           <div className={styles.sitterProfile}>
+            {/* 프로필 이미지 */}
             <div className={styles.avatar}>
               <Image
                 src={props.sitter.profileImage || "/icons/no_img.svg"}
@@ -211,6 +238,7 @@ export default function QuoteCard(props: QuoteCardProps) {
               />
             </div>
 
+            {/* 팟트너 정보 */}
             <div className={styles.sitterInfo}>
               <div className={styles.nicknameWrap}>
                 <Image
@@ -224,6 +252,7 @@ export default function QuoteCard(props: QuoteCardProps) {
                 <p className={styles.nickname}>{props.sitter.nickname}</p>
               </div>
 
+              {/* 평점 / 리뷰 / 성별 / 확정 건수 */}
               <div className={styles.meta}>
                 <span className={styles.rating}>
                   <Image
@@ -257,7 +286,7 @@ export default function QuoteCard(props: QuoteCardProps) {
           </div>
         </>
       ) : (
-        /* 팟트너: 팟오너 및 돌봄 정보 */
+        /* 팟트너: 팟오너 돌봄 정보 */
         <>
           <p className={styles.ownerNickname}>{props.ownerNickname} 팟오너</p>
 
@@ -265,11 +294,13 @@ export default function QuoteCard(props: QuoteCardProps) {
             <div className={styles.dateWrap}>
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>시작일</span>
+
                 <strong>{props.startDate}</strong>
               </div>
 
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>종료일</span>
+
                 <strong>{props.endDate}</strong>
               </div>
             </div>
@@ -277,6 +308,7 @@ export default function QuoteCard(props: QuoteCardProps) {
             <div className={styles.locationWrap}>
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>돌봄 장소</span>
+
                 <strong>{props.location}</strong>
               </div>
             </div>
@@ -293,7 +325,7 @@ export default function QuoteCard(props: QuoteCardProps) {
         </div>
       )}
 
-      {/* 팟오너: 기존 상세보기 / 확정 / 반려 버튼 유지 */}
+      {/* 팟오너 버튼 */}
       {variant === "owner" &&
         (props.onDetailClick ||
           (canConfirm && props.onConfirmClick) ||
@@ -310,12 +342,14 @@ export default function QuoteCard(props: QuoteCardProps) {
               </Button>
             ) : (
               <>
+                {/* 상세보기 */}
                 {props.onDetailClick && (
                   <Button type="button" variant="outlined" size="md" onClick={props.onDetailClick}>
                     상세보기
                   </Button>
                 )}
 
+                {/* 견적 확정하기 */}
                 {canConfirm && props.onConfirmClick && (
                   <Button type="button" variant="solid" size="md" onClick={props.onConfirmClick}>
                     견적 확정하기
@@ -326,7 +360,7 @@ export default function QuoteCard(props: QuoteCardProps) {
           </div>
         )}
 
-      {/* 팟트너: 마감된 견적은 오버레이 버튼으로만 상세 이동 */}
+      {/* 팟트너 마감 오버레이 */}
       {variant === "sitter" && isSitterClosed && (
         <CardStatusOverlay
           message="돌봄 요청이 마감되었습니다"

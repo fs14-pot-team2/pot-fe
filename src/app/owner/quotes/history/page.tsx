@@ -39,6 +39,7 @@ const FILTER_OPTIONS = [
 function mapSitter(sitter: HistorySitter) {
   return {
     nickname: sitter.nickname,
+    shortIntroduction: sitter.shortIntroduction,
     profileImage: sitter.profileImageUrl,
     rating: sitter.averageRating,
     reviewCount: sitter.reviewCount,
@@ -118,17 +119,8 @@ function HistoryRequestCard({ item, onQuoteDetail }: HistoryRequestCardProps) {
     .filter(Boolean)
     .join(" ");
 
-  const quoteItems = mapHistoryQuoteItems(item);
-  const isMatched = careRequest.status === "MATCHED";
-
   return (
     <div className={styles.requestItem}>
-      <div className={styles.requestStatus}>
-        <span className={isMatched ? styles.matchedStatus : styles.expiredStatus}>
-          {isMatched ? "확정된 요청" : "기간 만료"}
-        </span>
-      </div>
-
       <MyQuoteManagement
         variant="history"
         requestId={careRequest.id}
@@ -141,7 +133,7 @@ function HistoryRequestCard({ item, onQuoteDetail }: HistoryRequestCardProps) {
         }}
         requestStatus={careRequest.status}
         confirmedQuoteId={careRequest.confirmedQuoteId}
-        quotes={quoteItems}
+        quotes={mapHistoryQuoteItems(item)}
         canEdit={false}
         onEdit={() => {}}
         onDelete={async () => {}}
@@ -197,30 +189,11 @@ export default function OwnerHistoryQuotesPage() {
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, isFetchNextPageError, fetchNextPage, filterStatus]);
 
-  const handleTabChange = (value: string) => {
-    if (value === "active") {
-      router.push("/owner/quotes");
-    }
-  };
-
-  const handleFilterChange = (value: string) => {
-    if (value !== "ALL" && value !== "MATCHED" && value !== "EXPIRED") {
-      return;
-    }
-
-    setFilterStatus(value);
-  };
-
-  const handleQuoteDetail = (quoteId: string) => {
-    router.push(`/owner/quotes/${quoteId}`);
-  };
-
   const renderContent = () => {
     if (isPending) {
       return <Loading variant="content" />;
     }
 
-    // 첫 페이지 조회 실패
     if (isError && !data) {
       return (
         <ErrorState
@@ -233,7 +206,6 @@ export default function OwnerHistoryQuotesPage() {
       );
     }
 
-    // 정상 응답이지만 데이터가 없는 경우
     if (items.length === 0) {
       const emptyMessage =
         filterStatus === "MATCHED"
@@ -256,12 +228,11 @@ export default function OwnerHistoryQuotesPage() {
             <HistoryRequestCard
               key={item.careRequest.id}
               item={item}
-              onQuoteDetail={handleQuoteDetail}
+              onQuoteDetail={(quoteId) => router.push(`/owner/quotes/${quoteId}`)}
             />
           ))}
         </div>
 
-        {/* 다음 페이지 조회 실패: 기존 목록은 유지 */}
         {isFetchNextPageError && (
           <ErrorState
             variant="content"
@@ -295,7 +266,11 @@ export default function OwnerHistoryQuotesPage() {
               variant="default"
               options={QUOTE_TABS}
               value="history"
-              onChange={handleTabChange}
+              onChange={(value) => {
+                if (value === "active") {
+                  router.push("/owner/quotes");
+                }
+              }}
               className={quotePageStyles.tabs}
             />
           </nav>
@@ -306,7 +281,11 @@ export default function OwnerHistoryQuotesPage() {
                 placeholder="전체"
                 options={FILTER_OPTIONS}
                 value={filterStatus}
-                onChange={handleFilterChange}
+                onChange={(value) => {
+                  if (value === "ALL" || value === "MATCHED" || value === "EXPIRED") {
+                    setFilterStatus(value);
+                  }
+                }}
                 className={styles.filterDropDown}
               />
             </div>

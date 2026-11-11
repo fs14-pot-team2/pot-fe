@@ -237,6 +237,21 @@
   width: 100%;
 }
 
+/* 견적 확정 모달 버튼 */
+
+.confirmModalActions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+}
+
+.confirmModalActions > button {
+  width: 100px;
+  min-width: 100px;
+}
+
 /* 공유하기 */
 
 .socialShare {
