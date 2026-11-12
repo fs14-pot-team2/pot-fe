@@ -51,3 +51,30 @@ body {
     padding: 0 20px;
   }
 }
+
+:root {
+  --header-height: 88px;
+  --page-padding-top: 48px;
+  --page-padding-bottom: 100px;
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --page-padding-top: 40px;
+    --page-padding-bottom: 80px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --header-height: 72px;
+  }
+}
+
+@media (max-width: 540px) {
+  :root {
+    --header-height: 54px;
+    --page-padding-top: 28px;
+    --page-padding-bottom: 64px;
+  }
+}

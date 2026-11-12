@@ -1,5 +1,9 @@
 "use client";
 
+import PageContainer from "@/components/layout/Page/PageContainer";
+
+import PageMain from "@/components/layout/Page/PageMain";
+
 import Image from "next/image";
 import { useState } from "react";
 import { useReceivedRequests } from "@/features/care-requests/sitter/useReceivedRequests";
@@ -253,203 +257,205 @@ export default function ReceivedRequestsPage() {
   const requests = data?.items ?? [];
 
   return (
-    <main className={styles.page}>
-      <div className={styles.inner}>
-        <h1 className={styles.title}>받은 요청</h1>
+    <PageMain>
+      <PageContainer>
+        <div className={styles.inner}>
+          <h1 className={styles.title}>받은 요청</h1>
 
-        <SearchInput
-          value={searchInput}
-          placeholder="어떤 팟오너를 찾고 계세요?"
-          onChange={setSearchInput}
-          onSearch={handleSearch}
-        />
+          <SearchInput
+            value={searchInput}
+            placeholder="어떤 팟오너를 찾고 계세요?"
+            onChange={setSearchInput}
+            onSearch={handleSearch}
+          />
 
-        <div className={styles.desktopFilters}>
-          <div className={styles.regionFilter}>
-            <DropDown
-              placeholder="지역"
-              options={regionOptions}
-              value={selectedRegions}
-              multiple
-              exclusiveValue="ALL"
-              maxSelections={maxRegionSelections}
-              menuColumns={2}
-              onChange={handleRegionChange}
-            />
-          </div>
-
-          <div className={styles.careTypeFilter}>
-            <DropDown
-              placeholder="돌봄 방식"
-              options={CARE_TYPE_OPTIONS}
-              value={selectedServiceType}
-              onChange={handleServiceTypeChange}
-            />
-          </div>
-
-          <div className={styles.desktopResetButton}>
-            <FilterReset onReset={handleDesktopFilterReset} />
-          </div>
-        </div>
-
-        <div className={styles.listToolbar}>
-          <div className={styles.listSummary}>
-            <p className={styles.totalCount}>전체 {data?.totalCount ?? 0}건</p>
-            <CheckBox
-              checked={designatedOnly}
-              label="지정 견적 요청"
-              onChange={handleDesignatedOnlyChange}
-            />
-          </div>
-
-          <div className={styles.listTools}>
-            <div className={styles.sort}>
-              <Sort options={SORT_OPTIONS} value={sort} onChange={handleSortChange} />
-            </div>
-
-            <IconButton
-              className={styles.mobileFilterButton}
-              aria-label="필터 열기"
-              aria-expanded={isFilterOpen}
-              onClick={handleFilterOpen}
-            >
-              <Image src="/icons/ic_filter.svg" alt="" width={20} height={20} />
-            </IconButton>
-          </div>
-        </div>
-
-        <section className={styles.requestList} aria-label="받은 요청 목록">
-          {isPending && (
-            <p className={`${styles.listState} ${styles.loadingState}`}>
-              요청 목록을 불러오고 있어요.
-            </p>
-          )}
-
-          {isError && (
-            <EmptyState
-              className={styles.listState}
-              messages={["요청 목록을 불러오지 못했어요."]}
-              action={{
-                label: "다시 시도",
-                onClick: () => void refetch(),
-              }}
-            />
-          )}
-
-          {!isPending && !isError && requests.length === 0 && (
-            <EmptyState className={styles.listState} messages={["아직 받은 요청이 없어요."]} />
-          )}
-
-          {!isPending &&
-            !isError &&
-            requests.map(({ careRequest, designatedRequestId }) => (
-              <ReceivedRequestCard
-                key={careRequest.id}
-                request={{
-                  ownerNickname: careRequest.owner.nickname,
-                  serviceType: careRequest.serviceType,
-                  startDate: careRequest.startDate,
-                  endDate: careRequest.endDate,
-                  createdAt: careRequest.createdAt,
-                  sido: careRequest.sido,
-                  sigungu: careRequest.sigungu,
-                  bname: careRequest.bname,
-                }}
-                isDesignated={designatedRequestId !== null}
-                onHide={() => handleHideRequest(careRequest.id)}
-                onReject={() =>
-                  handleRejectModalOpen({
-                    careRequest,
-                    designatedRequestId,
-                  })
-                }
-                onSendQuote={() =>
-                  handleQuoteModalOpen({
-                    careRequest,
-                    designatedRequestId,
-                  })
-                }
+          <div className={styles.desktopFilters}>
+            <div className={styles.regionFilter}>
+              <DropDown
+                placeholder="지역"
+                options={regionOptions}
+                value={selectedRegions}
+                multiple
+                exclusiveValue="ALL"
+                maxSelections={maxRegionSelections}
+                menuColumns={2}
+                onChange={handleRegionChange}
               />
-            ))}
-        </section>
-
-        <Pagination
-          className={styles.pagination}
-          currentPage={currentPage}
-          totalPages={data?.totalPages ?? 0}
-          onPageChange={setCurrentPage}
-        />
-      </div>
-
-      <BottomSheet
-        isOpen={isFilterOpen}
-        tabs={MOBILE_FILTER_TABS}
-        onClose={() => setIsFilterOpen(false)}
-        onApply={handleFilterApply}
-        onReset={handleFilterReset}
-      >
-        {{
-          region: (
-            <div>
-              {regionOptions.map((region) => {
-                const individualRegionCount = draftRegions.filter(
-                  (value) => value !== "ALL",
-                ).length;
-                const isSelected = draftRegions.includes(region.value);
-                const isDisabled =
-                  region.value !== "ALL" &&
-                  !isSelected &&
-                  individualRegionCount >= maxRegionSelections;
-
-                return (
-                  <BottomSheetOption
-                    key={region.value}
-                    label={region.label}
-                    selected={isSelected}
-                    disabled={isDisabled}
-                    onClick={() =>
-                      setDraftRegions((current) => [...toggleRegion(current, region.value)])
-                    }
-                  />
-                );
-              })}
             </div>
-          ),
-          careType: (
-            <div>
-              {CARE_TYPE_OPTIONS.map((careType) => (
-                <BottomSheetOption
-                  key={careType.value}
-                  label={careType.label}
-                  selected={draftServiceType === careType.value}
-                  onClick={() => setDraftServiceType(careType.value)}
+
+            <div className={styles.careTypeFilter}>
+              <DropDown
+                placeholder="돌봄 방식"
+                options={CARE_TYPE_OPTIONS}
+                value={selectedServiceType}
+                onChange={handleServiceTypeChange}
+              />
+            </div>
+
+            <div className={styles.desktopResetButton}>
+              <FilterReset onReset={handleDesktopFilterReset} />
+            </div>
+          </div>
+
+          <div className={styles.listToolbar}>
+            <div className={styles.listSummary}>
+              <p className={styles.totalCount}>전체 {data?.totalCount ?? 0}건</p>
+              <CheckBox
+                checked={designatedOnly}
+                label="지정 견적 요청"
+                onChange={handleDesignatedOnlyChange}
+              />
+            </div>
+
+            <div className={styles.listTools}>
+              <div className={styles.sort}>
+                <Sort options={SORT_OPTIONS} value={sort} onChange={handleSortChange} />
+              </div>
+
+              <IconButton
+                className={styles.mobileFilterButton}
+                aria-label="필터 열기"
+                aria-expanded={isFilterOpen}
+                onClick={handleFilterOpen}
+              >
+                <Image src="/icons/ic_filter.svg" alt="" width={20} height={20} />
+              </IconButton>
+            </div>
+          </div>
+
+          <section className={styles.requestList} aria-label="받은 요청 목록">
+            {isPending && (
+              <p className={`${styles.listState} ${styles.loadingState}`}>
+                요청 목록을 불러오고 있어요.
+              </p>
+            )}
+
+            {isError && (
+              <EmptyState
+                className={styles.listState}
+                messages={["요청 목록을 불러오지 못했어요."]}
+                action={{
+                  label: "다시 시도",
+                  onClick: () => void refetch(),
+                }}
+              />
+            )}
+
+            {!isPending && !isError && requests.length === 0 && (
+              <EmptyState className={styles.listState} messages={["아직 받은 요청이 없어요."]} />
+            )}
+
+            {!isPending &&
+              !isError &&
+              requests.map(({ careRequest, designatedRequestId }) => (
+                <ReceivedRequestCard
+                  key={careRequest.id}
+                  request={{
+                    ownerNickname: careRequest.owner.nickname,
+                    serviceType: careRequest.serviceType,
+                    startDate: careRequest.startDate,
+                    endDate: careRequest.endDate,
+                    createdAt: careRequest.createdAt,
+                    sido: careRequest.sido,
+                    sigungu: careRequest.sigungu,
+                    bname: careRequest.bname,
+                  }}
+                  isDesignated={designatedRequestId !== null}
+                  onHide={() => handleHideRequest(careRequest.id)}
+                  onReject={() =>
+                    handleRejectModalOpen({
+                      careRequest,
+                      designatedRequestId,
+                    })
+                  }
+                  onSendQuote={() =>
+                    handleQuoteModalOpen({
+                      careRequest,
+                      designatedRequestId,
+                    })
+                  }
                 />
               ))}
-            </div>
-          ),
-        }}
-      </BottomSheet>
+          </section>
 
-      {rejectTarget && (
-        <RejectRequestModal
-          isOpen
-          request={rejectTarget.careRequest}
-          isSubmitting={isRejecting}
-          onClose={handleRejectModalClose}
-          onSubmit={handleRejectSubmit}
-        />
-      )}
+          <Pagination
+            className={styles.pagination}
+            currentPage={currentPage}
+            totalPages={data?.totalPages ?? 0}
+            onPageChange={setCurrentPage}
+          />
+        </div>
 
-      {quoteTarget && (
-        <SendQuoteModal
-          isOpen
-          request={quoteTarget.careRequest}
-          isDesignated={quoteTarget.designatedRequestId !== null}
-          isSubmitting={isSendingQuote}
-          onClose={handleQuoteModalClose}
-          onSubmit={handleQuoteSubmit}
-        />
-      )}
-    </main>
+        <BottomSheet
+          isOpen={isFilterOpen}
+          tabs={MOBILE_FILTER_TABS}
+          onClose={() => setIsFilterOpen(false)}
+          onApply={handleFilterApply}
+          onReset={handleFilterReset}
+        >
+          {{
+            region: (
+              <div>
+                {regionOptions.map((region) => {
+                  const individualRegionCount = draftRegions.filter(
+                    (value) => value !== "ALL",
+                  ).length;
+                  const isSelected = draftRegions.includes(region.value);
+                  const isDisabled =
+                    region.value !== "ALL" &&
+                    !isSelected &&
+                    individualRegionCount >= maxRegionSelections;
+
+                  return (
+                    <BottomSheetOption
+                      key={region.value}
+                      label={region.label}
+                      selected={isSelected}
+                      disabled={isDisabled}
+                      onClick={() =>
+                        setDraftRegions((current) => [...toggleRegion(current, region.value)])
+                      }
+                    />
+                  );
+                })}
+              </div>
+            ),
+            careType: (
+              <div>
+                {CARE_TYPE_OPTIONS.map((careType) => (
+                  <BottomSheetOption
+                    key={careType.value}
+                    label={careType.label}
+                    selected={draftServiceType === careType.value}
+                    onClick={() => setDraftServiceType(careType.value)}
+                  />
+                ))}
+              </div>
+            ),
+          }}
+        </BottomSheet>
+
+        {rejectTarget && (
+          <RejectRequestModal
+            isOpen
+            request={rejectTarget.careRequest}
+            isSubmitting={isRejecting}
+            onClose={handleRejectModalClose}
+            onSubmit={handleRejectSubmit}
+          />
+        )}
+
+        {quoteTarget && (
+          <SendQuoteModal
+            isOpen
+            request={quoteTarget.careRequest}
+            isDesignated={quoteTarget.designatedRequestId !== null}
+            isSubmitting={isSendingQuote}
+            onClose={handleQuoteModalClose}
+            onSubmit={handleQuoteSubmit}
+          />
+        )}
+      </PageContainer>
+    </PageMain>
   );
 }

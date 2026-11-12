@@ -1,5 +1,9 @@
 "use client";
 
+import PageContainer from "@/components/layout/Page/PageContainer";
+
+import PageMain from "@/components/layout/Page/PageMain";
+
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { isAxiosError } from "axios";
 
@@ -253,8 +257,8 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
   };
 
   return (
-    <main className={styles.main}>
-      <div className="container">
+    <PageMain>
+      <PageContainer>
         <div className={styles.profileWrap}>
           <div className={styles.titleWrap}>
             <div className={styles.title}>프로필 관리</div>
@@ -366,8 +370,8 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
             </Button>
           </div>
         </div>
-      </div>
-    </main>
+      </PageContainer>
+    </PageMain>
   );
 }
 
@@ -376,35 +380,35 @@ export default function OwnerProfilePage() {
 
   if (isPending) {
     return (
-      <main className={styles.main}>
-        <div className="container" role="status">
+      <PageMain>
+        <PageContainer role="status">
           <p>프로필 정보를 불러오는 중입니다.</p>
-        </div>
-      </main>
+        </PageContainer>
+      </PageMain>
     );
   }
 
   if (isError) {
     return (
-      <main className={styles.main}>
-        <div className="container" role="alert">
+      <PageMain>
+        <PageContainer role="alert">
           <p>{getErrorMessage(error)}</p>
 
           <Button type="button" variant="outlined" size="sm" onClick={() => void refetch()}>
             다시 시도
           </Button>
-        </div>
-      </main>
+        </PageContainer>
+      </PageMain>
     );
   }
 
   if (!data) {
     return (
-      <main className={styles.main}>
-        <div className="container">
+      <PageMain>
+        <PageContainer>
           <p>프로필 정보를 찾을 수 없습니다.</p>
-        </div>
-      </main>
+        </PageContainer>
+      </PageMain>
     );
   }
 

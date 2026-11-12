@@ -1,5 +1,8 @@
 "use client";
 
+import PageMain from "@/components/layout/Page/PageMain";
+import PageContainer from "@/components/layout/Page/PageContainer";
+
 import AccessDenied from "@/components/common/AccessDenied/AccessDenied";
 import type { UserRole } from "@/features/auth/types/auth";
 import { useAuth } from "@/lib/auth/AuthProvider";
@@ -22,11 +25,17 @@ export default function AuthGuard({ allowedRoles, children }: AuthGuardProps) {
   }, [router, status]);
 
   if (status === "checking" || status === "error" || status === "guest" || user === null) {
-    return null;
+    return <PageMain />;
   }
 
   if (!allowedRoles.includes(user.role)) {
-    return <AccessDenied />;
+    return (
+      <PageMain>
+        <PageContainer>
+          <AccessDenied />
+        </PageContainer>
+      </PageMain>
+    );
   }
 
   return <>{children}</>;

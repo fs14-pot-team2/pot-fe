@@ -1,9 +1,10 @@
+import PageMain from "@/components/layout/Page/PageMain";
 import Image from "next/image";
 import styles from "./AuthLayout.module.css";
 
 export default function AuthLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <main className={styles.page}>
+    <PageMain variant="fullWidth" className={styles.page}>
       <section className={styles.card}>
         <Image
           src="/images/logo_pc.svg"
@@ -16,6 +17,6 @@ export default function AuthLayout({ children }: Readonly<{ children: React.Reac
 
         {children}
       </section>
-    </main>
+    </PageMain>
   );
 }

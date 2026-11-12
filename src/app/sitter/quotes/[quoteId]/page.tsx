@@ -1,5 +1,9 @@
 "use client";
 
+import PageContainer from "@/components/layout/Page/PageContainer";
+
+import PageMain from "@/components/layout/Page/PageMain";
+
 import { useParams } from "next/navigation";
 
 import EmptyState from "@/components/ui/EmptyState/EmptyState";
@@ -32,17 +36,17 @@ function useShareUrl() {
 
 function QuoteDetailLayout({ children }: { children: ReactNode }) {
   return (
-    <main className={styles.main}>
-      <div className="container">
+    <PageMain variant="fullWidth" className={styles.main}>
+      <PageContainer>
         <header className={styles.pageHeader}>
           <h1>견적 상세</h1>
         </header>
-      </div>
+      </PageContainer>
 
       <div className={styles.hero} aria-hidden="true" />
 
-      <div className={`container ${styles.content}`}>{children}</div>
-    </main>
+      <PageContainer className={styles.content}>{children}</PageContainer>
+    </PageMain>
   );
 }
 

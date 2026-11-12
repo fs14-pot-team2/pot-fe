@@ -1,5 +1,9 @@
 "use client";
 
+import PageContainer from "@/components/layout/Page/PageContainer";
+
+import PageMain from "@/components/layout/Page/PageMain";
+
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
@@ -258,11 +262,12 @@ export default function OwnerHistoryQuotesPage() {
   };
 
   return (
-    <main className={quotePageStyles.main}>
-      <div className="container">
+    <PageMain>
+      <PageContainer>
         <div className={quotePageStyles.content}>
           <nav className={quotePageStyles.tabsNav} aria-label="견적 내역 메뉴">
             <Toggle
+              className={quotePageStyles.tabs}
               variant="default"
               options={QUOTE_TABS}
               value="history"
@@ -271,7 +276,6 @@ export default function OwnerHistoryQuotesPage() {
                   router.push("/owner/quotes");
                 }
               }}
-              className={quotePageStyles.tabs}
             />
           </nav>
 
@@ -293,7 +297,7 @@ export default function OwnerHistoryQuotesPage() {
             {renderContent()}
           </div>
         </div>
-      </div>
-    </main>
+      </PageContainer>
+    </PageMain>
   );
 }

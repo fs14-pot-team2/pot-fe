@@ -1,5 +1,9 @@
 "use client";
 
+import PageContainer from "@/components/layout/Page/PageContainer";
+
+import PageMain from "@/components/layout/Page/PageMain";
+
 import { useState } from "react";
 import { isAxiosError } from "axios";
 import { useRouter } from "next/navigation";
@@ -272,11 +276,12 @@ export default function OwnerActiveQuotesPage() {
   };
 
   return (
-    <main className={styles.main}>
-      <div className="container">
+    <PageMain>
+      <PageContainer>
         <div className={styles.content}>
           <nav className={styles.tabsNav} aria-label="견적 내역 메뉴">
             <Toggle
+              className={styles.tabs}
               variant="default"
               options={QUOTE_TABS}
               value="active"
@@ -285,13 +290,12 @@ export default function OwnerActiveQuotesPage() {
                   router.push("/owner/quotes/history");
                 }
               }}
-              className={styles.tabs}
             />
           </nav>
 
           <div className={styles.pageContent}>{renderContent()}</div>
         </div>
-      </div>
+      </PageContainer>
 
       {/* 견적 확정 확인 모달 */}
       <Modal
@@ -299,17 +303,23 @@ export default function OwnerActiveQuotesPage() {
         onClose={closeConfirmModal}
         title="견적 확정"
         footer={
-          <div style={{ display: "flex", gap: 12 }}>
-            <Button variant="outlined" disabled={isConfirming} onClick={closeConfirmModal}>
+          <div className={styles.confirmModalActions}>
+            <Button
+              variant="outlined"
+              size="md"
+              disabled={isConfirming}
+              onClick={closeConfirmModal}
+            >
               취소
             </Button>
 
             <Button
               variant="solid"
+              size="md"
               disabled={isConfirming || !selectedQuote}
               onClick={() => void handleConfirmQuote()}
             >
-              {isConfirming ? "확정 중..." : "견적 확정하기"}
+              {isConfirming ? "확정 중..." : "확정하기"}
             </Button>
           </div>
         }
@@ -332,6 +342,6 @@ export default function OwnerActiveQuotesPage() {
           </p>
         )}
       </Modal>
-    </main>
+    </PageMain>
   );
 }

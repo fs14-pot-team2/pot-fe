@@ -1,5 +1,6 @@
 .main {
-  min-height: 100vh;
+  --quote-detail-spacing: 24px;
+  padding-block: var(--quote-detail-spacing) var(--page-padding-bottom);
   background-color: var(--color-bg, #fefdf9);
 }
 
@@ -30,8 +31,8 @@
 .content {
   position: relative;
   margin-top: 0;
-  padding-top: 20px;
-  padding-bottom: 100px;
+
+  padding-top: var(--quote-detail-spacing);
 }
 
 .layout {
@@ -270,6 +271,40 @@
   text-align: center;
 }
 
+.accessFeedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  padding: 48px 20px;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.accessTitle {
+  margin: 0;
+  color: #262524;
+  font-size: 24px;
+  font-weight: var(--font-bold);
+  line-height: 1.4;
+}
+
+.accessDescription {
+  margin: 12px 0 0;
+  color: #777;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.accessFeedback .accessAction {
+  width: auto;
+  max-width: 100%;
+  margin-top: 24px;
+  padding-inline: 24px;
+  word-break: keep-all;
+}
+
 .feedback button {
   padding: 12px 24px;
   border: 0;
@@ -302,6 +337,10 @@
 }
 
 @media (max-width: 768px) {
+  .main {
+    --quote-detail-spacing: 20px;
+  }
+
   .careInfo h2 {
     font-size: 20px;
   }
@@ -313,6 +352,23 @@
 }
 
 @media (max-width: 540px) {
+  .accessFeedback {
+    min-height: 240px;
+    padding: 32px 12px;
+  }
+
+  .accessTitle {
+    font-size: 20px;
+  }
+
+  .accessDescription {
+    font-size: 14px;
+  }
+
+  .main {
+    --quote-detail-spacing: 16px;
+  }
+
   .introduction {
     font-size: 18px;
     letter-spacing: -0.1px;
