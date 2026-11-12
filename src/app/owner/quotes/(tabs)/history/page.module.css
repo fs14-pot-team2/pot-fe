@@ -6,9 +6,12 @@
   margin-bottom: 24px;
 }
 
-.filterDropDown {
+/* 공통 DropDown의 width: 100%보다 우선 적용 */
+.filterArea .filterDropDown {
+  flex: 0 1 220px;
   width: 220px;
   max-width: 100%;
+  min-width: 0;
 }
 
 /* 돌봄 요청 목록 */
@@ -95,7 +98,8 @@
     margin-bottom: 20px;
   }
 
-  .filterDropDown {
+  .filterArea .filterDropDown {
+    flex-basis: 180px;
     width: 180px;
   }
 
@@ -105,7 +109,8 @@
 }
 
 @media (max-width: 540px) {
-  .filterDropDown {
+  .filterArea .filterDropDown {
+    flex-basis: 160px;
     width: 160px;
   }
 
@@ -127,7 +132,8 @@
 }
 
 @media (max-width: 360px) {
-  .filterDropDown {
+  .filterArea .filterDropDown {
+    flex-basis: 150px;
     width: 150px;
   }
 

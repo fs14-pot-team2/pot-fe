@@ -1,9 +1,5 @@
 "use client";
 
-import PageContainer from "@/components/layout/Page/PageContainer";
-
-import PageMain from "@/components/layout/Page/PageMain";
-
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
@@ -12,7 +8,6 @@ import DropDown from "@/components/ui/DropDown/DropDown";
 import EmptyState from "@/components/ui/EmptyState/EmptyState";
 import ErrorState from "@/components/ui/ErrorState/ErrorState";
 import Loading from "@/components/ui/Loading/Loading";
-import Toggle from "@/components/ui/Toggle/Toggle";
 
 import MyQuoteManagement, {
   type MyQuoteItem,
@@ -26,13 +21,8 @@ import type {
   HistorySitter,
 } from "@/features/quotes/owner/types/historyQuotes";
 
-import quotePageStyles from "../page.module.css";
+import quotePageStyles from "../../page.module.css";
 import styles from "./page.module.css";
-
-const QUOTE_TABS = [
-  { label: "요청한 견적 현황", value: "active" },
-  { label: "받았던 견적", value: "history" },
-];
 
 const FILTER_OPTIONS = [
   { label: "전체", value: "ALL" },
@@ -262,42 +252,22 @@ export default function OwnerHistoryQuotesPage() {
   };
 
   return (
-    <PageMain>
-      <PageContainer>
-        <div className={quotePageStyles.content}>
-          <nav className={quotePageStyles.tabsNav} aria-label="견적 내역 메뉴">
-            <Toggle
-              className={quotePageStyles.tabs}
-              variant="default"
-              options={QUOTE_TABS}
-              value="history"
-              onChange={(value) => {
-                if (value === "active") {
-                  router.push("/owner/quotes");
-                }
-              }}
-            />
-          </nav>
+    <>
+      <div className={styles.filterArea}>
+        <DropDown
+          placeholder="전체"
+          options={FILTER_OPTIONS}
+          value={filterStatus}
+          onChange={(value) => {
+            if (value === "ALL" || value === "MATCHED" || value === "EXPIRED") {
+              setFilterStatus(value);
+            }
+          }}
+          className={styles.filterDropDown}
+        />
+      </div>
 
-          <div className={quotePageStyles.pageContent}>
-            <div className={styles.filterArea}>
-              <DropDown
-                placeholder="전체"
-                options={FILTER_OPTIONS}
-                value={filterStatus}
-                onChange={(value) => {
-                  if (value === "ALL" || value === "MATCHED" || value === "EXPIRED") {
-                    setFilterStatus(value);
-                  }
-                }}
-                className={styles.filterDropDown}
-              />
-            </div>
-
-            {renderContent()}
-          </div>
-        </div>
-      </PageContainer>
-    </PageMain>
+      {renderContent()}
+    </>
   );
 }

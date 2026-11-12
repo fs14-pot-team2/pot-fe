@@ -12,7 +12,6 @@ import Button from "@/components/ui/Button/Button";
 import Modal from "@/components/ui/Modal/Modal";
 import EmptyState from "@/components/ui/EmptyState/EmptyState";
 import CheckBox from "@/components/ui/CheckBox/CheckBox";
-import QuoteStatus from "@/components/ui/QuoteStatus/QuoteStatus";
 
 import styles from "./MyQuoteManagement.module.css";
 
@@ -119,6 +118,14 @@ export default function MyQuoteManagement({
       ? quotes.filter((quote) => quote.id === confirmedQuoteId)
       : quotes;
 
+  // 요청 상태에 따라 빈 견적 목록 안내 문구 구분
+  const emptyQuoteMessage =
+    canFilterConfirmed && showConfirmedOnly
+      ? "확정된 견적서가 없어요."
+      : isHistory && isExpired
+        ? "받은 견적 없이 돌봄 요청이 만료되었어요."
+        : "아직 도착한 견적서가 없어요.";
+
   const formattedStartDate = formatDateOnly(careInfo.startDate, "korean");
 
   const formattedEndDate = formatDateOnly(careInfo.endDate, "korean");
@@ -168,13 +175,6 @@ export default function MyQuoteManagement({
       <section className={wrapperClassName} aria-label={`돌봄 요청 ${requestId} 견적 관리`}>
         {/* 돌봄 정보 */}
         <div className={styles.careInfoArea}>
-          {/* 만료된 요청의 돌봄 정보 상태 */}
-          {isHistory && isExpired && (
-            <div style={{ marginBottom: 16 }}>
-              <QuoteStatus status="expired" />
-            </div>
-          )}
-
           <CareInfo
             className={styles.careInfo}
             variant="summary"
@@ -211,14 +211,7 @@ export default function MyQuoteManagement({
           )}
 
           {visibleQuotes.length === 0 ? (
-            <EmptyState
-              className={styles.emptyState}
-              messages={
-                canFilterConfirmed && showConfirmedOnly
-                  ? ["확정된 견적서가 없어요."]
-                  : ["아직 도착한 견적서가 없어요."]
-              }
-            />
+            <EmptyState className={styles.emptyState} messages={[emptyQuoteMessage]} />
           ) : (
             <div className={styles.quoteList}>
               {visibleQuotes.map((quote) => {
