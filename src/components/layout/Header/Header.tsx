@@ -4,7 +4,11 @@ import Button from "@/components/ui/Button/Button";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import PasswordVerificationModal from "@/features/account/components/PasswordVerificationModal/PasswordVerificationModal";
+import { useAuth } from "@/lib/auth/AuthProvider";
+
 import styles from "./Header.module.css";
 import MobileDrawer from "./MobileDrawer";
 import ProfileMenu from "./ProfileMenu";
@@ -33,7 +37,13 @@ export default function Header({ isLoggedIn, userRole, nickname, onLogout }: Hea
   const router = useRouter();
   const pathname = usePathname();
 
+  const { completeAccountVerification } = useAuth();
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+
+  // 기본정보 관리 진입 직전 페이지 경로 보관
+  const returnPathRef = useRef("/");
 
   const closeDrawer = useCallback(() => {
     setIsDrawerOpen(false);
@@ -55,6 +65,25 @@ export default function Header({ isLoggedIn, userRole, nickname, onLogout }: Hea
     };
   }, []);
 
+  // 현재 페이지를 기억한 후 비밀번호 확인 모달 열기
+  const handleOpenAccount = () => {
+    returnPathRef.current =
+      window.location.pathname + window.location.search + window.location.hash;
+
+    setIsPasswordModalOpen(true);
+  };
+
+  // 비밀번호 인증 성공 후 기본정보 관리 페이지로 이동
+  const handleAccountVerified = () => {
+    completeAccountVerification();
+
+    const params = new URLSearchParams({
+      returnTo: returnPathRef.current,
+    });
+
+    router.push(`/owner/account/edit?${params.toString()}`);
+  };
+
   let menuItems = MENU_ITEMS.GUEST;
 
   if (isLoggedIn) {
@@ -62,83 +91,92 @@ export default function Header({ isLoggedIn, userRole, nickname, onLogout }: Hea
   }
 
   return (
-    <header className={styles.header}>
-      <div className={styles.inner}>
-        <Link href="/" className={styles.logoLink} aria-label="POT 홈으로 이동">
-          <Image
-            src="/images/logo_pc.svg"
-            alt="POT"
-            width={90}
-            height={56}
-            loading="eager"
-            className={styles.desktopLogo}
-          />
-          <Image
-            src="/images/logo_tablet.svg"
-            alt=""
-            width={80}
-            height={40}
-            loading="eager"
-            className={styles.tabletLogo}
-          />
-          <Image
-            src="/images/logo_mo.svg"
-            alt=""
-            width={24}
-            height={33}
-            loading="eager"
-            className={styles.mobileLogo}
-          />
-        </Link>
+    <>
+      <header className={styles.header}>
+        <div className={styles.inner}>
+          <Link href="/" className={styles.logoLink} aria-label="POT 홈으로 이동">
+            <Image
+              src="/images/logo_pc.svg"
+              alt="POT"
+              width={90}
+              height={56}
+              loading="eager"
+              className={styles.desktopLogo}
+            />
 
-        <nav className={styles.nav} aria-label="주요 메뉴">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            <Image
+              src="/images/logo_tablet.svg"
+              alt=""
+              width={80}
+              height={40}
+              loading="eager"
+              className={styles.tabletLogo}
+            />
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}
-                aria-current={isActive ? "page" : undefined}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+            <Image
+              src="/images/logo_mo.svg"
+              alt=""
+              width={24}
+              height={33}
+              loading="eager"
+              className={styles.mobileLogo}
+            />
+          </Link>
 
-        {!isLoggedIn && (
-          <Button
-            variant="solid"
-            size="sm"
-            className={styles.loginButton}
-            onClick={() => router.push("/login")}
+          <nav className={styles.nav} aria-label="주요 메뉴">
+            {menuItems.map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}
+                  aria-current={isActive ? "page" : undefined}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {!isLoggedIn && (
+            <Button
+              variant="solid"
+              size="sm"
+              className={styles.loginButton}
+              onClick={() => router.push("/login")}
+            >
+              로그인
+            </Button>
+          )}
+
+          {isLoggedIn && (
+            <button type="button" className={styles.messageButton} aria-label="쪽지" disabled>
+              <Image src="/icons/ic_message.svg" alt="" width={24} height={24} />
+            </button>
+          )}
+
+          {isLoggedIn && userRole && nickname && (
+            <ProfileMenu
+              userRole={userRole}
+              nickname={nickname}
+              onLogout={onLogout}
+              onOpenAccount={userRole === "OWNER" ? handleOpenAccount : undefined}
+            />
+          )}
+
+          <button
+            type="button"
+            className={styles.menuButton}
+            aria-label="메뉴 열기"
+            aria-expanded={isDrawerOpen}
+            onClick={() => setIsDrawerOpen(true)}
           >
-            로그인
-          </Button>
-        )}
-
-        {isLoggedIn && (
-          <button type="button" className={styles.messageButton} aria-label="쪽지" disabled>
-            <Image src="/icons/ic_message.svg" alt="" width={24} height={24} />
+            <Image src="/icons/ic_menu.svg" alt="" width={24} height={24} />
           </button>
-        )}
-
-        {isLoggedIn && userRole && nickname && (
-          <ProfileMenu userRole={userRole} nickname={nickname} onLogout={onLogout} />
-        )}
-
-        <button
-          type="button"
-          className={styles.menuButton}
-          aria-label="메뉴 열기"
-          aria-expanded={isDrawerOpen}
-          onClick={() => setIsDrawerOpen(true)}
-        >
-          <Image src="/icons/ic_menu.svg" alt="" width={24} height={24} />
-        </button>
-      </div>
+        </div>
+      </header>
 
       <MobileDrawer
         isOpen={isDrawerOpen}
@@ -146,6 +184,14 @@ export default function Header({ isLoggedIn, userRole, nickname, onLogout }: Hea
         isLoggedIn={isLoggedIn}
         menuItems={menuItems}
       />
-    </header>
+
+      {isLoggedIn && userRole === "OWNER" && (
+        <PasswordVerificationModal
+          isOpen={isPasswordModalOpen}
+          onClose={() => setIsPasswordModalOpen(false)}
+          onVerified={handleAccountVerified}
+        />
+      )}
+    </>
   );
 }
