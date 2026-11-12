@@ -1,5 +1,9 @@
 "use client";
 
+import PageContainer from "@/components/layout/Page/PageContainer";
+
+import PageMain from "@/components/layout/Page/PageMain";
+
 import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
 
@@ -149,23 +153,23 @@ export default function NewCareRequestPage() {
 
   if (isCheckingActiveRequest) {
     return (
-      <main className={styles.main}>
-        <div className="container">
+      <PageMain>
+        <PageContainer>
           <div className={styles.careRequestWrap}>
             <section className={styles.feedbackSection}>
               <h1 className={styles.title}>돌봄 요청을 확인하고 있어요</h1>
               <p className={styles.description}>잠시만 기다려 주세요.</p>
             </section>
           </div>
-        </div>
-      </main>
+        </PageContainer>
+      </PageMain>
     );
   }
 
   if (activeRequestData?.hasActiveCareRequest) {
     return (
-      <main className={styles.main}>
-        <div className="container">
+      <PageMain>
+        <PageContainer>
           <div className={styles.careRequestWrap}>
             <section className={styles.feedbackSection}>
               <h1 className={styles.title}>이미 진행 중인 돌봄 요청이 있어요</h1>
@@ -186,14 +190,14 @@ export default function NewCareRequestPage() {
               </Button>
             </section>
           </div>
-        </div>
-      </main>
+        </PageContainer>
+      </PageMain>
     );
   }
 
   return (
-    <main className={styles.main}>
-      <div className="container">
+    <PageMain>
+      <PageContainer>
         <div className={styles.careRequestWrap}>
           <header className={styles.header}>
             <h1 className={styles.title}>돌봄 방식, 일정과 지역을 선택해주세요</h1>
@@ -210,7 +214,7 @@ export default function NewCareRequestPage() {
 
           <CareRequestForm mode="create" isSubmitting={isCreating} onSubmit={handleSubmit} />
         </div>
-      </div>
-    </main>
+      </PageContainer>
+    </PageMain>
   );
 }

@@ -1,5 +1,9 @@
 "use client";
 
+import PageContainer from "@/components/layout/Page/PageContainer";
+
+import PageMain from "@/components/layout/Page/PageMain";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast/ToastProvider";
@@ -103,182 +107,191 @@ export default function SitterSentQuotePage() {
   };
 
   return (
-    <main className={styles.page}>
-      <div className={styles.tabArea}>
-        <div className={styles.inner}>
-          <div className={styles.tabs}>
-            <Toggle
-              options={QUOTE_TABS}
-              value={activeTab}
-              onChange={(value) => setActiveTab(value as QuoteTab)}
-            />
-          </div>
-        </div>
-      </div>
+    <PageMain>
+      <PageContainer>
+        <nav className={styles.tabArea} aria-label="견적 내역 메뉴">
+          <Toggle
+            className={styles.tabs}
+            variant="default"
+            options={QUOTE_TABS}
+            value={activeTab}
+            onChange={(value) => setActiveTab(value as QuoteTab)}
+          />
+        </nav>
+      </PageContainer>
 
-      <div className={`${styles.inner} ${styles.content}`}>
-        {activeTab === "sent" && (
-          <>
-            <div className={styles.filter}>
-              <CheckBox
-                checked={confirmedOnly}
-                onChange={handleConfirmedOnlyChange}
-                label="확정견적"
+      <PageContainer>
+        <div className={styles.content}>
+          {activeTab === "sent" && (
+            <>
+              <div className={styles.filter}>
+                <CheckBox
+                  checked={confirmedOnly}
+                  onChange={handleConfirmedOnlyChange}
+                  label="확정견적"
+                />
+              </div>
+              <section className={styles.quoteList} aria-label="보낸 견적 목록">
+                {isPending && (
+                  <Loading
+                    className={styles.listState}
+                    variant="content"
+                    message="보낸 견적 목록을 불러오고 있어요."
+                  />
+                )}
+
+                {isError && (
+                  <EmptyState
+                    className={styles.listState}
+                    messages={["보낸 견적 목록을 불러오지 못했어요."]}
+                    action={{
+                      label: "다시 시도",
+                      onClick: () => void refetch(),
+                    }}
+                  />
+                )}
+
+                {!isPending && !isError && sentQuotes.length === 0 && (
+                  <EmptyState
+                    className={styles.listState}
+                    messages={["아직 보낸 견적이 없어요."]}
+                  />
+                )}
+
+                {!isPending &&
+                  !isError &&
+                  sentQuotes.map((item) => {
+                    const { quote, careRequest, owner, designatedRequestId } = item;
+
+                    const location = [careRequest.sido, careRequest.sigungu, careRequest.bname]
+                      .filter(Boolean)
+                      .join(" ");
+
+                    const isConfirmed = careRequest.confirmedQuoteId === quote.id;
+
+                    return (
+                      <QuoteCard
+                        key={quote.id}
+                        variant="sitter"
+                        ownerNickname={owner.nickname}
+                        startDate={formatDateOnly(careRequest.startDate, "korean")}
+                        endDate={formatDateOnly(careRequest.endDate, "korean")}
+                        location={location}
+                        requestStatus={careRequest.status}
+                        price={quote.price}
+                        status={isConfirmed ? "confirmed" : undefined}
+                        onDetailClick={() => router.push(`/sitter/quotes/${quote.id}`)}
+                        onEditClick={
+                          careRequest.status === "OPEN" ? () => handleEditOpen(item) : undefined
+                        }
+                        tags={
+                          <>
+                            <Tag
+                              variant="request"
+                              serviceType={careRequest.serviceType}
+                              size="sm"
+                            />
+
+                            {designatedRequestId !== null && <Tag variant="designated" size="sm" />}
+                          </>
+                        }
+                      />
+                    );
+                  })}
+              </section>
+              <Pagination
+                className={styles.pagination}
+                currentPage={currentPage}
+                totalPages={data?.totalPages ?? 0}
+                onPageChange={setCurrentPage}
               />
-            </div>
-            <section className={styles.quoteList} aria-label="보낸 견적 목록">
-              {isPending && (
-                <Loading
-                  className={styles.listState}
-                  variant="content"
-                  message="보낸 견적 목록을 불러오고 있어요."
-                />
-              )}
+            </>
+          )}
 
-              {isError && (
-                <EmptyState
-                  className={styles.listState}
-                  messages={["보낸 견적 목록을 불러오지 못했어요."]}
-                  action={{
-                    label: "다시 시도",
-                    onClick: () => void refetch(),
-                  }}
-                />
-              )}
+          {activeTab === "rejected" && (
+            <>
+              <section className={styles.quoteList} aria-label="반려한 요청 목록">
+                {isRejectedPending && (
+                  <Loading
+                    className={styles.listState}
+                    variant="content"
+                    message="반려 요청 목록을 불러오고 있어요."
+                  />
+                )}
 
-              {!isPending && !isError && sentQuotes.length === 0 && (
-                <EmptyState className={styles.listState} messages={["아직 보낸 견적이 없어요."]} />
-              )}
+                {isRejectedError && (
+                  <EmptyState
+                    className={styles.listState}
+                    messages={["반려 요청 목록을 불러오지 못했어요."]}
+                    action={{
+                      label: "다시 시도",
+                      onClick: () => void refetchRejectedRequests(),
+                    }}
+                  />
+                )}
 
-              {!isPending &&
-                !isError &&
-                sentQuotes.map((item) => {
-                  const { quote, careRequest, owner, designatedRequestId } = item;
+                {!isRejectedPending && !isRejectedError && rejectedRequests.length === 0 && (
+                  <EmptyState
+                    className={styles.listState}
+                    messages={["아직 반려한 요청이 없어요."]}
+                  />
+                )}
 
-                  const location = [careRequest.sido, careRequest.sigungu, careRequest.bname]
-                    .filter(Boolean)
-                    .join(" ");
+                {!isRejectedPending &&
+                  !isRejectedError &&
+                  rejectedRequests.map((item) => {
+                    const { rejectedRequest, careRequest } = item;
 
-                  const isConfirmed = careRequest.confirmedQuoteId === quote.id;
+                    return (
+                      <ReceivedRequestCard
+                        key={rejectedRequest.id}
+                        className={styles.rejectedCard}
+                        displayStatus="rejected"
+                        isDesignated
+                        request={{
+                          ownerNickname: careRequest.owner.nickname,
+                          serviceType: careRequest.serviceType,
+                          startDate: careRequest.startDate,
+                          endDate: careRequest.endDate,
+                          createdAt: rejectedRequest.createdAt,
+                          sido: careRequest.sido,
+                          sigungu: careRequest.sigungu,
+                          bname: careRequest.bname,
+                        }}
+                      />
+                    );
+                  })}
+              </section>
 
-                  return (
-                    <QuoteCard
-                      key={quote.id}
-                      variant="sitter"
-                      ownerNickname={owner.nickname}
-                      startDate={formatDateOnly(careRequest.startDate, "korean")}
-                      endDate={formatDateOnly(careRequest.endDate, "korean")}
-                      location={location}
-                      requestStatus={careRequest.status}
-                      price={quote.price}
-                      status={isConfirmed ? "confirmed" : undefined}
-                      onDetailClick={() => router.push(`/sitter/quotes/${quote.id}`)}
-                      onEditClick={
-                        careRequest.status === "OPEN" ? () => handleEditOpen(item) : undefined
-                      }
-                      tags={
-                        <>
-                          <Tag variant="request" serviceType={careRequest.serviceType} size="sm" />
+              <Pagination
+                className={styles.pagination}
+                currentPage={rejectedPage}
+                totalPages={rejectedData?.totalPages ?? 0}
+                onPageChange={setRejectedPage}
+              />
+            </>
+          )}
+        </div>
 
-                          {designatedRequestId !== null && <Tag variant="designated" size="sm" />}
-                        </>
-                      }
-                    />
-                  );
-                })}
-            </section>
-            <Pagination
-              className={styles.pagination}
-              currentPage={currentPage}
-              totalPages={data?.totalPages ?? 0}
-              onPageChange={setCurrentPage}
-            />
-          </>
+        {editTarget && (
+          <SendQuoteModal
+            isOpen
+            mode="edit"
+            request={{
+              ...editTarget.careRequest,
+              owner: editTarget.owner,
+            }}
+            initialValues={{
+              price: editTarget.quote.price,
+              comment: editTarget.quote.comment,
+            }}
+            isDesignated={editTarget.designatedRequestId !== null}
+            isSubmitting={isUpdatingQuote}
+            onClose={handleEditClose}
+            onSubmit={handleEditSubmit}
+          />
         )}
-
-        {activeTab === "rejected" && (
-          <>
-            <section className={styles.quoteList} aria-label="반려한 요청 목록">
-              {isRejectedPending && (
-                <Loading
-                  className={styles.listState}
-                  variant="content"
-                  message="반려 요청 목록을 불러오고 있어요."
-                />
-              )}
-
-              {isRejectedError && (
-                <EmptyState
-                  className={styles.listState}
-                  messages={["반려 요청 목록을 불러오지 못했어요."]}
-                  action={{
-                    label: "다시 시도",
-                    onClick: () => void refetchRejectedRequests(),
-                  }}
-                />
-              )}
-
-              {!isRejectedPending && !isRejectedError && rejectedRequests.length === 0 && (
-                <EmptyState
-                  className={styles.listState}
-                  messages={["아직 반려한 요청이 없어요."]}
-                />
-              )}
-
-              {!isRejectedPending &&
-                !isRejectedError &&
-                rejectedRequests.map((item) => {
-                  const { rejectedRequest, careRequest } = item;
-
-                  return (
-                    <ReceivedRequestCard
-                      key={rejectedRequest.id}
-                      className={styles.rejectedCard}
-                      displayStatus="rejected"
-                      isDesignated
-                      request={{
-                        ownerNickname: careRequest.owner.nickname,
-                        serviceType: careRequest.serviceType,
-                        startDate: careRequest.startDate,
-                        endDate: careRequest.endDate,
-                        createdAt: rejectedRequest.createdAt,
-                        sido: careRequest.sido,
-                        sigungu: careRequest.sigungu,
-                        bname: careRequest.bname,
-                      }}
-                    />
-                  );
-                })}
-            </section>
-
-            <Pagination
-              className={styles.pagination}
-              currentPage={rejectedPage}
-              totalPages={rejectedData?.totalPages ?? 0}
-              onPageChange={setRejectedPage}
-            />
-          </>
-        )}
-      </div>
-
-      {editTarget && (
-        <SendQuoteModal
-          isOpen
-          mode="edit"
-          request={{
-            ...editTarget.careRequest,
-            owner: editTarget.owner,
-          }}
-          initialValues={{
-            price: editTarget.quote.price,
-            comment: editTarget.quote.comment,
-          }}
-          isDesignated={editTarget.designatedRequestId !== null}
-          isSubmitting={isUpdatingQuote}
-          onClose={handleEditClose}
-          onSubmit={handleEditSubmit}
-        />
-      )}
-    </main>
+      </PageContainer>
+    </PageMain>
   );
 }

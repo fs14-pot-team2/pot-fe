@@ -303,6 +303,7 @@ export default function MyQuoteManagement({
             <div className={styles.modalActions}>
               <Button
                 variant="outlined"
+                size="md"
                 className={styles.modalButton}
                 disabled={isDeleting}
                 onClick={closeDeleteModal}
@@ -312,6 +313,7 @@ export default function MyQuoteManagement({
 
               <Button
                 variant="solid"
+                size="md"
                 className={styles.modalButton}
                 disabled={isDeleting}
                 onClick={confirmDelete}

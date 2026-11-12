@@ -1,5 +1,9 @@
 "use client";
 
+import PageContainer from "@/components/layout/Page/PageContainer";
+
+import PageMain from "@/components/layout/Page/PageMain";
+
 import PartnerDetail from "@/components/common/PartnerDetail/PartnerDetail";
 import SocialShare from "@/components/common/SocialShare/SocialShare";
 import EmptyState from "@/components/ui/EmptyState/EmptyState";
@@ -19,7 +23,7 @@ type SitterDetailPageProps = {
   sitterId: string;
 };
 
-export default function SitterDetailPage({ sitterId }: SitterDetailPageProps) {
+function SitterDetailContent({ sitterId }: SitterDetailPageProps) {
   const [reviewPage, setReviewPage] = useState(1);
   const shareUrl = useSyncExternalStore(
     subscribe,
@@ -46,7 +50,7 @@ export default function SitterDetailPage({ sitterId }: SitterDetailPageProps) {
   });
 
   if (isPartnerPending) {
-    return <Loading variant="full" />;
+    return <Loading variant="content" />;
   }
 
   if (isPartnerError) {
@@ -71,51 +75,63 @@ export default function SitterDetailPage({ sitterId }: SitterDetailPageProps) {
   );
 
   return (
-    <main className={styles.page}>
-      <div className={styles.titleArea}>
-        <h1 className={styles.title}>팟트너 상세</h1>
-      </div>
+    <div className={styles.page}>
+      <PageContainer>
+        <div className={styles.titleArea}>
+          <h1 className={styles.title}>팟트너 상세</h1>
+        </div>
+      </PageContainer>
 
       <div className={styles.banner} aria-hidden="true" />
 
-      <div className={styles.content}>
-        <div className={styles.layout}>
-          <div className={styles.detail}>
-            <PartnerDetail
-              partner={partner}
-              reviews={reviews}
-              showDesignatedTag={partner.designatedRequestId !== null}
-              reviewFallback={reviewFallback}
-              afterService={
-                shareUrl ? (
-                  <div className={styles.mobileShare}>
-                    <SocialShare url={shareUrl} title="팟트너 공유하기" />
-                  </div>
-                ) : undefined
-              }
-              pagination={
-                reviews && reviews.totalPages > 1 ? (
-                  <Pagination
-                    currentPage={reviews.page}
-                    totalPages={reviews.totalPages}
-                    onPageChange={setReviewPage}
-                  />
-                ) : undefined
-              }
-            />
+      <PageContainer>
+        <div className={styles.content}>
+          <div className={styles.layout}>
+            <div className={styles.detail}>
+              <PartnerDetail
+                partner={partner}
+                reviews={reviews}
+                showDesignatedTag={partner.designatedRequestId !== null}
+                reviewFallback={reviewFallback}
+                afterService={
+                  shareUrl ? (
+                    <div className={styles.mobileShare}>
+                      <SocialShare url={shareUrl} title="팟트너 공유하기" />
+                    </div>
+                  ) : undefined
+                }
+                pagination={
+                  reviews && reviews.totalPages > 1 ? (
+                    <Pagination
+                      currentPage={reviews.page}
+                      totalPages={reviews.totalPages}
+                      onPageChange={setReviewPage}
+                    />
+                  ) : undefined
+                }
+              />
+            </div>
+
+            <aside className={styles.actions} aria-label="지정 견적 요청 및 공유">
+              <SitterDetailActions partner={partner} />
+
+              {shareUrl && (
+                <div className={styles.desktopShare}>
+                  <SocialShare url={shareUrl} title="팟트너 공유하기" />
+                </div>
+              )}
+            </aside>
           </div>
-
-          <aside className={styles.actions} aria-label="지정 견적 요청 및 공유">
-            <SitterDetailActions partner={partner} />
-
-            {shareUrl && (
-              <div className={styles.desktopShare}>
-                <SocialShare url={shareUrl} title="팟트너 공유하기" />
-              </div>
-            )}
-          </aside>
         </div>
-      </div>
-    </main>
+      </PageContainer>
+    </div>
+  );
+}
+
+export default function SitterDetailPage(props: SitterDetailPageProps) {
+  return (
+    <PageMain variant="fullWidth">
+      <SitterDetailContent {...props} />
+    </PageMain>
   );
 }

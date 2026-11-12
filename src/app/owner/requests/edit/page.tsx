@@ -1,5 +1,9 @@
 "use client";
 
+import PageContainer from "@/components/layout/Page/PageContainer";
+
+import PageMain from "@/components/layout/Page/PageMain";
+
 import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
 
@@ -136,8 +140,8 @@ export default function EditCareRequestPage() {
     actionLabel?: string,
     onAction?: () => void,
   ) => (
-    <main className={styles.main}>
-      <div className="container">
+    <PageMain>
+      <PageContainer>
         <div className={styles.careRequestWrap}>
           <section className={styles.feedbackSection}>
             <h1 className={styles.title}>{title}</h1>
@@ -151,8 +155,8 @@ export default function EditCareRequestPage() {
             )}
           </section>
         </div>
-      </div>
-    </main>
+      </PageContainer>
+    </PageMain>
   );
 
   if (isLoading) {
@@ -186,8 +190,8 @@ export default function EditCareRequestPage() {
   const careRequest = data.careRequest;
 
   return (
-    <main className={styles.main}>
-      <div className="container">
+    <PageMain>
+      <PageContainer>
         <div className={styles.careRequestWrap}>
           <header className={styles.header}>
             <h1 className={styles.title}>돌봄 요청 수정</h1>
@@ -203,7 +207,7 @@ export default function EditCareRequestPage() {
             onSubmit={handleSubmit}
           />
         </div>
-      </div>
-    </main>
+      </PageContainer>
+    </PageMain>
   );
 }

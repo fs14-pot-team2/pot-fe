@@ -109,12 +109,15 @@
 
 .modalActions {
   display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 12px;
+  width: 100%;
 }
 
 .modalButton {
-  flex: 1;
-  min-width: 0;
+  width: 100px;
+  min-width: 100px;
 }
 
 /* 반려 사유 확인 모달 */
@@ -348,14 +351,5 @@
 @media (max-width: 360px) {
   .wrapper {
     padding: 16px;
-  }
-
-  .modalActions {
-    flex-direction: column-reverse;
-  }
-
-  .modalButton {
-    flex: auto;
-    width: 100%;
   }
 }

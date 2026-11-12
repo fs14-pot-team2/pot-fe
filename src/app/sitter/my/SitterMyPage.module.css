@@ -4,9 +4,9 @@
 
 .titleArea {
   width: 100%;
-  max-width: 960px;
+  max-width: 912px;
   margin: 0 auto;
-  padding: 32px 24px;
+  padding-block: 32px;
   box-sizing: border-box;
 }
 
@@ -23,9 +23,9 @@
 
 .content {
   width: 100%;
-  max-width: 960px;
+  max-width: 912px;
   margin: 0 auto;
-  padding: 40px 24px 80px;
+  padding-block: 40px 80px;
   box-sizing: border-box;
 }
 
@@ -117,7 +117,7 @@
 
 @media (max-width: 768px) {
   .titleArea {
-    padding: 24px 32px;
+    padding-block: 24px;
   }
 
   .banner {
@@ -125,7 +125,7 @@
   }
 
   .content {
-    padding: 40px 32px 64px;
+    padding-block: 40px 64px;
   }
 
   .profileSection {
@@ -145,7 +145,7 @@
 
 @media (max-width: 540px) {
   .titleArea {
-    padding: 20px 24px;
+    padding-block: 20px;
   }
 
   .banner {
@@ -153,7 +153,7 @@
   }
 
   .content {
-    padding: 24px 24px 48px;
+    padding-block: 24px 48px;
   }
 
   .actions {
