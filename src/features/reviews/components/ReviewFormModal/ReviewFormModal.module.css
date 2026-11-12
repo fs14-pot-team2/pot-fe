@@ -1,0 +1,199 @@
+.modal.modal {
+  box-sizing: border-box;
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sitterInfo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #e6e6e6;
+  border-radius: 6px;
+}
+
+.avatar {
+  width: 72px;
+  flex: 0 0 72px;
+}
+
+.sitterDetails {
+  flex: 1;
+  min-width: 0;
+}
+
+.nickname {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: var(--font-semibold);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  color: #808080;
+  font-size: 14px;
+}
+
+.metaLabel {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background-color: #f4f6f9;
+  color: #929292;
+  font-size: 12px;
+}
+
+.divider {
+  flex: 0 0 1px;
+  width: 1px;
+  height: 16px;
+  background-color: #e6e6e6;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.reviewField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.textArea label {
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: var(--font-medium);
+}
+
+.textArea label > span[aria-hidden="true"] {
+  display: none;
+}
+
+.textArea textarea {
+  min-height: 160px;
+}
+
+.counter {
+  margin: 0;
+  color: #7a7a79;
+  font-size: 12px;
+  text-align: right;
+}
+
+.submitButton {
+  width: 100%;
+}
+
+.errorMessage {
+  margin: 12px 0 0;
+  color: #e5484d;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .modal.modal {
+    width: 375px;
+  }
+
+  .summary {
+    padding-bottom: 24px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .sitterInfo {
+    gap: 12px;
+    padding: 0;
+    border: 0;
+  }
+
+  .avatar {
+    width: 48px;
+    flex-basis: 48px;
+  }
+
+  .nickname {
+    font-size: 16px;
+  }
+
+  .meta {
+    font-size: 12px;
+  }
+
+  .form {
+    margin-top: 24px;
+  }
+}
+
+@media (max-width: 540px) {
+  .modal.modal {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    height: min(82dvh, 760px);
+    max-height: min(82dvh, 760px);
+    border-radius: 24px 24px 0 0;
+    animation: sheetEnter 250ms ease-out both;
+  }
+
+  .modal.modal.closing {
+    animation: sheetExit 250ms ease-in both;
+  }
+
+  .form {
+    gap: 20px;
+  }
+
+  .textArea textarea {
+    min-height: 240px;
+  }
+}
+
+@keyframes sheetEnter {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheetExit {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal.modal,
+  .modal.modal.closing {
+    animation: none;
+  }
+}

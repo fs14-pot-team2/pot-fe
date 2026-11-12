@@ -35,6 +35,7 @@
 
 .details {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 12px;
   min-width: 0;
@@ -46,16 +47,38 @@
   font-size: 24px;
   font-weight: var(--font-semibold);
   line-height: 1.5;
+  white-space: nowrap;
 }
 
 .meta {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 24px;
   color: #262524;
   font-size: 18px;
   line-height: 1.5;
-  white-space: nowrap;
+  flex-wrap: wrap;
+  overflow: hidden;
+}
+
+.meta > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.meta > span:last-child {
+  position: relative;
+}
+
+.meta > span:last-child::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -12px;
+  width: 1px;
+  height: 18px;
+  background-color: #e6e6e6;
+  transform: translateY(-50%);
 }
 
 .label {
@@ -63,15 +86,46 @@
   color: #7a7a79;
 }
 
-.divider {
-  flex: 0 0 1px;
-  width: 1px;
-  height: 18px;
-  background-color: #e6e6e6;
-}
-
 .writeButton {
   width: 100%;
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+  .card {
+    gap: 18px;
+    padding: 16px;
+  }
+
+  .sitterInfo {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .avatar {
+    width: 64px;
+    flex-basis: 64px;
+  }
+
+  .details {
+    gap: 8px;
+  }
+
+  .nickname {
+    font-size: 18px;
+  }
+
+  .meta {
+    gap: 8px 20px;
+    font-size: 14px;
+  }
+
+  .label {
+    margin-right: 6px;
+  }
+
+  .meta > span:last-child::before {
+    left: -10px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -105,7 +159,7 @@
   }
 
   .meta {
-    gap: 8px;
+    gap: 8px 12px;
     font-size: 12px;
   }
 
@@ -113,7 +167,8 @@
     margin-right: 6px;
   }
 
-  .divider {
+  .meta > span:last-child::before {
+    left: -6px;
     height: 12px;
   }
 
@@ -140,9 +195,5 @@
     align-items: flex-start;
     gap: 4px;
     white-space: normal;
-  }
-
-  .divider {
-    display: none;
   }
 }

@@ -65,8 +65,6 @@ export default function ReviewWriteCard({
               {formattedDate}
             </span>
 
-            <span className={styles.divider} aria-hidden="true" />
-
             <span>
               <span className={styles.label}>견적가</span>
               {formattedPrice}
