@@ -1,10 +1,13 @@
 "use client";
 
 import Button from "@/components/ui/Button/Button";
+import NotificationPanel, {
+  type NotificationItem,
+} from "@/components/common/NotificationPanel/NotificationPanel";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./Header.module.css";
 import MobileDrawer from "./MobileDrawer";
 import ProfileMenu from "./ProfileMenu";
@@ -13,7 +16,9 @@ type HeaderProps = {
   isLoggedIn: boolean;
   userRole?: "OWNER" | "SITTER";
   nickname?: string;
+  notifications?: NotificationItem[];
   onLogout?: () => void;
+  onNotificationClick?: (notification: NotificationItem) => void;
 };
 
 const MENU_ITEMS = {
@@ -29,11 +34,22 @@ const MENU_ITEMS = {
   ],
 };
 
-export default function Header({ isLoggedIn, userRole, nickname, onLogout }: HeaderProps) {
+export default function Header({
+  isLoggedIn,
+  userRole,
+  nickname,
+  notifications = [],
+  onLogout,
+  onNotificationClick,
+}: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const notificationRef = useRef<HTMLDivElement>(null);
+
+  const hasUnreadNotification = notifications.some((notification) => !notification.isRead);
 
   const closeDrawer = useCallback(() => {
     setIsDrawerOpen(false);
@@ -54,6 +70,30 @@ export default function Header({ isLoggedIn, userRole, nickname, onLogout }: Hea
       mediaQuery.removeEventListener("change", handleBreakPointChange);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isNotificationOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!notificationRef.current?.contains(event.target as Node)) {
+        setIsNotificationOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsNotificationOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isNotificationOpen]);
 
   let menuItems = MENU_ITEMS.GUEST;
 
@@ -117,6 +157,38 @@ export default function Header({ isLoggedIn, userRole, nickname, onLogout }: Hea
           >
             로그인
           </Button>
+        )}
+
+        {isLoggedIn && (
+          <div className={styles.notificationWrapper} ref={notificationRef}>
+            <button
+              type="button"
+              className={styles.notificationButton}
+              aria-label="알림"
+              onClick={() => setIsNotificationOpen((isOpen) => !isOpen)}
+            >
+              <Image
+                src={
+                  hasUnreadNotification
+                    ? "/icons/ic_notification_unread.svg"
+                    : "/icons/ic_notification.svg"
+                }
+                alt=""
+                width={24}
+                height={24}
+              />
+            </button>
+
+            {isNotificationOpen && (
+              <div className={styles.notificationPanel}>
+                <NotificationPanel
+                  notifications={notifications}
+                  onClose={() => setIsNotificationOpen(false)}
+                  onNotificationClick={onNotificationClick}
+                />
+              </div>
+            )}
+          </div>
         )}
 
         {isLoggedIn && (
