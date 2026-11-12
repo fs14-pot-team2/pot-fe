@@ -1,0 +1,14 @@
+.guideModal > div:first-child {
+  position: relative;
+  justify-content: center;
+}
+
+.guideModal > div:first-child > button {
+  position: absolute;
+  right: 24px;
+}
+
+.guideModal > div:nth-child(2),
+.guideModal > div:last-child {
+  text-align: center;
+}

@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api/apiClient";
-import type { SitterListParams, SitterListResponse } from "../types/sitter";
+import type { SitterDetailResponse, SitterListParams, SitterListResponse } from "../types/sitter";
 
 export async function getSitters(params: SitterListParams): Promise<SitterListResponse> {
   const { data } = await apiClient.get<SitterListResponse>("/sitters", {
@@ -14,6 +14,18 @@ export async function getSitters(params: SitterListParams): Promise<SitterListRe
       gender: params.gender,
     },
   });
+
+  return data;
+}
+
+export async function getSitterDetail(sitterId: string): Promise<SitterDetailResponse> {
+  const { data } = await apiClient.get<SitterDetailResponse>(`/sitters/${sitterId}`, {
+    authMode: "optional",
+  });
+
+  if (!data || typeof data.id !== "string") {
+    throw new Error("팟트너 상세 응답에 필요한 정보가 없습니다.");
+  }
 
   return data;
 }

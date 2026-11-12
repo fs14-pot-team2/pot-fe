@@ -22,7 +22,7 @@
   margin-bottom: 24px;
 }
 
-.mobileFilterButton {
+.toolbar .mobileFilterButton {
   display: none;
 }
 
@@ -101,7 +101,7 @@
     display: none;
   }
 
-  .mobileFilterButton {
+  .toolbar .mobileFilterButton {
     display: inline-flex;
     width: 40px;
     height: 40px;
