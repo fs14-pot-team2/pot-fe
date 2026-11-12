@@ -1,9 +1,5 @@
 "use client";
 
-import PageContainer from "@/components/layout/Page/PageContainer";
-
-import PageMain from "@/components/layout/Page/PageMain";
-
 import { useState } from "react";
 import { isAxiosError } from "axios";
 import { useRouter } from "next/navigation";
@@ -11,7 +7,6 @@ import { useRouter } from "next/navigation";
 import EmptyState from "@/components/ui/EmptyState/EmptyState";
 import ErrorState from "@/components/ui/ErrorState/ErrorState";
 import Loading from "@/components/ui/Loading/Loading";
-import Toggle from "@/components/ui/Toggle/Toggle";
 import Button from "@/components/ui/Button/Button";
 import Modal from "@/components/ui/Modal/Modal";
 
@@ -30,12 +25,7 @@ import type {
   ActiveQuoteSitter,
 } from "@/features/quotes/owner/types/activeQuotes";
 
-import styles from "./page.module.css";
-
-const QUOTE_TABS = [
-  { label: "요청한 견적 현황", value: "active" },
-  { label: "받았던 견적", value: "history" },
-];
+import styles from "../page.module.css";
 
 function mapSitter(sitter: ActiveQuoteSitter) {
   return {
@@ -130,20 +120,16 @@ export default function OwnerActiveQuotesPage() {
 
   const { mutateAsync: confirmQuote, isPending: isConfirming } = useConfirmQuote();
 
-  // 확정 대상 견적 선택
   const [selectedConfirmQuoteId, setSelectedConfirmQuoteId] = useState<string | null>(null);
-
   const [confirmError, setConfirmError] = useState("");
 
   const selectedQuote = data?.quotes.find((quote) => quote.id === selectedConfirmQuoteId);
 
-  // 확정 확인 모달 열기
   const openConfirmModal = (quoteId: string) => {
     setConfirmError("");
     setSelectedConfirmQuoteId(quoteId);
   };
 
-  // API 요청 중에는 모달 닫기 제한
   const closeConfirmModal = () => {
     if (isConfirming) return;
 
@@ -151,7 +137,6 @@ export default function OwnerActiveQuotesPage() {
     setSelectedConfirmQuoteId(null);
   };
 
-  // 실제 견적 확정
   const handleConfirmQuote = async () => {
     if (!selectedConfirmQuoteId || isConfirming) {
       return;
@@ -174,7 +159,6 @@ export default function OwnerActiveQuotesPage() {
     }
   };
 
-  // 돌봄 요청 삭제
   const handleDelete = async (requestId: string): Promise<void> => {
     try {
       await cancelCareRequest(requestId);
@@ -276,28 +260,9 @@ export default function OwnerActiveQuotesPage() {
   };
 
   return (
-    <PageMain>
-      <PageContainer>
-        <div className={styles.content}>
-          <nav className={styles.tabsNav} aria-label="견적 내역 메뉴">
-            <Toggle
-              className={styles.tabs}
-              variant="default"
-              options={QUOTE_TABS}
-              value="active"
-              onChange={(value) => {
-                if (value === "history") {
-                  router.push("/owner/quotes/history");
-                }
-              }}
-            />
-          </nav>
+    <>
+      {renderContent()}
 
-          <div className={styles.pageContent}>{renderContent()}</div>
-        </div>
-      </PageContainer>
-
-      {/* 견적 확정 확인 모달 */}
       <Modal
         isOpen={selectedConfirmQuoteId !== null}
         onClose={closeConfirmModal}
@@ -342,6 +307,6 @@ export default function OwnerActiveQuotesPage() {
           </p>
         )}
       </Modal>
-    </PageMain>
+    </>
   );
 }

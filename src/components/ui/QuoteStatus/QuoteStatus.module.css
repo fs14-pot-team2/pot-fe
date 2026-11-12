@@ -24,6 +24,12 @@
 .waiting {
   color: #ababab;
 }
+
 .rejected {
   color: #ff4f64;
+}
+
+/* 기간 만료 상태 */
+.expired {
+  color: #999;
 }
