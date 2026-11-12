@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useReceivedRequests } from "@/features/care-requests/sitter/useReceivedRequests";
 import ReceivedRequestCard from "@/components/common/ReceivedRequestCard/ReceivedRequestCard";
 import BottomSheet, {
@@ -99,6 +99,22 @@ export default function ReceivedRequestsPage() {
   const [draftServiceType, setDraftServiceType] = useState<ServiceType | "ALL" | "">("");
   const [rejectTarget, setRejectTarget] = useState<ReceivedRequestItem | null>(null);
   const [quoteTarget, setQuoteTarget] = useState<ReceivedRequestItem | null>(null);
+
+  useEffect(() => {
+    const mobileMediaQuery = window.matchMedia("(max-width: 540px)");
+
+    const handleViewportChange = (event: MediaQueryListEvent) => {
+      if (!event.matches) {
+        setIsFilterOpen(false);
+      }
+    };
+
+    mobileMediaQuery.addEventListener("change", handleViewportChange);
+
+    return () => {
+      mobileMediaQuery.removeEventListener("change", handleViewportChange);
+    };
+  }, []);
 
   const { mutate: ignoreRequest, isPending: isIgnoring } = useIgnoreReceivedRequest();
 
