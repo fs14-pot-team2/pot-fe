@@ -1,22 +1,27 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
 
 import Button from "@/components/ui/Button/Button";
 import CareInfo from "@/components/common/CareInfo/CareInfo";
+import Modal from "@/components/ui/Modal/Modal";
 import SocialShare from "@/components/common/SocialShare/SocialShare";
 import ProfileImage from "@/components/ui/ProfileImage/ProfileImage";
 import QuoteStatus from "@/components/ui/QuoteStatus/QuoteStatus";
 import Tag from "@/components/ui/Tag/Tag";
 import { useToast } from "@/components/ui/Toast/ToastProvider";
 
-import { useQuoteDetail } from "@/features/quotes/owner/hooks/useQuotes";
+import { useConfirmQuote, useQuoteDetail } from "@/features/quotes/owner/hooks/useQuotes";
+
 import type { QuoteDetailResponse } from "@/features/quotes/owner/types/quote";
 
 import styles from "./page.module.css";
+
+const REDIRECT_DELAY = 1500;
+const SUCCESS_TOAST_DURATION = 1300;
 
 const subscribe = () => () => {};
 
@@ -28,7 +33,7 @@ function useShareUrl() {
   );
 }
 
-function getErrorMessage(error: unknown) {
+function getErrorMessage(error: unknown): string {
   if (!isAxiosError(error)) {
     return "견적 정보를 불러오지 못했습니다.";
   }
@@ -59,11 +64,65 @@ function getErrorMessage(error: unknown) {
   }
 }
 
+function getConfirmErrorMessage(error: unknown): string {
+  if (!isAxiosError(error)) {
+    return "견적을 확정하지 못했습니다. 다시 시도해 주세요.";
+  }
+
+  const code = error.response?.data?.code;
+
+  switch (code) {
+    case "QUOTE_ALREADY_CONFIRMED":
+      return "이미 확정된 견적입니다.";
+
+    case "CARE_REQUEST_ALREADY_MATCHED":
+      return "이미 다른 견적이 확정된 돌봄 요청입니다.";
+
+    case "CARE_REQUEST_NOT_FOUND":
+      return "확정할 수 없는 돌봄 요청입니다.";
+
+    case "QUOTE_NOT_FOUND":
+      return "견적을 찾을 수 없습니다.";
+
+    case "INVALID_ID":
+      return "올바르지 않은 견적 번호입니다.";
+
+    case "UNAUTHORIZED":
+    case "TOKEN_EXPIRED":
+      return "로그인 상태를 확인해 주세요.";
+
+    case "FORBIDDEN":
+      return "견적을 확정할 권한이 없습니다.";
+
+    default:
+      return "견적을 확정하지 못했습니다. 다시 시도해 주세요.";
+  }
+}
+
 function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
+  const router = useRouter();
+
   const { quote, designatedRequestId, careRequest, sitter } = data;
 
   const shareUrl = useShareUrl();
   const { showToast } = useToast();
+
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { mutateAsync: confirmQuote, isPending: isConfirming } = useConfirmQuote();
+
+  // 페이지 이탈 시 예약된 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current !== null) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, []);
 
   const isDesignated = designatedRequestId !== null;
 
@@ -80,10 +139,53 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
           ? "waiting"
           : null;
 
-  const handleConfirmQuote = () => {
+  const openConfirmModal = () => {
+    if (!isWaiting || isConfirming || isRedirecting) {
+      return;
+    }
+
+    setIsConfirmModalOpen(true);
+  };
+
+  const closeConfirmModal = () => {
+    if (isConfirming || isRedirecting) {
+      return;
+    }
+
+    setIsConfirmModalOpen(false);
+  };
+
+  const handleConfirmQuote = async () => {
+    if (!isWaiting || isConfirming || isRedirecting) {
+      return;
+    }
+
+    try {
+      // 견적 확정 API 호출
+      await confirmQuote(quote.id);
+    } catch (error) {
+      // API 실패 시 상세페이지 유지
+      showToast({
+        message: getConfirmErrorMessage(error),
+      });
+
+      return;
+    }
+
+    // 확정 성공 후 중복 요청 방지
+    setIsRedirecting(true);
+    setIsConfirmModalOpen(false);
+
+    // 성공 토스트를 1.8초간 표시
     showToast({
-      message: "견적 확정 기능은 추후 API 연동 예정입니다.",
+      message: "견적이 확정되었습니다.",
+      duration: SUCCESS_TOAST_DURATION,
     });
+
+    // 2초 뒤 받았던 견적 페이지로 이동
+    redirectTimerRef.current = setTimeout(() => {
+      router.replace("/owner/quotes/history");
+    }, REDIRECT_DELAY);
   };
 
   return (
@@ -125,7 +227,6 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
 
               {/* 팟트너 정보 */}
               <div className={styles.sitterInfo}>
-                {/* 닉네임 + 성별 */}
                 <div className={styles.nickname}>
                   <Image
                     src="/icons/ic_sitter.svg"
@@ -189,21 +290,21 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
 
           {/* 견적 확정 및 공유하기 */}
           <aside className={styles.shareArea}>
-            {/* 대기 중인 견적에만 확정 버튼 표시 */}
-            {isWaiting && (
+            {isWaiting && !isRedirecting && (
               <div className={styles.confirmArea}>
                 <Button
                   variant="solid"
                   size="md"
                   className={styles.confirmButton}
-                  onClick={handleConfirmQuote}
-                  disabled
+                  onClick={openConfirmModal}
+                  disabled={isConfirming}
                 >
                   견적 확정하기
                 </Button>
               </div>
             )}
 
+            {/* 공유하기 */}
             {shareUrl && (
               <div className={styles.socialShare}>
                 <SocialShare url={shareUrl} title="견적서 공유하기" />
@@ -212,6 +313,38 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
           </aside>
         </div>
       </div>
+
+      {/* 견적 확정 확인 모달 */}
+      <Modal
+        isOpen={isConfirmModalOpen}
+        onClose={closeConfirmModal}
+        title="견적 확정"
+        footer={
+          <div className={styles.confirmModalActions}>
+            <Button
+              variant="outlined"
+              size="md"
+              onClick={closeConfirmModal}
+              disabled={isConfirming || isRedirecting}
+            >
+              취소
+            </Button>
+
+            <Button
+              variant="solid"
+              size="md"
+              onClick={() => void handleConfirmQuote()}
+              disabled={isConfirming || isRedirecting || !isWaiting}
+            >
+              {isConfirming ? "확정 중..." : "확정하기"}
+            </Button>
+          </div>
+        }
+      >
+        <p>{sitter.nickname} 팟트너의 견적을 확정하시겠어요?</p>
+
+        <p>확정 후에는 다른 견적을 선택할 수 없습니다.</p>
+      </Modal>
     </>
   );
 }
@@ -233,7 +366,7 @@ export default function OwnerQuoteDetailPage() {
         </header>
       </div>
 
-      {/* 잘못된 ID는 로딩 상태보다 먼저 처리 */}
+      {/* 잘못된 견적 ID */}
       {!isValidQuoteId ? (
         <div className={`container ${styles.feedback}`} role="alert">
           <p>올바르지 않은 견적 번호입니다.</p>

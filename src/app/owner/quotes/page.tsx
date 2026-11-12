@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { isAxiosError } from "axios";
 import { useRouter } from "next/navigation";
 
@@ -7,14 +8,18 @@ import EmptyState from "@/components/ui/EmptyState/EmptyState";
 import ErrorState from "@/components/ui/ErrorState/ErrorState";
 import Loading from "@/components/ui/Loading/Loading";
 import Toggle from "@/components/ui/Toggle/Toggle";
+import Button from "@/components/ui/Button/Button";
+import Modal from "@/components/ui/Modal/Modal";
 
 import MyQuoteManagement, {
   type MyQuoteItem,
 } from "@/components/common/MyQuoteManagement/MyQuoteManagement";
 
 import { useToast } from "@/components/ui/Toast/ToastProvider";
+
 import { useCancelCareRequest } from "@/features/care-requests/owner/hooks/useCareRequests";
 import { useActiveQuotes } from "@/features/quotes/owner/hooks/useActiveQuotes";
+import { useConfirmQuote } from "@/features/quotes/owner/hooks/useQuotes";
 
 import type {
   ActiveQuotesResponse,
@@ -31,6 +36,7 @@ const QUOTE_TABS = [
 function mapSitter(sitter: ActiveQuoteSitter) {
   return {
     nickname: sitter.nickname,
+    shortIntroduction: sitter.shortIntroduction,
     profileImage: sitter.profileImageUrl,
     rating: sitter.averageRating,
     reviewCount: sitter.reviewCount,
@@ -62,7 +68,7 @@ function mapQuoteItems(data: ActiveQuotesResponse): MyQuoteItem[] {
   return [...quotes, ...rejectedRequests];
 }
 
-function isNoActiveRequest(error: unknown): boolean {
+function isNoActiveRequest(error: unknown) {
   return isAxiosError(error) && error.response?.data?.code === "CARE_REQUEST_NOT_FOUND";
 }
 
@@ -82,6 +88,34 @@ function getErrorMessage(error: unknown): string {
   return "견적 현황을 불러오지 못했습니다. 다시 시도해 주세요.";
 }
 
+function getConfirmErrorMessage(error: unknown): string {
+  if (!isAxiosError(error)) {
+    return "견적을 확정하지 못했습니다. 다시 시도해 주세요.";
+  }
+
+  const code = error.response?.data?.code;
+
+  switch (code) {
+    case "QUOTE_ALREADY_CONFIRMED":
+    case "CARE_REQUEST_ALREADY_MATCHED":
+      return "이미 견적이 확정된 요청입니다. 목록을 새로 확인해 주세요.";
+
+    case "CARE_REQUEST_NOT_FOUND":
+    case "QUOTE_NOT_FOUND":
+      return "확정할 견적을 찾지 못했습니다.";
+
+    case "UNAUTHORIZED":
+    case "TOKEN_EXPIRED":
+      return "로그인 상태를 확인해 주세요.";
+
+    case "FORBIDDEN":
+      return "견적을 확정할 권한이 없습니다.";
+
+    default:
+      return "견적을 확정하지 못했습니다. 다시 시도해 주세요.";
+  }
+}
+
 export default function OwnerActiveQuotesPage() {
   const router = useRouter();
   const { showToast } = useToast();
@@ -90,16 +124,53 @@ export default function OwnerActiveQuotesPage() {
 
   const { mutateAsync: cancelCareRequest } = useCancelCareRequest();
 
-  const handleTabChange = (value: string) => {
-    if (value === "history") {
+  const { mutateAsync: confirmQuote, isPending: isConfirming } = useConfirmQuote();
+
+  // 확정 대상 견적 선택
+  const [selectedConfirmQuoteId, setSelectedConfirmQuoteId] = useState<string | null>(null);
+
+  const [confirmError, setConfirmError] = useState("");
+
+  const selectedQuote = data?.quotes.find((quote) => quote.id === selectedConfirmQuoteId);
+
+  // 확정 확인 모달 열기
+  const openConfirmModal = (quoteId: string) => {
+    setConfirmError("");
+    setSelectedConfirmQuoteId(quoteId);
+  };
+
+  // API 요청 중에는 모달 닫기 제한
+  const closeConfirmModal = () => {
+    if (isConfirming) return;
+
+    setConfirmError("");
+    setSelectedConfirmQuoteId(null);
+  };
+
+  // 실제 견적 확정
+  const handleConfirmQuote = async () => {
+    if (!selectedConfirmQuoteId || isConfirming) {
+      return;
+    }
+
+    setConfirmError("");
+
+    try {
+      await confirmQuote(selectedConfirmQuoteId);
+
+      setSelectedConfirmQuoteId(null);
+
+      showToast({
+        message: "견적이 확정되었습니다.",
+      });
+
       router.push("/owner/quotes/history");
+    } catch (err) {
+      setConfirmError(getConfirmErrorMessage(err));
     }
   };
 
-  const handleEdit = () => {
-    router.push("/owner/requests/edit");
-  };
-
+  // 돌봄 요청 삭제
   const handleDelete = async (requestId: string): Promise<void> => {
     try {
       await cancelCareRequest(requestId);
@@ -107,8 +178,8 @@ export default function OwnerActiveQuotesPage() {
       showToast({
         message: "돌봄 요청이 삭제되었습니다.",
       });
-    } catch (error) {
-      const code = isAxiosError(error) ? error.response?.data?.code : undefined;
+    } catch (err) {
+      const code = isAxiosError(err) ? err.response?.data?.code : undefined;
 
       if (code === "CARE_REQUEST_ALREADY_CANCELED") {
         showToast({
@@ -128,7 +199,7 @@ export default function OwnerActiveQuotesPage() {
         });
       }
 
-      throw error;
+      throw err;
     }
   };
 
@@ -137,7 +208,6 @@ export default function OwnerActiveQuotesPage() {
       return <Loading variant="content" />;
     }
 
-    // 진행 중인 돌봄 요청이 없는 정상적인 빈 상태
     if (isError && isNoActiveRequest(error)) {
       return (
         <div className={styles.feedback}>
@@ -152,7 +222,6 @@ export default function OwnerActiveQuotesPage() {
       );
     }
 
-    // 그 외 API 오류는 공통 ErrorState 사용
     if (isError) {
       return (
         <ErrorState
@@ -180,9 +249,6 @@ export default function OwnerActiveQuotesPage() {
       .filter(Boolean)
       .join(" ");
 
-    // 실제 견적이 한 건이라도 있으면 수정 불가
-    const canEdit = data.quotes.length === 0;
-
     return (
       <MyQuoteManagement
         variant="active"
@@ -196,10 +262,11 @@ export default function OwnerActiveQuotesPage() {
         }}
         requestStatus="OPEN"
         quotes={quoteItems}
-        canEdit={canEdit}
-        onEdit={handleEdit}
+        canEdit={data.quotes.length === 0}
+        onEdit={() => router.push("/owner/requests/edit")}
         onDelete={handleDelete}
         onQuoteDetail={(quoteId) => router.push(`/owner/quotes/${quoteId}`)}
+        onQuoteConfirm={openConfirmModal}
       />
     );
   };
@@ -213,7 +280,11 @@ export default function OwnerActiveQuotesPage() {
               variant="default"
               options={QUOTE_TABS}
               value="active"
-              onChange={handleTabChange}
+              onChange={(value) => {
+                if (value === "history") {
+                  router.push("/owner/quotes/history");
+                }
+              }}
               className={styles.tabs}
             />
           </nav>
@@ -221,6 +292,46 @@ export default function OwnerActiveQuotesPage() {
           <div className={styles.pageContent}>{renderContent()}</div>
         </div>
       </div>
+
+      {/* 견적 확정 확인 모달 */}
+      <Modal
+        isOpen={selectedConfirmQuoteId !== null}
+        onClose={closeConfirmModal}
+        title="견적 확정"
+        footer={
+          <div style={{ display: "flex", gap: 12 }}>
+            <Button variant="outlined" disabled={isConfirming} onClick={closeConfirmModal}>
+              취소
+            </Button>
+
+            <Button
+              variant="solid"
+              disabled={isConfirming || !selectedQuote}
+              onClick={() => void handleConfirmQuote()}
+            >
+              {isConfirming ? "확정 중..." : "견적 확정하기"}
+            </Button>
+          </div>
+        }
+      >
+        <p>
+          {selectedQuote
+            ? `${selectedQuote.sitter.nickname} 팟트너의 ${selectedQuote.price.toLocaleString("ko-KR")}원 견적을 확정하시겠어요?`
+            : "견적 정보를 확인할 수 없습니다."}
+        </p>
+
+        {confirmError && (
+          <p
+            role="alert"
+            style={{
+              color: "#d14343",
+              marginTop: 12,
+            }}
+          >
+            {confirmError}
+          </p>
+        )}
+      </Modal>
     </main>
   );
 }
