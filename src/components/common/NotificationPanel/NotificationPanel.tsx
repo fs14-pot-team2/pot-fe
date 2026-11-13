@@ -24,6 +24,7 @@ type NotificationPanelProps = {
   isFetchingNextPage?: boolean;
   onLoadMore?: () => void;
   hasError?: boolean;
+  hasNextPageError?: boolean;
   onRetry?: () => void;
 };
 
@@ -38,6 +39,7 @@ export default function NotificationPanel({
   isFetchingNextPage = false,
   onLoadMore,
   hasError = false,
+  hasNextPageError = false,
   onRetry,
 }: NotificationPanelProps) {
   const panelRef = useRef<HTMLElement>(null);
@@ -158,6 +160,16 @@ export default function NotificationPanel({
 
           {isFetchingNextPage && (
             <li className={styles.nextPageLoading}>알림을 더 불러오는 중...</li>
+          )}
+
+          {hasNextPageError && !isFetchingNextPage && (
+            <li className={styles.nextPageError}>
+              <p>알림을 더 불러오지 못했어요.</p>
+
+              <button type="button" className={styles.nextPageRetryButton} onClick={onLoadMore}>
+                다시 시도
+              </button>
+            </li>
           )}
         </ul>
       )}

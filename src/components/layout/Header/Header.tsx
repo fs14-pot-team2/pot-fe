@@ -31,6 +31,7 @@ type HeaderProps = {
   isFetchingNextNotificationPage?: boolean;
   onNotificationLoadMore?: () => void;
   hasNotificationError?: boolean;
+  hasNextNotificationError?: boolean;
   onNotificationRetry?: () => void;
 };
 
@@ -58,6 +59,7 @@ export default function Header({
   hasNextNotificationPage = false,
   isFetchingNextNotificationPage = false,
   hasNotificationError = false,
+  hasNextNotificationError = false,
   onNotificationRetry,
   onLogout,
   onNotificationClick,
@@ -253,6 +255,7 @@ export default function Header({
                     isFetchingNextPage={isFetchingNextNotificationPage}
                     onLoadMore={onNotificationLoadMore}
                     hasError={hasNotificationError}
+                    hasNextPageError={hasNextNotificationError}
                     onRetry={onNotificationRetry}
                     onClose={closeNotification}
                     onNotificationClick={onNotificationClick}

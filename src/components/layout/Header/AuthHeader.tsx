@@ -25,6 +25,7 @@ export default function AuthHeader() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetchNextPageError,
     refetch: refetchNotifications,
   } = useNotifications();
 
@@ -85,6 +86,7 @@ export default function AuthHeader() {
       isFetchingNextNotificationPage={isFetchingNextPage}
       onNotificationLoadMore={handleNotificationLoadMore}
       hasNotificationError={isNotificationError && notifications.length === 0}
+      hasNextNotificationError={isFetchNextPageError}
       onNotificationRetry={handleNotificationRetry}
       onLogout={handleLogout}
     />
