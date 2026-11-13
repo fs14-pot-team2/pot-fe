@@ -23,9 +23,16 @@ type HeaderProps = {
   notifications?: NotificationItem[];
   isNotificationLoading?: boolean;
   isMarkingAllNotificationsAsRead?: boolean;
+  hasUnreadNotification?: boolean;
   onLogout?: () => void;
   onNotificationClick?: (notification: NotificationItem) => void;
   onMarkAllNotificationsAsRead?: () => void;
+  hasNextNotificationPage?: boolean;
+  isFetchingNextNotificationPage?: boolean;
+  onNotificationLoadMore?: () => void;
+  hasNotificationError?: boolean;
+  hasNextNotificationError?: boolean;
+  onNotificationRetry?: () => void;
 };
 
 const MENU_ITEMS = {
@@ -48,9 +55,16 @@ export default function Header({
   notifications = [],
   isNotificationLoading = false,
   isMarkingAllNotificationsAsRead = false,
+  hasUnreadNotification = false,
+  hasNextNotificationPage = false,
+  isFetchingNextNotificationPage = false,
+  hasNotificationError = false,
+  hasNextNotificationError = false,
+  onNotificationRetry,
   onLogout,
   onNotificationClick,
   onMarkAllNotificationsAsRead,
+  onNotificationLoadMore,
 }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -62,7 +76,6 @@ export default function Header({
   const notificationRef = useRef<HTMLDivElement>(null);
   const notificationButtonRef = useRef<HTMLButtonElement>(null);
 
-  const hasUnreadNotification = notifications.some((notification) => !notification.isRead);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   // 기본정보 관리 진입 직전 페이지 경로 보관
@@ -238,6 +251,12 @@ export default function Header({
                     notifications={notifications}
                     isLoading={isNotificationLoading}
                     isMarkingAllAsRead={isMarkingAllNotificationsAsRead}
+                    hasNextPage={hasNextNotificationPage}
+                    isFetchingNextPage={isFetchingNextNotificationPage}
+                    onLoadMore={onNotificationLoadMore}
+                    hasError={hasNotificationError}
+                    hasNextPageError={hasNextNotificationError}
+                    onRetry={onNotificationRetry}
                     onClose={closeNotification}
                     onNotificationClick={onNotificationClick}
                     onMarkAllAsRead={onMarkAllNotificationsAsRead}
