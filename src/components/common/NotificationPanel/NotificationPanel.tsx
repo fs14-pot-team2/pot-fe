@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
+import Loading from "@/components/ui/Loading/Loading";
 import { formatRelativeTime } from "@/utils/dateFormat";
 import styles from "./NotificationPanel.module.css";
 
@@ -16,16 +17,26 @@ type NotificationPanelProps = {
   notifications: NotificationItem[];
   onClose: () => void;
   onNotificationClick?: (notification: NotificationItem) => void;
+  isLoading?: boolean;
+  isMarkingAllAsRead?: boolean;
+  onMarkAllAsRead?: () => void;
 };
 
 export default function NotificationPanel({
   notifications,
   onClose,
   onNotificationClick,
+  isLoading = false,
+  isMarkingAllAsRead = false,
+  onMarkAllAsRead,
 }: NotificationPanelProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
   const panelRef = useRef<HTMLElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const hasUnreadNotification = notifications.some((notification) => !notification.isRead);
+
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+  }, []);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
     if (event.key === "Escape") {
@@ -62,17 +73,31 @@ export default function NotificationPanel({
       <div className={styles.header}>
         <h2 className={styles.title}>알림</h2>
 
-        <button
-          type="button"
-          className={styles.closeButton}
-          aria-label="알림 닫기"
-          onClick={onClose}
-        >
-          <Image src="/icons/ic_close.svg" alt="" width={24} height={24} />
-        </button>
+        <div className={styles.headerActions}>
+          <button
+            type="button"
+            className={styles.markAllButton}
+            disabled={isLoading || isMarkingAllAsRead || !hasUnreadNotification || !onMarkAllAsRead}
+            onClick={onMarkAllAsRead}
+          >
+            {isMarkingAllAsRead ? "처리 중..." : "모두 읽음"}
+          </button>
+
+          <button
+            ref={closeButtonRef}
+            type="button"
+            className={styles.closeButton}
+            aria-label="알림 닫기"
+            onClick={onClose}
+          >
+            <Image src="/icons/ic_close.svg" alt="" width={24} height={24} />
+          </button>
+        </div>
       </div>
 
-      {notifications.length === 0 ? (
+      {isLoading ? (
+        <Loading variant="content" message="알림을 불러오는 중이에요." className={styles.loading} />
+      ) : notifications.length === 0 ? (
         <p className={styles.emptyMessage}>새로운 알림이 없어요.</p>
       ) : (
         <ul className={styles.list}>

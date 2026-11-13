@@ -21,8 +21,11 @@ type HeaderProps = {
   userRole?: "OWNER" | "SITTER";
   nickname?: string;
   notifications?: NotificationItem[];
+  isNotificationLoading?: boolean;
+  isMarkingAllNotificationsAsRead?: boolean;
   onLogout?: () => void;
   onNotificationClick?: (notification: NotificationItem) => void;
+  onMarkAllNotificationsAsRead?: () => void;
 };
 
 const MENU_ITEMS = {
@@ -43,8 +46,11 @@ export default function Header({
   userRole,
   nickname,
   notifications = [],
+  isNotificationLoading = false,
+  isMarkingAllNotificationsAsRead = false,
   onLogout,
   onNotificationClick,
+  onMarkAllNotificationsAsRead,
 }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -54,6 +60,7 @@ export default function Header({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
+  const notificationButtonRef = useRef<HTMLButtonElement>(null);
 
   const hasUnreadNotification = notifications.some((notification) => !notification.isRead);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -63,6 +70,11 @@ export default function Header({
 
   const closeDrawer = useCallback(() => {
     setIsDrawerOpen(false);
+  }, []);
+
+  const closeNotification = useCallback(() => {
+    setIsNotificationOpen(false);
+    window.requestAnimationFrame(() => notificationButtonRef.current?.focus());
   }, []);
 
   useEffect(() => {
@@ -86,13 +98,13 @@ export default function Header({
 
     const handlePointerDown = (event: PointerEvent) => {
       if (!notificationRef.current?.contains(event.target as Node)) {
-        setIsNotificationOpen(false);
+        closeNotification();
       }
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setIsNotificationOpen(false);
+        closeNotification();
       }
     };
 
@@ -103,7 +115,7 @@ export default function Header({
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isNotificationOpen]);
+  }, [closeNotification, isNotificationOpen]);
 
   // 현재 페이지를 기억한 후 비밀번호 확인 모달 열기
   const handleOpenAccount = () => {
@@ -194,11 +206,19 @@ export default function Header({
           {isLoggedIn && (
             <div className={styles.notificationWrapper} ref={notificationRef}>
               <button
+                ref={notificationButtonRef}
                 type="button"
                 className={styles.notificationButton}
                 aria-label="알림"
                 aria-expanded={isNotificationOpen}
-                onClick={() => setIsNotificationOpen((isOpen) => !isOpen)}
+                onClick={() => {
+                  if (isNotificationOpen) {
+                    closeNotification();
+                    return;
+                  }
+
+                  setIsNotificationOpen(true);
+                }}
               >
                 <Image
                   src={
@@ -216,8 +236,11 @@ export default function Header({
                 <div className={styles.notificationPanel}>
                   <NotificationPanel
                     notifications={notifications}
-                    onClose={() => setIsNotificationOpen(false)}
+                    isLoading={isNotificationLoading}
+                    isMarkingAllAsRead={isMarkingAllNotificationsAsRead}
+                    onClose={closeNotification}
                     onNotificationClick={onNotificationClick}
+                    onMarkAllAsRead={onMarkAllNotificationsAsRead}
                   />
                 </div>
               )}
