@@ -98,6 +98,34 @@
   min-height: 220px;
 }
 
+.nextPageLoading {
+  padding: 12px 0;
+  color: #999999;
+  font-size: 13px;
+  text-align: center;
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 48px 0;
+  color: #999999;
+  text-align: center;
+}
+
+.error p {
+  margin: 0;
+}
+
+.retryButton {
+  padding: 6px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-primary);
+}
+
 @media (max-width: 540px) {
   .panel {
     transform: translateX(50px);
