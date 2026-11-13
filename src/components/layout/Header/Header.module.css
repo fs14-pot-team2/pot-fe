@@ -41,13 +41,34 @@
   width: 116px;
 }
 
+.notificationWrapper {
+  position: relative;
+  margin-left: auto;
+  margin-right: 8px;
+}
+
+.notificationButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
 .messageButton {
-  display: none; /* 1차 MVP: 쪽지 기능 구현 전까지 숨김 */
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 36px;
   height: 36px;
   margin-right: 24px;
+}
+
+.notificationPanel {
+  position: absolute;
+  top: calc(100% + 16px);
+  right: 0;
+  z-index: 110;
 }
 
 .logoLink {
@@ -85,6 +106,10 @@
 
   .messageButton {
     margin-right: 12px;
+  }
+
+  .notificationPanel {
+    top: calc(100% + 10px);
   }
 
   .menuButton {

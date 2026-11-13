@@ -1,6 +1,9 @@
 "use client";
 
 import Button from "@/components/ui/Button/Button";
+import NotificationPanel, {
+  type NotificationItem,
+} from "@/components/common/NotificationPanel/NotificationPanel";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -17,7 +20,12 @@ type HeaderProps = {
   isLoggedIn: boolean;
   userRole?: "OWNER" | "SITTER";
   nickname?: string;
+  notifications?: NotificationItem[];
+  isNotificationLoading?: boolean;
+  isMarkingAllNotificationsAsRead?: boolean;
   onLogout?: () => void;
+  onNotificationClick?: (notification: NotificationItem) => void;
+  onMarkAllNotificationsAsRead?: () => void;
 };
 
 const MENU_ITEMS = {
@@ -33,13 +41,28 @@ const MENU_ITEMS = {
   ],
 };
 
-export default function Header({ isLoggedIn, userRole, nickname, onLogout }: HeaderProps) {
+export default function Header({
+  isLoggedIn,
+  userRole,
+  nickname,
+  notifications = [],
+  isNotificationLoading = false,
+  isMarkingAllNotificationsAsRead = false,
+  onLogout,
+  onNotificationClick,
+  onMarkAllNotificationsAsRead,
+}: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
 
   const { completeAccountVerification } = useAuth();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const notificationRef = useRef<HTMLDivElement>(null);
+  const notificationButtonRef = useRef<HTMLButtonElement>(null);
+
+  const hasUnreadNotification = notifications.some((notification) => !notification.isRead);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   // 기본정보 관리 진입 직전 페이지 경로 보관
@@ -47,6 +70,11 @@ export default function Header({ isLoggedIn, userRole, nickname, onLogout }: Hea
 
   const closeDrawer = useCallback(() => {
     setIsDrawerOpen(false);
+  }, []);
+
+  const closeNotification = useCallback(() => {
+    setIsNotificationOpen(false);
+    window.requestAnimationFrame(() => notificationButtonRef.current?.focus());
   }, []);
 
   useEffect(() => {
@@ -64,6 +92,30 @@ export default function Header({ isLoggedIn, userRole, nickname, onLogout }: Hea
       mediaQuery.removeEventListener("change", handleBreakPointChange);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isNotificationOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!notificationRef.current?.contains(event.target as Node)) {
+        closeNotification();
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeNotification();
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [closeNotification, isNotificationOpen]);
 
   // 현재 페이지를 기억한 후 비밀번호 확인 모달 열기
   const handleOpenAccount = () => {
@@ -149,6 +201,50 @@ export default function Header({ isLoggedIn, userRole, nickname, onLogout }: Hea
             >
               로그인
             </Button>
+          )}
+
+          {isLoggedIn && (
+            <div className={styles.notificationWrapper} ref={notificationRef}>
+              <button
+                ref={notificationButtonRef}
+                type="button"
+                className={styles.notificationButton}
+                aria-label="알림"
+                aria-expanded={isNotificationOpen}
+                onClick={() => {
+                  if (isNotificationOpen) {
+                    closeNotification();
+                    return;
+                  }
+
+                  setIsNotificationOpen(true);
+                }}
+              >
+                <Image
+                  src={
+                    hasUnreadNotification
+                      ? "/icons/ic_notification_unread.svg"
+                      : "/icons/ic_notification.svg"
+                  }
+                  alt=""
+                  width={24}
+                  height={24}
+                />
+              </button>
+
+              {isNotificationOpen && (
+                <div className={styles.notificationPanel}>
+                  <NotificationPanel
+                    notifications={notifications}
+                    isLoading={isNotificationLoading}
+                    isMarkingAllAsRead={isMarkingAllNotificationsAsRead}
+                    onClose={closeNotification}
+                    onNotificationClick={onNotificationClick}
+                    onMarkAllAsRead={onMarkAllNotificationsAsRead}
+                  />
+                </div>
+              )}
+            </div>
           )}
 
           {isLoggedIn && (
