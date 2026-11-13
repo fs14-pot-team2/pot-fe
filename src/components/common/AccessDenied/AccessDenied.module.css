@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: calc(100dvh - 88px);
+  min-height: var(--page-content-min-height, calc(100dvh - var(--header-height)));
   padding: 48px 20px;
   text-align: center;
 }
@@ -35,15 +35,8 @@
   margin-top: 32px;
 }
 
-@media (max-width: 768px) {
-  .container {
-    min-height: calc(100dvh - 72px);
-  }
-}
-
 @media (max-width: 540px) {
   .container {
-    min-height: calc(100dvh - 54px);
     padding: 32px 20px;
   }
 

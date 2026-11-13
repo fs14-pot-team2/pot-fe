@@ -3,9 +3,9 @@
 }
 
 .titleArea {
-  max-width: 960px;
+  max-width: 912px;
   margin: 0 auto;
-  padding: 32px 24px;
+  padding-block: 32px;
 }
 
 .title {
@@ -14,7 +14,6 @@
 }
 
 .notFound {
-  min-height: calc(100dvh - 88px);
   padding: 48px 24px;
 }
 
@@ -25,9 +24,9 @@
 }
 
 .content {
-  max-width: 960px;
+  max-width: 912px;
   margin: 0 auto;
-  padding: 40px 24px 80px;
+  padding-block: 40px 80px;
 }
 
 .layout {
@@ -55,17 +54,13 @@
 }
 
 @media (max-width: 768px) {
-  .notFound {
-    min-height: calc(100dvh - 72px);
-  }
-
   .layout {
     grid-template-columns: 1fr;
     gap: 28px;
   }
 
   .content {
-    padding: 40px 32px calc(156px + env(safe-area-inset-bottom));
+    padding-block: 40px calc(156px + env(safe-area-inset-bottom));
   }
 
   .actions {
@@ -88,16 +83,12 @@
 }
 
 @media (max-width: 540px) {
-  .notFound {
-    min-height: calc(100dvh - 54px);
-  }
-
   .banner {
     height: 120px;
   }
 
   .content {
-    padding: 24px 24px calc(140px + env(safe-area-inset-bottom));
+    padding-block: 24px calc(140px + env(safe-area-inset-bottom));
   }
 
   .actions {

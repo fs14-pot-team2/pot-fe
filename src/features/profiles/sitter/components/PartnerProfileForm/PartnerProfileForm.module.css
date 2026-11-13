@@ -2,7 +2,7 @@
   width: 100%;
   max-width: 640px;
   margin: 0 auto;
-  padding: 64px 0 80px;
+
   box-sizing: border-box;
 }
 
@@ -119,8 +119,7 @@
 
 @media (max-width: 768px) {
   .formContainer {
-    max-width: 445px;
-    padding: 48px 24px 64px;
+    max-width: 397px;
   }
 
   .header {
@@ -161,22 +160,11 @@
     font-size: 14px;
   }
 
-  .formContainer {
-    padding: 40px 24px 48px;
-  }
-
   .title {
     font-size: 22px;
   }
 
   .form {
     gap: 24px;
-  }
-}
-
-@media (max-width: 360px) {
-  .formContainer {
-    padding-right: 20px;
-    padding-left: 20px;
   }
 }

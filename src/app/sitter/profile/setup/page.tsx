@@ -1,5 +1,8 @@
 "use client";
 
+import PageMain from "@/components/layout/Page/PageMain";
+import PageContainer from "@/components/layout/Page/PageContainer";
+
 import { useRouter } from "next/navigation";
 
 import { useToast } from "@/components/ui/Toast/ToastProvider";
@@ -18,7 +21,7 @@ import type {
 import { isAxiosError } from "axios";
 import { useEffect } from "react";
 
-export default function SitterProfileRegisterPage() {
+function SitterProfileRegisterPageContent() {
   const router = useRouter();
   const createProfileMutation = useCreatePartnerProfile();
   const { data: profile, isPending, isError, error, refetch } = usePartnerProfile();
@@ -100,5 +103,15 @@ export default function SitterProfileRegisterPage() {
       isSubmitting={createProfileMutation.isPending}
       onSubmit={handleSubmit}
     />
+  );
+}
+
+export default function SitterProfileRegisterPage() {
+  return (
+    <PageMain>
+      <PageContainer>
+        <SitterProfileRegisterPageContent />
+      </PageContainer>
+    </PageMain>
   );
 }

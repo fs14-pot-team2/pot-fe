@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100dvh - 88px);
+
   padding: 44px 24px;
   background-color: var(--color-brand);
 }
@@ -25,7 +25,6 @@
 /* 태블릿 */
 @media (max-width: 768px) {
   .page {
-    min-height: calc(100dvh - 72px);
     padding: 76px 52px;
   }
 
@@ -38,7 +37,7 @@
 @media (max-width: 540px) {
   .page {
     align-items: flex-start;
-    min-height: calc(100dvh - 54px);
+
     padding: 72px 24px 64px;
     background-color: var(--color-bg);
   }

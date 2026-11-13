@@ -1,5 +1,8 @@
 "use client";
 
+import PageMain from "@/components/layout/Page/PageMain";
+import PageContainer from "@/components/layout/Page/PageContainer";
+
 import Button from "@/components/ui/Button/Button";
 import Loading from "@/components/ui/Loading/Loading";
 import { isAxiosError } from "axios";
@@ -36,27 +39,43 @@ export default function SitterProfileGuard({ children }: SitterProfileGuardProps
   }
 
   if (isProfileMissing) {
-    return <Loading variant="content" />;
+    return (
+      <PageMain>
+        <PageContainer>
+          <Loading variant="content" />
+        </PageContainer>
+      </PageMain>
+    );
   }
 
   if (isPending) {
-    return <Loading variant="content" />;
+    return (
+      <PageMain>
+        <PageContainer>
+          <Loading variant="content" />
+        </PageContainer>
+      </PageMain>
+    );
   }
 
   if (isError) {
     return (
-      <div role="alert">
-        <p>프로필 정보를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.</p>
+      <PageMain>
+        <PageContainer>
+          <div role="alert">
+            <p>프로필 정보를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.</p>
 
-        <Button size="sm" onClick={() => void refetch()}>
-          다시 시도
-        </Button>
-      </div>
+            <Button size="sm" onClick={() => void refetch()}>
+              다시 시도
+            </Button>
+          </div>
+        </PageContainer>
+      </PageMain>
     );
   }
 
   if (!profile) {
-    return null;
+    return <PageMain />;
   }
 
   return <>{children}</>;

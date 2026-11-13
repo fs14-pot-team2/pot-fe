@@ -1,5 +1,9 @@
 "use client";
 
+import PageContainer from "@/components/layout/Page/PageContainer";
+
+import PageMain from "@/components/layout/Page/PageMain";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useController, useForm } from "react-hook-form";
@@ -196,63 +200,65 @@ export default function SitterAccountEditPage() {
     });
   };
 
-  if (status === "checking" || !user || !hasEditAccess) return null;
+  if (status === "checking" || !user || !hasEditAccess) return <PageMain />;
 
   return (
-    <main className={styles.page}>
-      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
-        <h1 className={styles.title}>기본정보 관리</h1>
+    <PageMain>
+      <PageContainer>
+        <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+          <h1 className={styles.title}>기본정보 관리</h1>
 
-        <section className={styles.field}>
-          <h2 className={styles.label}>이메일</h2>
-          <p className={styles.email}>{user.email}</p>
-        </section>
+          <section className={styles.field}>
+            <h2 className={styles.label}>이메일</h2>
+            <p className={styles.email}>{user.email}</p>
+          </section>
 
-        <Input
-          label="닉네임"
-          value={nicknameField.value}
-          onChange={handleNicknameChange}
-          error={nicknameError?.message}
-        />
+          <Input
+            label="닉네임"
+            value={nicknameField.value}
+            onChange={handleNicknameChange}
+            error={nicknameError?.message}
+          />
 
-        <Input
-          label="새 비밀번호"
-          type="password"
-          value={passwordField.value}
-          onChange={passwordField.onChange}
-          placeholder="새 비밀번호를 입력해 주세요"
-          error={passwordError?.message}
-        />
+          <Input
+            label="새 비밀번호"
+            type="password"
+            value={passwordField.value}
+            onChange={passwordField.onChange}
+            placeholder="새 비밀번호를 입력해 주세요"
+            error={passwordError?.message}
+          />
 
-        <Input
-          label="새 비밀번호 확인"
-          type="password"
-          value={confirmPasswordField.value}
-          onChange={confirmPasswordField.onChange}
-          placeholder="새 비밀번호를 다시 한번 입력해 주세요"
-          error={confirmPasswordError?.message}
-        />
+          <Input
+            label="새 비밀번호 확인"
+            type="password"
+            value={confirmPasswordField.value}
+            onChange={confirmPasswordField.onChange}
+            placeholder="새 비밀번호를 다시 한번 입력해 주세요"
+            error={confirmPasswordError?.message}
+          />
 
-        <div className={styles.actions}>
-          <Button
-            type="submit"
-            className={styles.button}
-            disabled={!isValid || updateAccountMutation.isPending}
-          >
-            저장하기
-          </Button>
+          <div className={styles.actions}>
+            <Button
+              type="submit"
+              className={styles.button}
+              disabled={!isValid || updateAccountMutation.isPending}
+            >
+              저장하기
+            </Button>
 
-          <Button
-            type="button"
-            variant="outlined"
-            className={styles.button}
-            onClick={handleCancel}
-            disabled={updateAccountMutation.isPending}
-          >
-            취소
-          </Button>
-        </div>
-      </form>
-    </main>
+            <Button
+              type="button"
+              variant="outlined"
+              className={styles.button}
+              onClick={handleCancel}
+              disabled={updateAccountMutation.isPending}
+            >
+              취소
+            </Button>
+          </div>
+        </form>
+      </PageContainer>
+    </PageMain>
   );
 }

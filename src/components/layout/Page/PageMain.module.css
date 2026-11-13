@@ -1,0 +1,11 @@
+.main {
+  --page-content-min-height: calc(100dvh - var(--header-height));
+  min-height: calc(100dvh - var(--header-height));
+}
+
+.standard {
+  --page-content-min-height: calc(
+    100dvh - var(--header-height) - var(--page-padding-top) - var(--page-padding-bottom)
+  );
+  padding-block: var(--page-padding-top) var(--page-padding-bottom);
+}

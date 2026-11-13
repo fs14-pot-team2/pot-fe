@@ -1,5 +1,9 @@
 "use client";
 
+import PageContainer from "@/components/layout/Page/PageContainer";
+
+import PageMain from "@/components/layout/Page/PageMain";
+
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
@@ -193,7 +197,7 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
       {/* 올리브색 영역 */}
       <div className={styles.hero} aria-hidden="true" />
 
-      <div className={`container ${styles.content}`}>
+      <PageContainer className={styles.content}>
         <div className={styles.layout}>
           <article className={styles.detail}>
             {/* 팟트너 프로필 */}
@@ -312,7 +316,7 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
             )}
           </aside>
         </div>
-      </div>
+      </PageContainer>
 
       {/* 견적 확정 확인 모달 */}
       <Modal
@@ -351,45 +355,66 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
 
 export default function OwnerQuoteDetailPage() {
   const params = useParams<{ quoteId: string }>();
+  const router = useRouter();
   const quoteId = params.quoteId;
 
   // 양의 정수 형태의 견적 ID만 허용
   const isValidQuoteId = /^\d+$/.test(quoteId) && BigInt(quoteId) > 0n;
 
   const { data, isPending, isError, error, refetch } = useQuoteDetail(quoteId);
+  const isAccessForbidden =
+    isAxiosError(error) &&
+    (error.response?.status === 403 ||
+      error.response?.data?.code === "QUOTE_ACCESS_FORBIDDEN" ||
+      error.response?.data?.code === "FORBIDDEN");
 
   return (
-    <main className={styles.main}>
-      <div className="container">
+    <PageMain variant="fullWidth" className={styles.main}>
+      <PageContainer>
         <header className={styles.pageHeader}>
           <h1>견적 상세</h1>
         </header>
-      </div>
+      </PageContainer>
 
       {/* 잘못된 견적 ID */}
       {!isValidQuoteId ? (
-        <div className={`container ${styles.feedback}`} role="alert">
+        <PageContainer className={styles.feedback} role="alert">
           <p>올바르지 않은 견적 번호입니다.</p>
-        </div>
+        </PageContainer>
       ) : isPending ? (
-        <div className={`container ${styles.feedback}`} role="status">
+        <PageContainer className={styles.feedback} role="status">
           <p>견적 정보를 불러오는 중입니다.</p>
-        </div>
+        </PageContainer>
+      ) : isError && isAccessForbidden ? (
+        <PageContainer>
+          <section className={styles.accessFeedback} role="alert">
+            <h2 className={styles.accessTitle}>견적을 조회할 권한이 없어요</h2>
+            <p className={styles.accessDescription}>현재 계정으로는 이 견적을 확인할 수 없어요.</p>
+            <Button
+              variant="solid"
+              size="md"
+              className={styles.accessAction}
+              onClick={() => router.push("/owner/quotes")}
+            >
+              견적 목록으로 이동
+            </Button>
+          </section>
+        </PageContainer>
       ) : isError ? (
-        <div className={`container ${styles.feedback}`} role="alert">
+        <PageContainer className={styles.feedback} role="alert">
           <p>{getErrorMessage(error)}</p>
 
           <button type="button" onClick={() => void refetch()}>
             다시 시도
           </button>
-        </div>
+        </PageContainer>
       ) : data ? (
         <QuoteDetailContent data={data} />
       ) : (
-        <div className={`container ${styles.feedback}`}>
+        <PageContainer className={styles.feedback}>
           <p>견적 정보를 찾을 수 없습니다.</p>
-        </div>
+        </PageContainer>
       )}
-    </main>
+    </PageMain>
   );
 }

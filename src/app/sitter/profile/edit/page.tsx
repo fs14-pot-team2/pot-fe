@@ -1,5 +1,8 @@
 "use client";
 
+import PageMain from "@/components/layout/Page/PageMain";
+import PageContainer from "@/components/layout/Page/PageContainer";
+
 import { useMemo } from "react"; //initialValues 객체가 렌더링마다 새로 만들어지면 폼의 reset()이 반복되어 사용자가 작성 중인 값이 기존 값으로 돌아갈 수 있어서 사용
 import { useRouter } from "next/navigation";
 
@@ -16,7 +19,7 @@ import type {
   UpdatePartnerProfileRequest,
 } from "@/features/profiles/sitter/types";
 
-export default function SitterProfileEditPage() {
+function SitterProfileEditPageContent() {
   const router = useRouter();
   const { showToast } = useToast();
 
@@ -99,5 +102,15 @@ export default function SitterProfileEditPage() {
       onSubmit={handleSubmit}
       onCancel={handleCancel}
     />
+  );
+}
+
+export default function SitterProfileEditPage() {
+  return (
+    <PageMain>
+      <PageContainer>
+        <SitterProfileEditPageContent />
+      </PageContainer>
+    </PageMain>
   );
 }

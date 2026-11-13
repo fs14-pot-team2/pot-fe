@@ -1,5 +1,6 @@
 .main {
-  min-height: 100vh;
+  --quote-detail-spacing: 24px;
+  padding-block: var(--quote-detail-spacing) var(--page-padding-bottom);
   background-color: var(--color-bg, #fefdf9);
 }
 
@@ -30,8 +31,7 @@
 .content {
   position: relative;
   margin-top: 0;
-  padding-top: 20px;
-  padding-bottom: 100px;
+  padding-top: var(--quote-detail-spacing);
 }
 
 .layout {
@@ -217,20 +217,39 @@
   padding: 0;
 }
 
-/* 오른쪽 액션 영역 */
+/* 오른쪽 액션 영역 - 데스크톱 Sticky */
 
 .shareArea {
+  position: sticky;
+
+  /* 고정 헤더 높이 + 상단 여백 */
+  top: calc(var(--header-height) + 24px);
+  align-self: start;
+
   display: flex;
   flex-direction: column;
   gap: 24px;
+
   min-width: 0;
-  padding-top: 160px;
+  height: max-content;
+
+  /* 견적 확정 버튼 + 공유 영역이 화면 안에 들어오도록 제한 */
+  max-height: calc(100dvh - var(--header-height) - 48px);
+
+  /* 기존 오른쪽 영역 시작 위치 유지 */
+  margin-top: 160px;
+
+  /* 화면 높이가 작을 때 내부 스크롤 허용 */
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 /* 견적 확정 버튼 */
 
 .confirmArea {
   width: 100%;
+  flex-shrink: 0;
 }
 
 .confirmButton {
@@ -256,6 +275,7 @@
 
 .socialShare {
   width: 100%;
+  flex-shrink: 0;
 }
 
 /* 로딩 및 오류 */
@@ -270,6 +290,40 @@
   text-align: center;
 }
 
+.accessFeedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  padding: 48px 20px;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.accessTitle {
+  margin: 0;
+  color: #262524;
+  font-size: 24px;
+  font-weight: var(--font-bold);
+  line-height: 1.4;
+}
+
+.accessDescription {
+  margin: 12px 0 0;
+  color: #777;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.accessFeedback .accessAction {
+  width: auto;
+  max-width: 100%;
+  margin-top: 24px;
+  padding-inline: 24px;
+  word-break: keep-all;
+}
+
 .feedback button {
   padding: 12px 24px;
   border: 0;
@@ -279,7 +333,7 @@
   cursor: pointer;
 }
 
-/* 1024px 이하: 공유하기 → 확정 버튼 */
+/* 1024px 이하: Sticky 해제, 공유하기 → 확정 버튼 */
 
 @media (max-width: 1024px) {
   .layout {
@@ -287,8 +341,16 @@
   }
 
   .shareArea {
+    position: static;
+    top: auto;
+    align-self: auto;
+
+    height: auto;
+    max-height: none;
     margin-top: 30px;
     padding-top: 30px;
+
+    overflow: visible;
     border-top: 1px solid #d3d4c2;
   }
 
@@ -301,7 +363,13 @@
   }
 }
 
+/* 태블릿 */
+
 @media (max-width: 768px) {
+  .main {
+    --quote-detail-spacing: 20px;
+  }
+
   .careInfo h2 {
     font-size: 20px;
   }
@@ -312,7 +380,26 @@
   }
 }
 
+/* 모바일 */
+
 @media (max-width: 540px) {
+  .accessFeedback {
+    min-height: 240px;
+    padding: 32px 12px;
+  }
+
+  .accessTitle {
+    font-size: 20px;
+  }
+
+  .accessDescription {
+    font-size: 14px;
+  }
+
+  .main {
+    --quote-detail-spacing: 16px;
+  }
+
   .introduction {
     font-size: 18px;
     letter-spacing: -0.1px;

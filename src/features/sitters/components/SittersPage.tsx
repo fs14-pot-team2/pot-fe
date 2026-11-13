@@ -1,5 +1,9 @@
 "use client";
 
+import PageContainer from "@/components/layout/Page/PageContainer";
+
+import PageMain from "@/components/layout/Page/PageMain";
+
 import PartnerCard from "@/components/common/PartnerCard/PartnerCard";
 import BottomSheet, {
   BottomSheetOption,
@@ -168,8 +172,8 @@ export default function SittersPage() {
   };
 
   return (
-    <main className={styles.main}>
-      <div className="container">
+    <PageMain>
+      <PageContainer>
         <h1 className={styles.title}>팟트너 찾기</h1>
 
         <SearchInput
@@ -229,7 +233,7 @@ export default function SittersPage() {
             />
           </>
         )}
-      </div>
+      </PageContainer>
 
       <BottomSheet
         isOpen={isFilterOpen}
@@ -288,6 +292,6 @@ export default function SittersPage() {
           ),
         }}
       </BottomSheet>
-    </main>
+    </PageMain>
   );
 }

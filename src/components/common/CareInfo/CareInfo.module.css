@@ -96,6 +96,7 @@
   margin: 0;
   color: #222222;
   font-weight: var(--font-medium);
+  word-break: keep-all;
 }
 
 .summary .value {
@@ -199,13 +200,13 @@
   }
 
   .title {
-    font-size: 24px;
+    font-size: 20px;
   }
 
   .requestedDate,
   .label,
   .value {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .summary .value,
