@@ -6,8 +6,11 @@ import Loading from "@/components/ui/Loading/Loading";
 import { formatRelativeTime } from "@/utils/dateFormat";
 import styles from "./NotificationPanel.module.css";
 
+import type { NotificationType } from "@/features/notifications/types/notification";
+
 export type NotificationItem = {
   id: string;
+  type: NotificationType;
   content: string;
   createdAt: string;
   isRead: boolean;

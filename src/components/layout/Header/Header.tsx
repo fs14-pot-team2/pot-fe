@@ -258,7 +258,10 @@ export default function Header({
                     hasNextPageError={hasNextNotificationError}
                     onRetry={onNotificationRetry}
                     onClose={closeNotification}
-                    onNotificationClick={onNotificationClick}
+                    onNotificationClick={(notification) => {
+                      closeNotification();
+                      onNotificationClick?.(notification);
+                    }}
                     onMarkAllAsRead={onMarkAllNotificationsAsRead}
                   />
                 </div>
