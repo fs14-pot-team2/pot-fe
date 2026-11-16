@@ -38,6 +38,32 @@ export interface PaginatedReviews<T> {
 
 export type WritableReviewsResponse = PaginatedReviews<WritableReviewItem>;
 
+// 내가 작성한 리뷰 목록의 카드 데이터
+export interface WrittenReviewItem {
+  review: {
+    id: string;
+    rating: number;
+    content: string;
+    createdAt: string;
+  };
+  careRequest: {
+    id: string;
+    serviceType: ReviewServiceType;
+    endDate: string;
+  };
+  confirmedQuote: {
+    type: ReviewQuoteType;
+    price: number;
+  };
+  sitter: {
+    id: string;
+    nickname: string;
+    profileImageUrl: string | null;
+  };
+}
+
+export type WrittenReviewsResponse = PaginatedReviews<WrittenReviewItem>;
+
 // 리뷰 등록 성공 응답
 export interface CreateReviewResponse {
   id: string;

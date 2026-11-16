@@ -1,0 +1,273 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid #f0f0f0;
+  border-radius: 24px;
+  background-color: var(--color-bg-wh);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 5%);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: -8px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.iconButton:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.sitterInfo {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #e6e6e6;
+  border-radius: 6px;
+}
+
+.avatar {
+  width: 100px;
+  flex: 0 0 100px;
+}
+
+.details {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.nickname {
+  margin: 0;
+  color: #262524;
+  font-size: 24px;
+  font-weight: var(--font-semibold);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  color: #262524;
+  font-size: 18px;
+}
+
+.meta > span:last-child {
+  position: relative;
+}
+
+.meta > span:last-child::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -12px;
+  width: 1px;
+  height: 18px;
+  background-color: #e6e6e6;
+  transform: translateY(-50%);
+}
+
+.label {
+  margin-right: 8px;
+  color: #7a7a79;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.reviewContent {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: #7a7a79;
+  font-size: 18px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.createdAt {
+  align-self: flex-end;
+  margin: 0;
+  margin-top: auto;
+  color: #a6a6a6;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+  .card {
+    gap: 20px;
+    padding: 16px;
+  }
+
+  .actions .iconButton:first-child img {
+    width: 17px;
+    height: 17px;
+  }
+
+  .actions .iconButton:last-child img {
+    width: 21px;
+    height: 21px;
+  }
+
+  .sitterInfo {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .avatar {
+    width: 64px;
+    flex-basis: 64px;
+  }
+
+  .details {
+    gap: 8px;
+  }
+
+  .nickname {
+    font-size: 18px;
+  }
+
+  .meta {
+    gap: 6px 12px;
+    font-size: 14px;
+  }
+
+  .meta > span:last-child::before {
+    left: -6px;
+    height: 14px;
+  }
+
+  .rating img {
+    width: 18px;
+    height: 18px;
+  }
+
+  .reviewContent {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .actions .iconButton:first-child img {
+    width: 15px;
+    height: 15px;
+  }
+
+  .actions .iconButton:last-child img {
+    width: 18px;
+    height: 18px;
+  }
+
+  .tags {
+    gap: 8px;
+  }
+
+  .sitterInfo {
+    gap: 12px;
+    padding: 0 0 16px;
+    border: 0;
+    border-bottom: 1px solid #f0f0f0;
+    border-radius: 0;
+  }
+
+  .avatar {
+    width: 48px;
+    flex-basis: 48px;
+  }
+
+  .details {
+    gap: 6px;
+  }
+
+  .nickname {
+    font-size: 16px;
+  }
+
+  .meta {
+    gap: 6px 12px;
+    font-size: 13px;
+  }
+
+  .meta > span:last-child::before {
+    left: -6px;
+    height: 12px;
+  }
+
+  .rating img {
+    width: 16px;
+    height: 16px;
+  }
+
+  .reviewContent {
+    font-size: 14px;
+  }
+
+  .createdAt {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 540px) {
+  .card {
+    padding: 14px;
+  }
+
+  .header {
+    gap: 8px;
+  }
+
+  .actions {
+    gap: 0;
+  }
+}

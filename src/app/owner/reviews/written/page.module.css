@@ -1,0 +1,91 @@
+.main {
+  min-height: calc(100dvh - 160px);
+  padding: 32px 0 100px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  min-width: 0;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.pagination {
+  padding-top: 8px;
+}
+
+.feedback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 420px;
+}
+
+.deleteModal > div:first-child {
+  position: relative;
+  justify-content: center;
+}
+
+.deleteModal > div:first-child > button {
+  position: absolute;
+  right: 24px;
+}
+
+.deleteActions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.deleteActions > button {
+  flex: 1;
+  min-width: 0;
+}
+
+.deleteMessage {
+  margin: 0;
+  color: #262524;
+  font-size: 16px;
+  line-height: 1.6;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.deleteError {
+  margin: 12px 0 0;
+  color: #e5484d;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+@media (max-width: 1024px) {
+  .main {
+    padding: 28px 0 80px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: 24px 0 64px;
+  }
+
+  .content {
+    gap: 24px;
+  }
+
+  .cards {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .feedback {
+    min-height: 300px;
+  }
+}
