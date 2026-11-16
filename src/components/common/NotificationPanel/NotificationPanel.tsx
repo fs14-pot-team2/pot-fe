@@ -22,6 +22,7 @@ type NotificationPanelProps = {
   onNotificationClick?: (notification: NotificationItem) => void;
   isLoading?: boolean;
   isMarkingAllAsRead?: boolean;
+  hasUnreadNotification?: boolean;
   onMarkAllAsRead?: () => void;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
@@ -37,6 +38,7 @@ export default function NotificationPanel({
   onNotificationClick,
   isLoading = false,
   isMarkingAllAsRead = false,
+  hasUnreadNotification = false,
   onMarkAllAsRead,
   hasNextPage = false,
   isFetchingNextPage = false,
@@ -47,7 +49,6 @@ export default function NotificationPanel({
 }: NotificationPanelProps) {
   const panelRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const hasUnreadNotification = notifications.some((notification) => !notification.isRead);
 
   useEffect(() => {
     closeButtonRef.current?.focus();

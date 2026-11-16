@@ -38,10 +38,11 @@ export default function AuthHeader() {
   const { mutate: markAllNotificationsAsRead, isPending: isMarkingAllNotificationsAsRead } =
     useReadAllNotifications();
 
-  const { mutate: markNotificationAsRead, isPending: isReadingNotification } =
+  const { mutateAsync: markNotificationAsRead, isPending: isReadingNotification } =
     useReadNotification();
 
   const { data: unreadNotificationData } = useUnreadNotification();
+  const hasUnreadNotification = unreadNotificationData?.hasUnreadNotification ?? false;
 
   const notifications = useMemo<NotificationItem[]>(() => {
     const notificationMap = new Map<string, NotificationItem>();
@@ -71,8 +72,8 @@ export default function AuthHeader() {
     void refetchNotifications();
   };
 
-  const handleNotificationClick = (notification: NotificationItem) => {
-    if (!user || isReadingNotification) return;
+  const handleNotificationClick = async (notification: NotificationItem) => {
+    if (!user || isReadingNotification) return false;
 
     const route = getNotificationRoute(notification.type, user.role);
 
@@ -80,31 +81,26 @@ export default function AuthHeader() {
       showToast({
         message: "이동할 페이지를 찾지 못했습니다.",
       });
-      return;
+      return false;
     }
 
-    const moveToNotificationPage = () => {
+    try {
+      if (!notification.isRead) {
+        await markNotificationAsRead(notification.id);
+      }
+
       router.push(route);
-    };
+      return true;
+    } catch {
+      showToast({
+        message: "알림을 읽음 처리하지 못했습니다.",
+      });
 
-    if (notification.isRead) {
-      moveToNotificationPage();
-      return;
+      return false;
     }
-
-    markNotificationAsRead(notification.id, {
-      onSuccess: moveToNotificationPage,
-      onError: () => {
-        showToast({
-          message: "알림을 읽음 처리하지 못했습니다.",
-        });
-      },
-    });
   };
 
   const handleMarkAllNotificationsAsRead = () => {
-    const hasUnreadNotification = notifications.some((notification) => !notification.isRead);
-
     if (isMarkingAllNotificationsAsRead || !hasUnreadNotification) {
       return;
     }
@@ -141,7 +137,7 @@ export default function AuthHeader() {
       nickname={user?.nickname}
       notifications={notifications}
       isNotificationLoading={isNotificationLoading}
-      hasUnreadNotification={unreadNotificationData?.hasUnreadNotification ?? false}
+      hasUnreadNotification={hasUnreadNotification}
       hasNextNotificationPage={hasNextPage}
       isFetchingNextNotificationPage={isFetchingNextPage}
       onNotificationLoadMore={handleNotificationLoadMore}
