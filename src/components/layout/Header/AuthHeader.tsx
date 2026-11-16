@@ -1,6 +1,7 @@
 "use client";
 
 import { useToast } from "@/components/ui/Toast/ToastProvider";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { useLogoutMutation } from "@/features/auth/hooks/useAuthMutations";
 import { useAuth } from "@/lib/auth/AuthProvider";
@@ -9,13 +10,18 @@ import AuthStatusFallback from "@/features/auth/components/AuthStatusFallback/Au
 
 import {
   useNotifications,
+  useReadNotification,
+  useReadAllNotifications,
   useUnreadNotification,
 } from "@/features/notifications/hooks/useNotifications";
+
+import { getNotificationRoute } from "@/features/notifications/utils/getNotificationRoute";
 
 import type { NotificationItem } from "@/components/common/NotificationPanel/NotificationPanel";
 
 export default function AuthHeader() {
   const { user, status } = useAuth();
+  const router = useRouter();
   const logoutMutation = useLogoutMutation();
   const { showToast } = useToast();
   const {
@@ -29,7 +35,14 @@ export default function AuthHeader() {
     refetch: refetchNotifications,
   } = useNotifications();
 
+  const { mutate: markAllNotificationsAsRead, isPending: isMarkingAllNotificationsAsRead } =
+    useReadAllNotifications();
+
+  const { mutateAsync: markNotificationAsRead, isPending: isReadingNotification } =
+    useReadNotification();
+
   const { data: unreadNotificationData } = useUnreadNotification();
+  const hasUnreadNotification = unreadNotificationData?.hasUnreadNotification ?? false;
 
   const notifications = useMemo<NotificationItem[]>(() => {
     const notificationMap = new Map<string, NotificationItem>();
@@ -38,6 +51,7 @@ export default function AuthHeader() {
       page.items.forEach((notification) => {
         notificationMap.set(notification.id, {
           id: notification.id,
+          type: notification.type,
           content: notification.message,
           createdAt: notification.createdAt,
           isRead: notification.readAt !== null,
@@ -56,6 +70,48 @@ export default function AuthHeader() {
 
   const handleNotificationRetry = () => {
     void refetchNotifications();
+  };
+
+  const handleNotificationClick = async (notification: NotificationItem) => {
+    if (!user || isReadingNotification) return false;
+
+    const route = getNotificationRoute(notification.type, user.role);
+
+    if (!route) {
+      showToast({
+        message: "이동할 페이지를 찾지 못했습니다.",
+      });
+      return false;
+    }
+
+    try {
+      if (!notification.isRead) {
+        await markNotificationAsRead(notification.id);
+      }
+
+      router.push(route);
+      return true;
+    } catch {
+      showToast({
+        message: "알림을 읽음 처리하지 못했습니다.",
+      });
+
+      return false;
+    }
+  };
+
+  const handleMarkAllNotificationsAsRead = () => {
+    if (isMarkingAllNotificationsAsRead || !hasUnreadNotification) {
+      return;
+    }
+
+    markAllNotificationsAsRead(undefined, {
+      onError: () => {
+        showToast({
+          message: "알림을 모두 읽음 처리하지 못했습니다.",
+        });
+      },
+    });
   };
 
   const handleLogout = () => {
@@ -81,10 +137,13 @@ export default function AuthHeader() {
       nickname={user?.nickname}
       notifications={notifications}
       isNotificationLoading={isNotificationLoading}
-      hasUnreadNotification={unreadNotificationData?.hasUnreadNotification ?? false}
+      hasUnreadNotification={hasUnreadNotification}
       hasNextNotificationPage={hasNextPage}
       isFetchingNextNotificationPage={isFetchingNextPage}
       onNotificationLoadMore={handleNotificationLoadMore}
+      onNotificationClick={handleNotificationClick}
+      isMarkingAllNotificationsAsRead={isMarkingAllNotificationsAsRead}
+      onMarkAllNotificationsAsRead={handleMarkAllNotificationsAsRead}
       hasNotificationError={isNotificationError && notifications.length === 0}
       hasNextNotificationError={isFetchNextPageError}
       onNotificationRetry={handleNotificationRetry}

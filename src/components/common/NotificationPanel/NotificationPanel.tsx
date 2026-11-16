@@ -6,8 +6,11 @@ import Loading from "@/components/ui/Loading/Loading";
 import { formatRelativeTime } from "@/utils/dateFormat";
 import styles from "./NotificationPanel.module.css";
 
+import type { NotificationType } from "@/features/notifications/types/notification";
+
 export type NotificationItem = {
   id: string;
+  type: NotificationType;
   content: string;
   createdAt: string;
   isRead: boolean;
@@ -19,6 +22,7 @@ type NotificationPanelProps = {
   onNotificationClick?: (notification: NotificationItem) => void;
   isLoading?: boolean;
   isMarkingAllAsRead?: boolean;
+  hasUnreadNotification?: boolean;
   onMarkAllAsRead?: () => void;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
@@ -34,6 +38,7 @@ export default function NotificationPanel({
   onNotificationClick,
   isLoading = false,
   isMarkingAllAsRead = false,
+  hasUnreadNotification = false,
   onMarkAllAsRead,
   hasNextPage = false,
   isFetchingNextPage = false,
@@ -44,7 +49,6 @@ export default function NotificationPanel({
 }: NotificationPanelProps) {
   const panelRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const hasUnreadNotification = notifications.some((notification) => !notification.isRead);
 
   useEffect(() => {
     closeButtonRef.current?.focus();
