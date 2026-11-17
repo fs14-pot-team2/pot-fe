@@ -1,11 +1,7 @@
 import axios from "axios";
 import { refreshAccessToken } from "@/features/auth/api/authApi";
 import { getAccessToken, setAccessToken } from "@/lib/auth/accessToken";
-import type { SseEventPayloads } from "./sseTypes";
-
-type SseEvent =
-  | { type: "notification.created"; data: SseEventPayloads["notification.created"] }
-  | { type: "message.created"; data: SseEventPayloads["message.created"] };
+import type { SseEvent } from "./sseTypes";
 
 type SseOptions = {
   onReconnect?: () => void;
