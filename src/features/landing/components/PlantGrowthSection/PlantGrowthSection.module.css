@@ -1,0 +1,321 @@
+.section {
+  background: #edf0e5;
+}
+
+.stage {
+  display: flex;
+  align-items: center;
+  min-height: calc(100svh - var(--header-height));
+  padding: 32px 24px;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 54% 46%;
+  width: 100%;
+  max-width: 1280px;
+  min-height: 650px;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid #dce1ce;
+  border-radius: 32px;
+  background: linear-gradient(125deg, #fbfbf4, #eff2e5);
+  box-shadow: 0 24px 70px rgba(49, 67, 35, 0.08);
+}
+
+.artworkArea {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  background: radial-gradient(
+    circle closest-side at 50% 47%,
+    #e3e5c9 10%,
+    rgb(222 227 190 / 50%) 44%,
+    transparent 100%
+  );
+}
+
+.artwork {
+  width: 100%;
+  max-width: 610px;
+  height: auto;
+}
+
+.artworkFooter {
+  position: absolute;
+  right: 55px;
+  bottom: 43px;
+  left: 50px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #849071;
+  font-size: 10px;
+  font-weight: var(--font-bold);
+  letter-spacing: 0.15em;
+}
+
+.growthDash {
+  width: 24px;
+  height: 2px;
+  background: var(--color-brand);
+}
+
+.growthPercent {
+  margin-left: auto;
+  color: var(--color-brand);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.compactStep {
+  display: none;
+}
+
+.copy {
+  align-self: center;
+  padding: 60px 55px 60px 10px;
+}
+
+.eyebrow,
+.stepIndex {
+  color: var(--color-brand);
+  font-size: 12px;
+  font-weight: var(--font-bold);
+  letter-spacing: 0.12em;
+}
+
+.stepTotal {
+  color: #a9af97;
+}
+
+.title {
+  margin-top: 22px;
+  font-size: 38px;
+  line-height: 1.4;
+  letter-spacing: -0.06em;
+}
+
+.description {
+  margin-top: 20px;
+  color: #74786b;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.activeStep {
+  position: relative;
+  margin-top: 38px;
+  padding-top: 25px;
+  border-top: 1px solid #dce1ce;
+}
+
+.progressTrack {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #dce1ce;
+}
+
+.progressFill {
+  width: 100%;
+  height: 100%;
+  background: var(--color-brand);
+  transform-origin: left center;
+}
+
+.activeStep h3 {
+  margin-top: 12px;
+  font-size: 28px;
+}
+
+.activeStep p {
+  margin-top: 10px;
+  color: #74786b;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.steps li {
+  display: flex;
+  gap: 14px;
+  color: #74786b;
+  font-size: 13px;
+  transition: color 0.25s ease;
+}
+
+.steps li span {
+  color: var(--color-brand);
+  font-weight: var(--font-bold);
+}
+
+.steps li.currentStep {
+  color: var(--color-brand);
+  font-weight: var(--font-bold);
+}
+
+@media (max-width: 1024px) {
+  .shell {
+    grid-template-columns: 50% 50%;
+    min-height: 0;
+  }
+
+  .copy {
+    padding: 32px 24px 32px 0;
+  }
+
+  .title {
+    font-size: 30px;
+  }
+
+  .activeStep h3 {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 768px) {
+  .stage {
+    padding: 12px 16px;
+  }
+
+  .shell {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .artworkArea {
+    height: clamp(180px, calc(100svh - var(--header-height) - 350px), 390px);
+  }
+
+  .artwork {
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+  }
+
+  .artworkFooter {
+    right: 20px;
+    bottom: 10px;
+    left: 20px;
+    gap: 8px;
+  }
+
+  .growthPercent {
+    font-size: 14px;
+  }
+
+  .compactStep {
+    position: absolute;
+    top: 18px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(251, 251, 244, 0.92);
+    color: #354d30;
+    font-size: 13px;
+  }
+
+  .compactStep span {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .copy {
+    padding: 0 24px 24px;
+    text-align: right;
+  }
+
+  .title {
+    margin-top: 12px;
+    font-size: 26px;
+    line-height: 1.3;
+  }
+
+  .description {
+    margin-top: 12px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .activeStep {
+    min-height: 112px;
+    margin-top: 20px;
+    padding-top: 16px;
+  }
+
+  .activeStep h3 {
+    margin-top: 8px;
+    font-size: 22px;
+  }
+
+  .activeStep p {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .steps {
+    display: none;
+  }
+}
+
+@media (max-width: 540px) {
+  .stage {
+    padding: 12px;
+  }
+
+  .shell {
+    border-radius: 24px;
+  }
+
+  .copy {
+    padding: 0 20px 20px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .activeStep h3 {
+    font-size: 20px;
+  }
+
+  .compactStep {
+    top: 14px;
+    left: 14px;
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .steps {
+    display: flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressTrack,
+  .artworkFooter {
+    display: none;
+  }
+
+  .steps li {
+    transition: none;
+  }
+}
