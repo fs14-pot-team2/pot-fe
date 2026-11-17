@@ -5,12 +5,35 @@ import type { SseEvent } from "./sseTypes";
 
 type SseOptions = {
   onReconnect?: () => void;
-  onAuthError?: () => void;
+  onAuthError?: (error: SseAuthError) => void;
 };
 
-class SseAuthError extends Error {}
+class SseAuthError extends Error {
+  constructor(
+    message: string,
+    readonly shouldClearSession = false,
+    readonly tokenAtFailure?: string,
+  ) {
+    super(message);
+  }
+}
 
 const RECONNECT_DELAY = 3000;
+
+async function readSseErrorCode(response: Response): Promise<string | null> {
+  const body: unknown = await response.json().catch(() => null);
+
+  if (
+    typeof body === "object" &&
+    body !== null &&
+    "code" in body &&
+    typeof body.code === "string"
+  ) {
+    return body.code;
+  }
+
+  return null;
+}
 
 function fetchEvents(token: string, signal: AbortSignal) {
   return fetch("/api/events", {
@@ -20,19 +43,30 @@ function fetchEvents(token: string, signal: AbortSignal) {
   });
 }
 
-async function openSseConnection(signal: AbortSignal): Promise<Response | null> {
+async function openSseConnection(
+  signal: AbortSignal,
+): Promise<{ response: Response; token: string } | null> {
   let token = getAccessToken();
   if (!token) throw new SseAuthError("Access Token이 없습니다.");
 
   let response = await fetchEvents(token, signal);
 
+  if (signal.aborted || getAccessToken() !== token) {
+    void response.body?.cancel().catch(() => {});
+    return null;
+  }
+
   if (response.status === 401) {
-    const body: unknown = await response.json().catch(() => null);
+    const code = await readSseErrorCode(response);
 
-    const isExpired =
-      typeof body === "object" && body !== null && "code" in body && body.code === "TOKEN_EXPIRED";
+    if (signal.aborted) return null;
 
-    if (!isExpired) throw new SseAuthError("SSE 인증 실패");
+    if (code !== "TOKEN_EXPIRED") {
+      // 다른 요청이 이미 토큰을 변경했다면 새 토큰으로 다시 연결
+      if (getAccessToken() !== token) return null;
+
+      throw new SseAuthError("SSE 인증 실패", code === "UNAUTHORIZED", token);
+    }
 
     const currentToken = getAccessToken();
     if (!currentToken) throw new SseAuthError("로그아웃된 상태입니다.");
@@ -47,8 +81,15 @@ async function openSseConnection(signal: AbortSignal): Promise<Response | null> 
         setAccessToken(accessToken);
         token = accessToken;
       } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.status === 401) {
-          throw new SseAuthError("Refresh Token이 유효하지 않습니다.");
+        if (signal.aborted || getAccessToken() !== token) return null;
+
+        if (
+          axios.isAxiosError<{ code?: string }>(error) &&
+          error.response?.status === 401 &&
+          (error.response.data?.code === "REFRESH_TOKEN_INVALID" ||
+            error.response.data?.code === "UNAUTHORIZED")
+        ) {
+          throw new SseAuthError("Refresh Token 인증 실패", true, token);
         }
         throw error;
       }
@@ -58,10 +99,23 @@ async function openSseConnection(signal: AbortSignal): Promise<Response | null> 
     }
 
     response = await fetchEvents(token, signal);
+
+    if (signal.aborted || getAccessToken() !== token) {
+      void response.body?.cancel().catch(() => {});
+      return null;
+    }
   }
 
-  if (response.status === 401 || response.status === 403) {
-    throw new SseAuthError("SSE 인증 실패");
+  if (response.status === 401) {
+    const code = await readSseErrorCode(response);
+
+    if (signal.aborted || getAccessToken() !== token) return null;
+
+    throw new SseAuthError("SSE 인증 실패", code === "UNAUTHORIZED", token);
+  }
+
+  if (response.status === 403) {
+    throw new SseAuthError("SSE 접근 권한 없음");
   }
 
   if (!response.ok) {
@@ -74,21 +128,23 @@ async function openSseConnection(signal: AbortSignal): Promise<Response | null> 
     throw new Error(`SSE 응답 형식 오류: ${contentType ?? "unknown"}`);
   }
 
-  return response;
+  return { response, token };
 }
 
 async function readSseStream(
   reader: ReadableStreamDefaultReader<Uint8Array>,
   onEvent: (event: SseEvent) => void,
   signal: AbortSignal,
+  connectionToken: string,
 ) {
   const decoder = new TextDecoder();
   let buffer = "";
 
   try {
-    while (!signal.aborted) {
+    while (!signal.aborted && getAccessToken() === connectionToken) {
       const { value, done } = await reader.read();
-      if (done) break;
+
+      if (signal.aborted || done || getAccessToken() !== connectionToken) break;
 
       // 잘려서 도착한 데이터들을 모음 (잘려서 따로 오는 SSE 이벤트 방지)
       buffer += decoder.decode(value, { stream: true });
@@ -99,6 +155,8 @@ async function readSseStream(
       buffer = chunks.pop() ?? "";
 
       for (const chunk of chunks) {
+        if (signal.aborted || getAccessToken() !== connectionToken) break;
+
         const lines = chunk.split("\n");
 
         const eventType = lines
@@ -153,6 +211,12 @@ async function readSseStream(
       }
     }
   } finally {
+    try {
+      await reader.cancel();
+    } catch {
+      // 이미 종료되거나 취소된 스트림은 무시
+    }
+
     reader.releaseLock();
   }
 }
@@ -185,8 +249,21 @@ export function connectSse(
       if (!getAccessToken()) return;
 
       try {
-        const response = await openSseConnection(signal);
-        if (!response) continue;
+        const connection = await openSseConnection(signal);
+
+        if (signal.aborted) {
+          void connection?.response.body?.cancel().catch(() => {});
+          return;
+        }
+
+        if (!connection) continue;
+
+        const { response, token } = connection;
+
+        if (getAccessToken() !== token) {
+          void response.body?.cancel().catch(() => {});
+          continue;
+        }
 
         const reader = response.body?.getReader();
         if (!reader) throw new Error("SSE 응답 스트림이 없습니다.");
@@ -194,13 +271,13 @@ export function connectSse(
         if (hasConnected) options.onReconnect?.();
         hasConnected = true;
 
-        await readSseStream(reader, onEvent, signal);
+        await readSseStream(reader, onEvent, signal, token);
       } catch (error) {
         if (signal.aborted) return;
 
         // 인증 오류는 반복 재시도하지 않고 상위 인증 관리 코드에 알린다.
         if (error instanceof SseAuthError) {
-          options.onAuthError?.();
+          options.onAuthError?.(error);
           return;
         }
 
