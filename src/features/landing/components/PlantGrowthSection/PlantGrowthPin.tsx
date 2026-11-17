@@ -140,7 +140,7 @@ export default function PlantGrowthPin({ children }: PlantGrowthPinProps) {
               end: canPin ? (isStacked ? "+=1800" : "+=2500") : "bottom 20%",
               scrub: true,
               pin: canPin,
-              anticipatePin: 1,
+              anticipatePin: 0,
               refreshPriority: 1,
             });
 

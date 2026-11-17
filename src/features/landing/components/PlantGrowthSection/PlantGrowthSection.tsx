@@ -47,9 +47,9 @@ export default function PlantGrowthSection() {
               </h2>
 
               <p className={styles.description}>
-                하나의 화분이 자라듯,
+                화분을 뜻하는 POT, 그리고 Plant On Trust.
                 <br />
-                POT의 돌봄 과정도 차근차근 이어집니다.
+                식물이 자라듯, 우리의 믿음도 함께 자랍니다.
               </p>
 
               <PlantGrowthActiveStep steps={careSteps} />
