@@ -8,5 +8,6 @@ export function useReceivedRequests(params: GetReceivedRequestsParams) {
     queryKey: ["care-requests", "received", params],
     queryFn: () => getReceivedRequests(params),
     placeholderData: keepPreviousData, // 다음페이지 불러오는동안 이전 카드목록 유지
+    refetchInterval: 60_000, // 60초 마다 API 재조회
   });
 }
