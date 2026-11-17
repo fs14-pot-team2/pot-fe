@@ -2,6 +2,7 @@ import AuthHeader from "@/components/layout/Header/AuthHeader";
 import ToastProvider from "@/components/ui/Toast/ToastProvider";
 import AuthProvider from "@/lib/auth/AuthProvider";
 import QueryProvider from "@/lib/react-query/QueryProvider";
+import SseListener from "@/lib/sse/SseListener";
 import "@/styles/reset.css";
 import "@/styles/variables.css";
 import type { Metadata } from "next";
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <QueryProvider>
           <AuthProvider>
+            <SseListener />
             <ToastProvider>
               <AuthHeader />
               {children}

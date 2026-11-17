@@ -36,3 +36,12 @@ export interface NotificationListResponse {
 export interface UnreadNotificationResponse {
   hasUnreadNotification: boolean;
 }
+
+export interface ReadNotificationResponse {
+  id: string;
+  readAt: string;
+}
+
+export interface ReadAllNotificationsResponse {
+  updatedCount: number;
+}

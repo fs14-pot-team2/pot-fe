@@ -25,7 +25,7 @@ type HeaderProps = {
   isMarkingAllNotificationsAsRead?: boolean;
   hasUnreadNotification?: boolean;
   onLogout?: () => void;
-  onNotificationClick?: (notification: NotificationItem) => void;
+  onNotificationClick?: (notification: NotificationItem) => boolean | Promise<boolean>;
   onMarkAllNotificationsAsRead?: () => void;
   hasNextNotificationPage?: boolean;
   isFetchingNextNotificationPage?: boolean;
@@ -251,6 +251,7 @@ export default function Header({
                     notifications={notifications}
                     isLoading={isNotificationLoading}
                     isMarkingAllAsRead={isMarkingAllNotificationsAsRead}
+                    hasUnreadNotification={hasUnreadNotification}
                     hasNextPage={hasNextNotificationPage}
                     isFetchingNextPage={isFetchingNextNotificationPage}
                     onLoadMore={onNotificationLoadMore}
@@ -258,7 +259,17 @@ export default function Header({
                     hasNextPageError={hasNextNotificationError}
                     onRetry={onNotificationRetry}
                     onClose={closeNotification}
-                    onNotificationClick={onNotificationClick}
+                    onNotificationClick={(notification) => {
+                      const handleNotification = async () => {
+                        const shouldClose = await onNotificationClick?.(notification);
+
+                        if (shouldClose) {
+                          closeNotification();
+                        }
+                      };
+
+                      void handleNotification();
+                    }}
                     onMarkAllAsRead={onMarkAllNotificationsAsRead}
                   />
                 </div>
