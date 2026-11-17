@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { connectSse } from "./sseClient";
+import { publishSse } from "./sseSubscriptions";
 
 export default function SseListener() {
   const { status, user } = useAuth();
@@ -49,6 +50,8 @@ export default function SseListener() {
         if (event.type === "notification.created") {
           invalidateRelevantQueries();
         }
+
+        publishSse(event);
       },
       {
         // 재연결 중 놓친 이벤트가 있을 수 있으므로 다시 조회한다.

@@ -4,3 +4,7 @@ export type SseEventPayloads = {
 };
 
 export type SseEventName = keyof SseEventPayloads;
+
+export type SseEvent = {
+  [K in SseEventName]: { type: K; data: SseEventPayloads[K] };
+}[SseEventName];
