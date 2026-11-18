@@ -1,0 +1,256 @@
+/* =========================
+   Message Side Panel
+========================= */
+
+.panelLayer {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  pointer-events: none;
+}
+
+.panel {
+  position: absolute;
+  top: var(--header-height);
+  right: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  width: min(420px, 100vw);
+  height: calc(100dvh - var(--header-height));
+  min-height: 0;
+
+  overflow: hidden;
+
+  border-left: 1px solid #dedfd2;
+  background-color: #fefdf9;
+  box-shadow:
+    -8px 0 24px rgb(44 52 32 / 5%),
+    -2px 0 8px rgb(44 52 32 / 3%);
+
+  pointer-events: auto;
+}
+
+/* =========================
+   Header
+========================= */
+
+.header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  min-height: 68px;
+  padding: 0 24px;
+
+  border-bottom: 1px solid #e9e9df;
+  background-color: #fffefa;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.title {
+  overflow: hidden;
+  margin: 0;
+
+  color: #33372a;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.backButton,
+.closeButton {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+  height: 36px;
+  padding: 0;
+
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+
+  color: #6e7048;
+  font-size: 23px;
+  line-height: 1;
+
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.backButton:hover,
+.closeButton:hover {
+  background-color: #f3f0e6;
+  color: #42472c;
+}
+
+.backButton:focus-visible,
+.closeButton:focus-visible,
+.retryButton:focus-visible {
+  outline: 2px solid #6e7048;
+  outline-offset: 3px;
+}
+
+/* =========================
+   Conversation List
+========================= */
+
+.listView {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+
+  min-height: 0;
+  padding: 12px 16px 20px;
+
+  overflow: hidden;
+}
+
+/* 목록 내부 스크롤 */
+.listView > div {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+
+  scrollbar-width: thin;
+  scrollbar-color: #d3d5c5 transparent;
+}
+
+/* EmptyState: 대화방이 없을 때 중앙 배치 */
+/* ul이 없는 상태에서만 적용해 일반 목록은 건드리지 않음 */
+
+.listView:not(:has(ul)) {
+  justify-content: center;
+}
+
+.listView:not(:has(ul)) > div {
+  flex: 0 1 auto;
+  width: 100%;
+  min-height: 0;
+  overflow: visible;
+}
+
+/* =========================
+   Conversation Detail
+========================= */
+
+.conversationView {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* =========================
+   Error State
+========================= */
+
+.errorState {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+
+  padding: 24px;
+
+  text-align: center;
+}
+
+.errorState p {
+  margin: 0;
+  color: #898c80;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.retryButton {
+  padding: 11px 18px;
+
+  border: 1px solid #a7a984;
+  border-radius: 10px;
+
+  background-color: #f3f0e6;
+  color: #505b39;
+
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.retryButton:hover {
+  background-color: #e7ecdc;
+}
+
+/* =========================
+   Tablet
+========================= */
+
+@media (max-width: 768px) {
+  .panel {
+    width: min(400px, 100vw);
+  }
+
+  .header {
+    min-height: 64px;
+    padding: 0 20px;
+  }
+
+  .listView {
+    padding: 12px;
+  }
+}
+
+/* =========================
+   Mobile
+========================= */
+
+@media (max-width: 540px) {
+  .panel {
+    inset: 0;
+
+    width: 100%;
+    height: 100dvh;
+
+    border: 0;
+    box-shadow: none;
+  }
+
+  .header {
+    min-height: 56px;
+    padding: 0 16px;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .listView {
+    padding: 12px 16px 20px;
+  }
+}

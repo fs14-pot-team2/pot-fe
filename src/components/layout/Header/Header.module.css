@@ -30,7 +30,7 @@
 .navLink {
   font-size: 18px;
   font-weight: var(--font-semibold);
-  color: #b3b3b3;
+  color: #707070;
 }
 
 .navLinkActive {
@@ -41,6 +41,8 @@
   width: 116px;
 }
 
+/* 알림 */
+
 .notificationWrapper {
   position: relative;
   margin-left: auto;
@@ -48,6 +50,7 @@
 }
 
 .notificationButton {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -55,14 +58,49 @@
   height: 36px;
 }
 
+/* 쪽지 */
+
 .messageButton {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   width: 36px;
   height: 36px;
   margin-right: 24px;
 }
+
+/*
+ * 미확인 쪽지 빨간 점
+ *
+ * 알림 SVG:
+ * viewBox 36x36, 점 중심 (25.5, 6.5), 반지름 4.5
+ *
+ * 실제 헤더의 SVG 렌더링 크기: 24x24
+ * 따라서 점 지름 6px, 색상 #FF3B30
+ *
+ * 36x36 버튼을 기준으로 알림 SVG의 점과
+ * 동일한 위치에 배치
+ */
+
+.messageButton[data-unread="true"]::after {
+  content: "";
+  position: absolute;
+
+  top: 7.33px;
+  right: 10px;
+
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+  background-color: #ff3b30;
+
+  pointer-events: none;
+}
+
+/* 알림 패널 */
 
 .notificationPanel {
   position: absolute;
@@ -70,6 +108,8 @@
   right: 0;
   z-index: 110;
 }
+
+/* 로고 */
 
 .logoLink {
   display: flex;
@@ -81,6 +121,8 @@
 .menuButton {
   display: none;
 }
+
+/* 태블릿 */
 
 @media (max-width: 768px) {
   .inner {
@@ -121,6 +163,8 @@
     margin-left: 12px;
   }
 }
+
+/* 모바일 */
 
 @media (max-width: 540px) {
   .tabletLogo {
