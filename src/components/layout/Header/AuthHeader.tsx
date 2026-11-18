@@ -1,29 +1,35 @@
 "use client";
 
+import type { NotificationItem } from "@/components/common/NotificationPanel/NotificationPanel";
 import { useToast } from "@/components/ui/Toast/ToastProvider";
-import { useRouter } from "next/navigation";
-import { useMemo } from "react";
-import { useLogoutMutation } from "@/features/auth/hooks/useAuthMutations";
-import { useAuth } from "@/lib/auth/AuthProvider";
-import Header from "./Header";
 import AuthStatusFallback from "@/features/auth/components/AuthStatusFallback/AuthStatusFallback";
-
+import { useLogoutMutation } from "@/features/auth/hooks/useAuthMutations";
 import {
   useNotifications,
-  useReadNotification,
   useReadAllNotifications,
+  useReadNotification,
   useUnreadNotification,
 } from "@/features/notifications/hooks/useNotifications";
-
 import { getNotificationRoute } from "@/features/notifications/utils/getNotificationRoute";
-
-import type { NotificationItem } from "@/components/common/NotificationPanel/NotificationPanel";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { useRouter, useSelectedLayoutSegments } from "next/navigation";
+import { useMemo } from "react";
+import Header from "./Header";
+import styles from "./Header.module.css";
 
 export default function AuthHeader() {
   const { user, status } = useAuth();
   const router = useRouter();
+  const [rootSegment, childSegment] = useSelectedLayoutSegments();
   const logoutMutation = useLogoutMutation();
   const { showToast } = useToast();
+
+  const hasPageAuthGuard =
+    rootSegment === "owner" ||
+    rootSegment === "sitter" ||
+    (rootSegment === "(public)" && childSegment === "sitters") ||
+    (rootSegment === "(auth)" && (childSegment === "login" || childSegment === "signup"));
+
   const {
     data: notificationData,
     isPending: isNotificationLoading,
@@ -127,6 +133,10 @@ export default function AuthHeader() {
   };
 
   if (status === "checking" || status === "error") {
+    if (hasPageAuthGuard) {
+      return <div className={styles.header} aria-hidden="true" />;
+    }
+
     return <AuthStatusFallback status={status} />;
   }
 
