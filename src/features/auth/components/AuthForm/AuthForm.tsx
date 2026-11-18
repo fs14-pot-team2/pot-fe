@@ -8,7 +8,6 @@ import type { AuthMode, AuthResponse, UserRole } from "@/features/auth/types/aut
 import { useAuth } from "@/lib/auth/AuthProvider";
 import axios from "axios";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useController, useForm } from "react-hook-form";
 import { useLoginMutation, useSignupMutation } from "../../hooks/useAuthMutations";
 import styles from "./AuthForm.module.css";
@@ -142,22 +141,8 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
   const { setSession } = useAuth();
 
-  const router = useRouter();
-
   const handleAuthSuccess = (session: AuthResponse) => {
     setSession(session);
-
-    if (session.user.role === "OWNER") {
-      router.replace("/sitters");
-      return;
-    }
-
-    if (mode === "signup") {
-      router.replace("/sitter/profile/setup");
-      return;
-    }
-
-    router.replace("/sitter/requests");
   };
 
   const isSubmitting = loginMutation.isPending || signupMutation.isPending;
