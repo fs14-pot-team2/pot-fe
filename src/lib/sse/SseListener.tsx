@@ -4,13 +4,14 @@ import { notificationKeys } from "@/features/notifications/queryKeys";
 import { activeQuotesKeys } from "@/features/quotes/owner/hooks/useActiveQuotes";
 import { sitterQuoteKeys } from "@/features/quotes/sitter/queryKeys";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { getAccessToken } from "@/lib/auth/accessToken";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { connectSse } from "./sseClient";
 import { publishSse } from "./sseSubscriptions";
 
 export default function SseListener() {
-  const { status, user } = useAuth();
+  const { status, user, clearSession } = useAuth();
   const queryClient = useQueryClient();
 
   const userId = user?.id;
@@ -56,6 +57,15 @@ export default function SseListener() {
       {
         // 재연결 중 놓친 이벤트가 있을 수 있으므로 다시 조회한다.
         onReconnect: invalidateRelevantQueries,
+        onAuthError: (error) => {
+          if (
+            error.shouldClearSession &&
+            error.tokenAtFailure &&
+            getAccessToken() === error.tokenAtFailure
+          ) {
+            clearSession();
+          }
+        },
       },
     );
 
@@ -72,7 +82,7 @@ export default function SseListener() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       disconnect();
     };
-  }, [status, userId, role, queryClient]);
+  }, [status, userId, role, queryClient, clearSession]);
 
   return null;
 }
