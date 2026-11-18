@@ -53,6 +53,15 @@ export default function PlantGrowthSection() {
               </p>
 
               <PlantGrowthActiveStep steps={careSteps} />
+
+              <ol className={styles.staticSteps}>
+                {careSteps.map((step) => (
+                  <li key={step.title}>
+                    <strong>{step.title}</strong>
+                    <p>{step.description}</p>
+                  </li>
+                ))}
+              </ol>
             </div>
           </div>
         </div>

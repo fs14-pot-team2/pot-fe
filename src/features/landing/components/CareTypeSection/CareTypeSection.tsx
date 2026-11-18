@@ -25,7 +25,13 @@ export default function CareTypeSection() {
             <h3>잠깐만 돌봄</h3>
             <p>필요한 날에 찾아가는 돌봄</p>
           </div>
-          <Image src="/images/care_short.png" alt="" width={139} height={139} />
+          <Image
+            src="/images/care_short.png"
+            alt=""
+            width={139}
+            height={139}
+            sizes="(max-width: 1066px) 96px, (max-width: 1544px) 9vw, 139px"
+          />
         </article>
 
         <article className={styles.card}>
@@ -34,7 +40,13 @@ export default function CareTypeSection() {
             <h3>꾸준히 돌봄</h3>
             <p>정해진 날마다 찾아가는 돌봄</p>
           </div>
-          <Image src="/images/care_regular.png" alt="" width={139} height={139} />
+          <Image
+            src="/images/care_regular.png"
+            alt=""
+            width={139}
+            height={139}
+            sizes="(max-width: 1066px) 96px, (max-width: 1544px) 9vw, 139px"
+          />
         </article>
       </CareTypeReveal>
     </section>
