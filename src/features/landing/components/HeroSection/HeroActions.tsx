@@ -11,19 +11,24 @@ export default function HeroActions() {
 
   const isSitter = status === "authenticated" && user?.role === "SITTER";
 
+  const canBrowseSitters =
+    status === "guest" || (status === "authenticated" && user?.role === "OWNER");
+
   const buttonText = isSitter ? "받은 요청 확인하기" : "팟트너 찾아보기";
   const destination = isSitter ? "/sitter/requests" : "/sitters";
 
   return (
     <div className={styles.actions}>
-      <Button
-        variant="solid"
-        size="md"
-        className={styles.primaryButton}
-        onClick={() => router.push(destination)}
-      >
-        {buttonText}
-      </Button>
+      {(isSitter || canBrowseSitters) && (
+        <Button
+          variant="solid"
+          size="md"
+          className={styles.primaryButton}
+          onClick={() => router.push(destination)}
+        >
+          {buttonText}
+        </Button>
+      )}
     </div>
   );
 }
