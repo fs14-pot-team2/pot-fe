@@ -4,7 +4,7 @@ import styles from "./CareTypeSection.module.css";
 
 export default function CareTypeSection() {
   return (
-    <section className={styles.section} aria-labelledby="care-types-title">
+    <section className={styles.section} id="care-types" aria-labelledby="care-types-title">
       <CareTypeReveal>
         <div className={styles.intro}>
           <p className={styles.eyebrow}>01 · CHOOSE YOUR CARE</p>

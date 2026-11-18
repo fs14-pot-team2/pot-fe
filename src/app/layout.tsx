@@ -1,3 +1,4 @@
+import Footer from "@/components/layout/Footer/Footer";
 import AuthHeader from "@/components/layout/Header/AuthHeader";
 import ToastProvider from "@/components/ui/Toast/ToastProvider";
 import AuthProvider from "@/lib/auth/AuthProvider";
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <ToastProvider>
               <AuthHeader />
               {children}
+              <Footer />
             </ToastProvider>
           </AuthProvider>
         </QueryProvider>
