@@ -1,0 +1,163 @@
+.hero {
+  position: relative;
+  isolation: isolate;
+  height: clamp(700px, 37.5vw, 960px);
+  overflow: hidden;
+}
+
+.visual {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.backgroundImage {
+  object-fit: cover;
+  object-position: center 58%;
+}
+
+.visualBorder,
+.pictureCaption {
+  display: none;
+}
+
+.inner {
+  max-width: 1280px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 76px 40px;
+}
+
+.content {
+  max-width: 760px;
+}
+
+.eyebrow {
+  margin-bottom: 44px;
+  color: var(--color-brand);
+  font-size: 12px;
+  font-weight: var(--font-bold);
+  letter-spacing: 0.14em;
+}
+
+.eyebrow span {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.title {
+  color: #262721;
+  font-size: clamp(48px, 4.2vw, 60px);
+  font-weight: var(--font-bold);
+  line-height: 1.3;
+  letter-spacing: -0.065em;
+}
+
+.title span {
+  color: var(--color-brand);
+}
+
+.description {
+  margin-top: 28px;
+  color: #61645a;
+  font-size: 18px;
+  line-height: 1.9;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  margin-top: 36px;
+}
+
+.primaryButton {
+  min-width: 220px;
+}
+
+@media (min-width: 541px) and (max-width: 1024px) {
+  .inner {
+    padding: 60px 25px;
+  }
+
+  .title {
+    font-size: clamp(35px, 4.2vw, 44px);
+  }
+
+  .description {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 540px) {
+  .hero {
+    height: auto;
+    padding: 0 20px 32px;
+    background: var(--color-bg);
+  }
+
+  .inner {
+    height: auto;
+    padding: 40px 0 32px;
+  }
+
+  .eyebrow {
+    margin-bottom: 24px;
+    font-size: 10px;
+    line-height: 1.5;
+  }
+
+  .title {
+    font-size: clamp(21px, 6.7vw, 35px);
+    white-space: nowrap;
+  }
+
+  .description {
+    margin-top: 20px;
+    font-size: 14px;
+    line-height: 1.75;
+    word-break: keep-all;
+  }
+
+  .actions {
+    margin-top: 26px;
+  }
+
+  .visual {
+    position: relative;
+    inset: auto;
+    z-index: auto;
+    height: 420px;
+    overflow: hidden;
+    border-radius: 34px 34px 34px 120px;
+    box-shadow: 0 25px 80px rgba(91, 86, 65, 0.14);
+  }
+
+  .backgroundImage {
+    object-position: 67% center;
+  }
+
+  .visualBorder {
+    display: block;
+    position: absolute;
+    inset: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 24px 24px 24px 100px;
+    pointer-events: none;
+  }
+
+  .pictureCaption {
+    position: absolute;
+    top: 30px;
+    left: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    color: #4d502e;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+}

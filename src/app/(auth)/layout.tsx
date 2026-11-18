@@ -1,4 +1,5 @@
 import PageMain from "@/components/layout/Page/PageMain";
+import GuestOnlyGuard from "@/features/auth/components/GuestOnlyGuard/GuestOnlyGuard";
 import Image from "next/image";
 import styles from "./AuthLayout.module.css";
 
@@ -15,7 +16,7 @@ export default function AuthLayout({ children }: Readonly<{ children: React.Reac
           className={styles.logo}
         />
 
-        {children}
+        <GuestOnlyGuard>{children}</GuestOnlyGuard>
       </section>
     </PageMain>
   );
