@@ -89,7 +89,7 @@ function successResponse(notificationId = "mock-1") {
   });
 }
 
-function observe(client, timeoutMs = 1500) {
+function observe(client, timeoutMs = 1500, onReconnect) {
   let disconnect = () => {};
 
   const result = new Promise((resolve, reject) => {
@@ -103,6 +103,7 @@ function observe(client, timeoutMs = 1500) {
         resolve({ kind: "event", event });
       },
       {
+        onReconnect,
         onAuthError: (error) => {
           clearTimeout(timer);
           resolve({ kind: "auth-error", error });
@@ -113,6 +114,41 @@ function observe(client, timeoutMs = 1500) {
 
   return { result, disconnect: () => disconnect() };
 }
+
+test("최초 SSE 연결 실패 후 재연결 성공 시 데이터를 갱신한다", async () => {
+  let requestCount = 0;
+  let reconnectCount = 0;
+
+  const client = createClient(
+    async () => {
+      requestCount += 1;
+
+      if (requestCount === 1) {
+        return new Response(null, { status: 502 });
+      }
+
+      return successResponse("reconnected");
+    },
+    async () => {
+      throw new Error("Refresh API를 호출하면 안 됩니다.");
+    },
+  );
+
+  const watcher = observe(client, 6000, () => {
+    reconnectCount += 1;
+  });
+
+  try {
+    const result = await watcher.result;
+
+    assert.equal(result.kind, "event");
+    assert.equal(result.event.data.notificationId, "reconnected");
+    assert.equal(requestCount, 2);
+    assert.equal(reconnectCount, 1);
+  } finally {
+    watcher.disconnect();
+  }
+});
 
 // 테스트 1: Access Token 만료 → Refresh → SSE 재연결
 test("TOKEN_EXPIRED 발생 시 토큰 갱신 후 SSE 연결", async () => {

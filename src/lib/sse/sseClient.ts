@@ -242,11 +242,14 @@ export function connectSse(
 ): () => void {
   const controller = new AbortController();
   const signal = controller.signal;
-  let hasConnected = false;
+  let hasAttemptedConnection = false;
 
   const run = async () => {
     while (!signal.aborted) {
       if (!getAccessToken()) return;
+
+      const isReconnect = hasAttemptedConnection;
+      hasAttemptedConnection = true;
 
       try {
         const connection = await openSseConnection(signal);
@@ -268,8 +271,7 @@ export function connectSse(
         const reader = response.body?.getReader();
         if (!reader) throw new Error("SSE 응답 스트림이 없습니다.");
 
-        if (hasConnected) options.onReconnect?.();
-        hasConnected = true;
+        if (isReconnect) options.onReconnect?.();
 
         await readSseStream(reader, onEvent, signal, token);
       } catch (error) {
