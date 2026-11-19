@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import PageContainer from "../Page/PageContainer";
+import CareTypesLink from "./CareTypesLink";
 import styles from "./Footer.module.css";
 
 type FooterProps = {
@@ -50,7 +51,7 @@ export default function Footer({ className }: FooterProps) {
                 <Link href="/">서비스 소개</Link>
               </li>
               <li>
-                <Link href="/#care-types">돌봄 유형</Link>
+                <CareTypesLink />
               </li>
               <li>
                 <Link href="/#story">이용 방법</Link>
