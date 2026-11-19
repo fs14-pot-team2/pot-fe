@@ -81,6 +81,7 @@ export default function MessageList({
   const snapshotRef = useRef<ScrollSnapshot | null>(null);
   const wasNearBottomRef = useRef(true);
 
+  // 메시지 목록 위쪽에 도달하면 이전 메시지 조회
   const handleScroll = useCallback(() => {
     const element = scrollRef.current;
 
@@ -102,6 +103,7 @@ export default function MessageList({
       return;
     }
 
+    // 이전 메시지 추가 후 기존 스크롤 위치 유지
     snapshotRef.current = {
       height: element.scrollHeight,
       top: element.scrollTop,
@@ -119,9 +121,11 @@ export default function MessageList({
     if (!element || isLoading || isError) return;
 
     if (!initializedRef.current) {
+      // 최초 진입 시 가장 최근 메시지로 이동
       element.scrollTop = element.scrollHeight;
       initializedRef.current = true;
     } else if (snapshotRef.current && previousFirstIdRef.current !== firstId) {
+      // 이전 메시지가 추가되면 스크롤 위치 보존
       const { height, top } = snapshotRef.current;
 
       element.scrollTop = top + (element.scrollHeight - height);
@@ -132,6 +136,7 @@ export default function MessageList({
       previousFirstIdRef.current === firstId &&
       wasNearBottomRef.current
     ) {
+      // 최신 메시지가 추가되면 하단으로 이동
       element.scrollTop = element.scrollHeight;
     }
 
@@ -148,6 +153,7 @@ export default function MessageList({
       ) : isError ? (
         <div className={styles.feedback}>
           <p>쪽지를 불러오지 못했어요.</p>
+
           <button type="button" className={styles.retryButton} onClick={onRetry}>
             다시 시도
           </button>
@@ -166,10 +172,12 @@ export default function MessageList({
             <p className={styles.loadingMore}>이전 쪽지를 불러오는 중이에요.</p>
           )}
 
-          {isNextPageError && (
+          {/* 추가 페이지 오류: 기존 메시지 유지 */}
+          {isNextPageError && !isFetchingNextPage && (
             <div className={styles.pageError}>
               <p>이전 쪽지를 불러오지 못했어요.</p>
-              <button type="button" className={styles.retryButton} onClick={onLoadMore}>
+
+              <button type="button" className={styles.retryButton} onClick={onRetry}>
                 다시 시도
               </button>
             </div>

@@ -14,6 +14,7 @@ interface MessageComposerProps {
 const MIN_LENGTH = 1;
 const MAX_LENGTH = 1000;
 
+// 정책: 공백 제외 글자 수 계산
 function getContentLength(value: string): number {
   return value.replace(/\s/g, "").length;
 }
@@ -32,26 +33,31 @@ export default function MessageComposer({
 
   const contentLength = getContentLength(content);
 
-  const isValid =
-    contentLength >= MIN_LENGTH && contentLength <= MAX_LENGTH && content.length <= MAX_LENGTH;
+  const isValid = contentLength >= MIN_LENGTH && contentLength <= MAX_LENGTH;
 
   const isBusy = isSending || isSubmitting;
 
   const canSend = isValid && !isBusy && !disabled;
 
+  const isTooLong = contentLength > MAX_LENGTH;
+
+  const displayedError = isTooLong
+    ? "쪽지는 공백을 제외하고 최대 1,000자까지 입력할 수 있어요."
+    : error;
+
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
 
-    // 같은 렌더링 사이클에서 발생하는 중복 요청까지 차단
+    // 이벤트 핸들러에서 중복 요청 즉시 차단
     if (sendLockRef.current || isSending || isSubmitting || disabled) {
       return;
     }
 
     if (!isValid) {
       if (contentLength < MIN_LENGTH) {
-        setError("쪽지는 공백 제외 1자 이상 입력해 주세요.");
-      } else if (contentLength > MAX_LENGTH || content.length > MAX_LENGTH) {
-        setError("쪽지는 최대 1,000자까지 입력할 수 있어요.");
+        setError("쪽지는 공백을 제외하고 1자 이상 입력해 주세요.");
+      } else if (contentLength > MAX_LENGTH) {
+        setError("쪽지는 공백을 제외하고 최대 1,000자까지 입력할 수 있어요.");
       }
 
       return;
@@ -61,6 +67,7 @@ export default function MessageComposer({
     setIsSubmitting(true);
 
     try {
+      // Trim하지 않고 사용자 입력 원문 그대로 전송
       await onSend(content);
 
       setContent("");
@@ -75,7 +82,7 @@ export default function MessageComposer({
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    // 한글 IME 조합 중 Enter로 인한 오전송 방지
+    // 한글 IME 조합 중 Enter 오전송 방지
     if (event.nativeEvent.isComposing || event.keyCode === 229) {
       return;
     }
@@ -84,7 +91,7 @@ export default function MessageComposer({
       return;
     }
 
-    // Shift + Enter: 기본 줄바꿈 동작 유지
+    // Shift + Enter: 줄바꿈 유지
     if (event.shiftKey) {
       return;
     }
@@ -98,6 +105,7 @@ export default function MessageComposer({
   };
 
   const handleChange = (value: string) => {
+    // 공백을 포함한 원문 길이를 임의로 제한하지 않음
     setContent(value);
 
     if (error) {
@@ -118,18 +126,17 @@ export default function MessageComposer({
         onChange={(event) => handleChange(event.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="쪽지를 입력해 주세요."
-        maxLength={MAX_LENGTH}
         rows={3}
         disabled={disabled || isBusy}
-        aria-invalid={Boolean(error)}
-        aria-describedby={error ? "message-content-error" : undefined}
+        aria-invalid={Boolean(displayedError)}
+        aria-describedby={displayedError ? "message-content-error" : undefined}
       />
 
       <div className={styles.footer}>
         <div className={styles.information}>
-          {error ? (
+          {displayedError ? (
             <p id="message-content-error" className={styles.error} role="alert">
-              {error}
+              {displayedError}
             </p>
           ) : (
             <span className={styles.length}>

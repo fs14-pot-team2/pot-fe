@@ -41,8 +41,8 @@ interface MessageModalProps {
 export default function MessageModal({ isOpen, onClose, initialUser = null }: MessageModalProps) {
   const { user, status } = useAuth();
 
-  // GNB 진입: 목록
-  // 견적 카드/상세 진입: 해당 팟트너 대화
+  // GNB 진입: 대화방 목록
+  // 견적 카드/상세 진입: 해당 팟트너와의 대화
   const [selectedConversation, setSelectedConversation] = useState<SelectedConversation | null>(
     () =>
       initialUser
@@ -62,20 +62,25 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
 
   const isConversationList = selectedConversation === null;
 
-  // 실제 대화방 목록 API
+  // 대화방 목록 API
   const conversationsQuery = useConversations(isOpen && isConversationList);
 
-  // 실제 메시지 조회 API
+  // 메시지 목록 API
   const messagesQuery = useMessages(
     selectedConversation?.otherUser.id ?? null,
     isOpen && !isConversationList,
   );
 
-  // 실제 발송 및 읽음 처리 API
+  // 메시지 전송 및 읽음 처리 API
   const sendMutation = useSendMessage();
   const readMutation = useMarkMessagesAsRead();
 
-  // 모바일에서 패널 오픈 시 닫기 버튼에 포커스
+  // 최초 조회 오류와 추가 페이지 조회 오류 구분
+  const isInitialConversationsError = conversationsQuery.isError && !conversationsQuery.data;
+
+  const isInitialMessagesError = messagesQuery.isError && !messagesQuery.data;
+
+  // 모바일에서 패널 열릴 때 닫기 버튼에 포커스
   useEffect(() => {
     if (!isOpen) return;
 
@@ -102,17 +107,21 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
     };
 
     document.addEventListener("keydown", handleKeyDown);
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
+
     window.addEventListener("focus", handleVisibilityChange);
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
+
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+
       window.removeEventListener("focus", handleVisibilityChange);
     };
   }, [isOpen, onClose]);
 
-  // 실제 대화방 목록: 중복 제거 및 최신순 정렬
+  // 대화방 목록: 중복 제거 및 최신순 정렬
   const conversations = useMemo(() => {
     const unique = new Map<string, Conversation>();
 
@@ -127,7 +136,7 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
     );
   }, [conversationsQuery.data]);
 
-  // 실제 메시지: 중복 제거 및 오래된 순 정렬
+  // 메시지 목록: 중복 제거 및 오래된 순 정렬
   const messages = useMemo(() => {
     const unique = new Map<string, Message>();
     const pages = messagesQuery.data?.pages ?? [];
@@ -150,15 +159,16 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
 
       if (aId < bId) return -1;
       if (aId > bId) return 1;
+
       return 0;
     });
   }, [messagesQuery.data]);
 
-  // 최초 전송 전에는 대화방 ID가 null일 수 있음
+  // 최초 발송 전에는 대화방 ID가 없을 수 있음
   const conversationId =
     messagesQuery.data?.pages[0]?.conversationId ?? selectedConversation?.conversationId ?? null;
 
-  // 현재 조회한 메시지 중 가장 최근 수신 메시지
+  // 현재 조회한 가장 최근 수신 메시지
   const latestReceivedMessageId = useMemo(() => {
     if (!user) return null;
 
@@ -175,7 +185,7 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
       !conversationId ||
       !latestReceivedMessageId ||
       messagesQuery.isPending ||
-      messagesQuery.isError ||
+      isInitialMessagesError ||
       readMutation.isPending ||
       document.visibilityState !== "visible" ||
       !document.hasFocus()
@@ -204,12 +214,12 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
     conversationId,
     latestReceivedMessageId,
     messagesQuery.isPending,
-    messagesQuery.isError,
+    isInitialMessagesError,
     readMutation,
     visibilityVersion,
   ]);
 
-  // 대화 목록에서 선택
+  // 대화방 목록에서 대화 상대 선택
   const handleSelectConversation = (conversation: Conversation) => {
     readAttemptRef.current = null;
 
@@ -220,13 +230,13 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
     });
   };
 
-  // 대화 상세 -> 목록
+  // 메시지 상세 -> 대화방 목록
   const handleBack = () => {
     readAttemptRef.current = null;
     setSelectedConversation(null);
   };
 
-  // 실제 메시지 발송
+  // 메시지 전송
   const handleSend = async (content: string) => {
     if (!selectedConversation) {
       throw new Error("대화 상대가 없습니다.");
@@ -260,7 +270,7 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
     }
   };
 
-  // 이전 대화방 목록 추가 조회
+  // 대화방 목록: 일반 무한 스크롤
   const handleLoadConversations = () => {
     if (
       !conversationsQuery.hasNextPage ||
@@ -273,7 +283,12 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
     void conversationsQuery.fetchNextPage();
   };
 
+  // 대화방 목록: 최초 조회/추가 페이지 재시도
   const handleRetryConversations = () => {
+    if (conversationsQuery.isFetching) {
+      return;
+    }
+
     if (conversationsQuery.isFetchNextPageError) {
       void conversationsQuery.fetchNextPage();
       return;
@@ -282,7 +297,7 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
     void conversationsQuery.refetch();
   };
 
-  // 이전 메시지 추가 조회
+  // 메시지 목록: 일반 무한 스크롤
   const handleLoadMessages = () => {
     if (
       !messagesQuery.hasNextPage ||
@@ -295,7 +310,12 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
     void messagesQuery.fetchNextPage();
   };
 
+  // 메시지 목록: 최초 조회/추가 페이지 재시도
   const handleRetryMessages = () => {
+    if (messagesQuery.isFetching) {
+      return;
+    }
+
     if (messagesQuery.isFetchNextPageError) {
       void messagesQuery.fetchNextPage();
       return;
@@ -304,7 +324,7 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
     void messagesQuery.refetch();
   };
 
-  // Hooks 호출 완료 후 렌더링 조건 확인
+  // Hooks 호출 후 렌더링 조건 확인
   if (!isOpen || status !== "authenticated" || !user || typeof document === "undefined") {
     return null;
   }
@@ -313,11 +333,11 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
     ? `${selectedConversation.otherUser.nickname}님과 쪽지`
     : "쪽지";
 
-  // 실제 목록에서 선택한 대화방이 사라진 경우
+  // 목록에서 선택한 대화방이 유효하지 않은 경우
   const isInvalidConversation =
     selectedConversation?.source === "list" &&
     !messagesQuery.isPending &&
-    !messagesQuery.isError &&
+    !isInitialMessagesError &&
     messagesQuery.data?.pages[0]?.conversationId === null;
 
   return createPortal(
@@ -369,7 +389,7 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
                   otherNickname={selectedConversation.otherUser.nickname}
                   otherProfileImageUrl={selectedConversation.otherUser.profileImageUrl}
                   isLoading={messagesQuery.isPending}
-                  isError={messagesQuery.isError}
+                  isError={isInitialMessagesError}
                   hasNextPage={messagesQuery.hasNextPage}
                   isFetchingNextPage={messagesQuery.isFetchingNextPage}
                   isNextPageError={messagesQuery.isFetchNextPageError}
@@ -381,7 +401,7 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
                   key={`composer-${selectedConversation.otherUser.id}`}
                   onSend={handleSend}
                   isSending={sendMutation.isPending}
-                  disabled={messagesQuery.isPending || messagesQuery.isError}
+                  disabled={messagesQuery.isPending || isInitialMessagesError}
                 />
               </>
             )}
@@ -391,7 +411,7 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
             <ConversationList
               conversations={conversations}
               isLoading={conversationsQuery.isPending}
-              isError={conversationsQuery.isError}
+              isError={isInitialConversationsError}
               hasNextPage={conversationsQuery.hasNextPage}
               isFetchingNextPage={conversationsQuery.isFetchingNextPage}
               isNextPageError={conversationsQuery.isFetchNextPageError}

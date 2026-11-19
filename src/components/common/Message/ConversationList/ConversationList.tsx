@@ -40,6 +40,7 @@ export default function ConversationList({
     loadMoreRef.current = onLoadMore;
   }, [onLoadMore]);
 
+  // 목록 하단 도달 시 다음 페이지 조회
   useEffect(() => {
     const root = listRef.current;
 
@@ -64,6 +65,7 @@ export default function ConversationList({
     };
   }, [isLoading, isError, isNextPageError, hasNextPage, isFetchingNextPage]);
 
+  // 최초 조회 로딩
   if (isLoading) {
     return (
       <div className={styles.feedback}>
@@ -72,6 +74,7 @@ export default function ConversationList({
     );
   }
 
+  // 최초 조회 실패
   if (isError) {
     return (
       <div className={styles.feedback}>
@@ -84,6 +87,7 @@ export default function ConversationList({
     );
   }
 
+  // 정상적으로 조회했지만 대화방이 없는 경우
   if (conversations.length === 0) {
     return (
       <div className={styles.feedback}>
@@ -117,10 +121,12 @@ export default function ConversationList({
         <p className={styles.nextPageLoading}>대화방을 더 불러오는 중이에요.</p>
       )}
 
+      {/* 추가 페이지 실패: 기존 목록 유지 */}
       {isNextPageError && !isFetchingNextPage && (
         <div className={styles.nextPageError}>
           <p>대화방을 더 불러오지 못했어요.</p>
-          <button type="button" className={styles.retryButton} onClick={onLoadMore}>
+
+          <button type="button" className={styles.retryButton} onClick={onRetry}>
             다시 시도
           </button>
         </div>
