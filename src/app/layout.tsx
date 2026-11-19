@@ -1,3 +1,4 @@
+import Footer from "@/components/layout/Footer/Footer";
 import AuthHeader from "@/components/layout/Header/AuthHeader";
 import ToastProvider from "@/components/ui/Toast/ToastProvider";
 
@@ -40,6 +41,7 @@ export default function RootLayout({
               <MessagePanelProvider>
                 <AuthHeader />
                 {children}
+                <Footer />
               </MessagePanelProvider>
             </ToastProvider>
           </AuthProvider>

@@ -1,0 +1,166 @@
+.footer {
+  padding: 48px 0 24px;
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-bg-input);
+  color: #555740;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.top {
+  display: grid;
+  grid-template-columns: 1fr 0.7fr 1.4fr;
+  align-items: start;
+  gap: 48px;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.brand img {
+  display: block;
+}
+
+.slogan {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.heading {
+  margin-bottom: 16px;
+  color: #343629;
+  font-size: 16px;
+  font-weight: var(--font-bold);
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.links a:hover {
+  color: #656750;
+  text-decoration: underline;
+}
+
+.teamName {
+  margin-bottom: 16px;
+  color: #656750;
+  font-weight: var(--font-medium);
+}
+
+.teamGroups {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.role {
+  margin-bottom: 8px;
+  color: #656750;
+  font-size: 12px;
+  font-weight: var(--font-bold);
+}
+
+.githubLink,
+.repository {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.repository {
+  margin-top: 20px;
+  font-weight: var(--font-semibold);
+}
+
+.repository:hover {
+  color: #656750;
+  text-decoration: underline;
+}
+
+.bottom {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border);
+}
+
+.notice {
+  color: #656750;
+  font-size: 12px;
+  line-height: 1.8;
+  word-break: keep-all;
+}
+
+.copyright {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin-top: 16px;
+  color: #656750;
+  font-size: 12px;
+}
+
+@media (max-width: 1024px) {
+  .top {
+    gap: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .footer {
+    padding: 40px 0 24px;
+  }
+
+  .top {
+    grid-template-columns: 0.7fr 1.3fr;
+    gap: 28px;
+  }
+
+  .brand {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+@media (max-width: 540px) {
+  .footer {
+    padding: 32px 0 20px;
+  }
+
+  .top {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .brand {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .service .links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .teamGroups {
+    gap: 16px;
+  }
+
+  .bottom {
+    margin-top: 24px;
+    padding-top: 20px;
+  }
+
+  .copyright {
+    flex-direction: column;
+    gap: 4px;
+  }
+}

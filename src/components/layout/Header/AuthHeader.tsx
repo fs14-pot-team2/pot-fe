@@ -1,44 +1,51 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSelectedLayoutSegments } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 
+import type { NotificationItem } from "@/components/common/NotificationPanel/NotificationPanel";
 import { useToast } from "@/components/ui/Toast/ToastProvider";
 
-import type { NotificationItem } from "@/components/common/NotificationPanel/NotificationPanel";
-
-import { useLogoutMutation } from "@/features/auth/hooks/useAuthMutations";
 import AuthStatusFallback from "@/features/auth/components/AuthStatusFallback/AuthStatusFallback";
+import { useLogoutMutation } from "@/features/auth/hooks/useAuthMutations";
 
 import {
   useNotifications,
-  useReadNotification,
   useReadAllNotifications,
+  useReadNotification,
   useUnreadNotification,
 } from "@/features/notifications/hooks/useNotifications";
 
 import { getNotificationRoute } from "@/features/notifications/utils/getNotificationRoute";
 
-import { useUnreadMessageStatus, messageKeys } from "@/features/messages/hooks/useMessages";
+import { messageKeys, useUnreadMessageStatus } from "@/features/messages/hooks/useMessages";
 
 import { useMessagePanel } from "@/features/messages/context/MessagePanelProvider";
 
-import { subscribeSse } from "@/lib/sse/sseSubscriptions";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { subscribeSse } from "@/lib/sse/sseSubscriptions";
 
 import Header from "./Header";
+import styles from "./Header.module.css";
 
 export default function AuthHeader() {
   const { user, status } = useAuth();
 
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [rootSegment, childSegment] = useSelectedLayoutSegments();
 
   const logoutMutation = useLogoutMutation();
   const { showToast } = useToast();
-
   const { closePanel } = useMessagePanel();
+
+  // 페이지별 인증 가드 적용 여부
+  const hasPageAuthGuard =
+    rootSegment === "owner" ||
+    rootSegment === "sitter" ||
+    (rootSegment === "(public)" && childSegment === "sitters") ||
+    (rootSegment === "(auth)" && (childSegment === "login" || childSegment === "signup"));
 
   // 알림 목록 조회
   const {
@@ -70,8 +77,8 @@ export default function AuthHeader() {
 
   const hasUnreadMessage = unreadMessageData?.hasUnreadMessage ?? false;
 
-  // 공통 SSE 연결 재사용
-  // 새 쪽지 이벤트 수신 시 관련 React Query 캐시 갱신
+  // 기존 SSE 연결 재사용
+  // 새 쪽지 수신 시 관련 React Query 캐시 갱신
   useEffect(() => {
     if (status !== "authenticated") {
       return;
@@ -187,6 +194,10 @@ export default function AuthHeader() {
 
   // 인증 상태 확인 중 또는 오류
   if (status === "checking" || status === "error") {
+    if (hasPageAuthGuard) {
+      return <div className={styles.header} aria-hidden="true" />;
+    }
+
     return <AuthStatusFallback status={status} />;
   }
 
