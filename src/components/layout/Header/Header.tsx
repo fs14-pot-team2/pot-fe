@@ -4,6 +4,7 @@ import Button from "@/components/ui/Button/Button";
 import NotificationPanel, {
   type NotificationItem,
 } from "@/components/common/NotificationPanel/NotificationPanel";
+
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -11,6 +12,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import PasswordVerificationModal from "@/features/account/components/PasswordVerificationModal/PasswordVerificationModal";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { useMessagePanel } from "@/features/messages/context/MessagePanelProvider";
 
 import styles from "./Header.module.css";
 import MobileDrawer from "./MobileDrawer";
@@ -24,6 +26,7 @@ type HeaderProps = {
   isNotificationLoading?: boolean;
   isMarkingAllNotificationsAsRead?: boolean;
   hasUnreadNotification?: boolean;
+  hasUnreadMessage?: boolean;
   onLogout?: () => void;
   onNotificationClick?: (notification: NotificationItem) => boolean | Promise<boolean>;
   onMarkAllNotificationsAsRead?: () => void;
@@ -56,6 +59,7 @@ export default function Header({
   isNotificationLoading = false,
   isMarkingAllNotificationsAsRead = false,
   hasUnreadNotification = false,
+  hasUnreadMessage = false,
   hasNextNotificationPage = false,
   isFetchingNextNotificationPage = false,
   hasNotificationError = false,
@@ -71,14 +75,17 @@ export default function Header({
 
   const { completeAccountVerification } = useAuth();
 
+  const { isOpen: isMessageOpen, toggleList } = useMessagePanel();
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+
   const notificationRef = useRef<HTMLDivElement>(null);
   const notificationButtonRef = useRef<HTMLButtonElement>(null);
 
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
-  // 기본정보 관리 진입 직전 페이지 경로 보관
   const returnPathRef = useRef("/");
 
   const closeDrawer = useCallback(() => {
@@ -87,9 +94,13 @@ export default function Header({
 
   const closeNotification = useCallback(() => {
     setIsNotificationOpen(false);
-    window.requestAnimationFrame(() => notificationButtonRef.current?.focus());
+
+    window.requestAnimationFrame(() => {
+      notificationButtonRef.current?.focus();
+    });
   }, []);
 
+  // 모바일 메뉴 반응형 처리
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 768px)");
 
@@ -106,6 +117,7 @@ export default function Header({
     };
   }, []);
 
+  // 알림 패널 외부 클릭 및 Escape 닫기
   useEffect(() => {
     if (!isNotificationOpen) return;
 
@@ -122,15 +134,17 @@ export default function Header({
     };
 
     document.addEventListener("pointerdown", handlePointerDown);
+
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.removeEventListener("pointerdown", handlePointerDown);
+
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [closeNotification, isNotificationOpen]);
 
-  // 현재 페이지를 기억한 후 비밀번호 확인 모달 열기
+  // 기본정보 관리 진입 전 비밀번호 인증
   const handleOpenAccount = () => {
     returnPathRef.current =
       window.location.pathname + window.location.search + window.location.hash;
@@ -138,7 +152,6 @@ export default function Header({
     setIsPasswordModalOpen(true);
   };
 
-  // 비밀번호 인증 성공 후 기본정보 관리 페이지로 이동
   const handleAccountVerified = () => {
     completeAccountVerification();
 
@@ -147,6 +160,25 @@ export default function Header({
     });
 
     router.push(`/owner/account/edit?${params.toString()}`);
+  };
+
+  // 쪽지 패널 열기/닫기
+  const handleMessageClick = () => {
+    if (isNotificationOpen) {
+      setIsNotificationOpen(false);
+    }
+
+    toggleList();
+  };
+
+  // 알림 패널 열기/닫기
+  const handleNotificationToggle = () => {
+    if (isNotificationOpen) {
+      closeNotification();
+      return;
+    }
+
+    setIsNotificationOpen(true);
   };
 
   let menuItems = MENU_ITEMS.GUEST;
@@ -159,6 +191,7 @@ export default function Header({
     <>
       <header className={styles.header}>
         <div className={styles.inner}>
+          {/* 로고 */}
           <Link href="/" className={styles.logoLink} aria-label="POT 홈으로 이동">
             <Image
               src="/images/logo_pc.svg"
@@ -188,6 +221,7 @@ export default function Header({
             />
           </Link>
 
+          {/* 주요 메뉴 */}
           <nav className={styles.nav} aria-label="주요 메뉴">
             {menuItems.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -196,7 +230,9 @@ export default function Header({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}
+                  className={[styles.navLink, isActive ? styles.navLinkActive : ""]
+                    .filter(Boolean)
+                    .join(" ")}
                   aria-current={isActive ? "page" : undefined}
                 >
                   {item.label}
@@ -205,6 +241,7 @@ export default function Header({
             })}
           </nav>
 
+          {/* 로그인 */}
           {!isLoggedIn && (
             <Button
               variant="solid"
@@ -216,22 +253,16 @@ export default function Header({
             </Button>
           )}
 
+          {/* 알림 */}
           {isLoggedIn && (
             <div className={styles.notificationWrapper} ref={notificationRef}>
               <button
                 ref={notificationButtonRef}
                 type="button"
                 className={styles.notificationButton}
-                aria-label="알림"
+                aria-label={hasUnreadNotification ? "읽지 않은 알림 있음" : "알림"}
                 aria-expanded={isNotificationOpen}
-                onClick={() => {
-                  if (isNotificationOpen) {
-                    closeNotification();
-                    return;
-                  }
-
-                  setIsNotificationOpen(true);
-                }}
+                onClick={handleNotificationToggle}
               >
                 <Image
                   src={
@@ -277,12 +308,22 @@ export default function Header({
             </div>
           )}
 
+          {/* 쪽지 */}
           {isLoggedIn && (
-            <button type="button" className={styles.messageButton} aria-label="쪽지" disabled>
+            <button
+              type="button"
+              className={styles.messageButton}
+              data-unread={hasUnreadMessage}
+              aria-label={hasUnreadMessage ? "읽지 않은 쪽지 있음" : "쪽지"}
+              aria-expanded={isMessageOpen}
+              aria-controls={isMessageOpen ? "pot-message-panel" : undefined}
+              onClick={handleMessageClick}
+            >
               <Image src="/icons/ic_message.svg" alt="" width={24} height={24} />
             </button>
           )}
 
+          {/* 프로필 메뉴 */}
           {isLoggedIn && userRole && nickname && (
             <ProfileMenu
               userRole={userRole}
@@ -292,6 +333,7 @@ export default function Header({
             />
           )}
 
+          {/* 모바일 메뉴 */}
           <button
             type="button"
             className={styles.menuButton}
@@ -311,6 +353,7 @@ export default function Header({
         menuItems={menuItems}
       />
 
+      {/* 팟오너 계정 인증 */}
       {isLoggedIn && userRole === "OWNER" && (
         <PasswordVerificationModal
           isOpen={isPasswordModalOpen}

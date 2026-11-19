@@ -15,6 +15,7 @@ import MyQuoteManagement, {
 } from "@/components/common/MyQuoteManagement/MyQuoteManagement";
 
 import { useToast } from "@/components/ui/Toast/ToastProvider";
+import { useMessagePanel } from "@/features/messages/context/MessagePanelProvider";
 
 import { useCancelCareRequest } from "@/features/care-requests/owner/hooks/useCareRequests";
 import { useActiveQuotes } from "@/features/quotes/owner/hooks/useActiveQuotes";
@@ -113,6 +114,7 @@ function getConfirmErrorMessage(error: unknown): string {
 export default function OwnerActiveQuotesPage() {
   const router = useRouter();
   const { showToast } = useToast();
+  const { openConversation } = useMessagePanel();
 
   const { data, isPending, isError, error, refetch } = useActiveQuotes();
 
@@ -121,9 +123,28 @@ export default function OwnerActiveQuotesPage() {
   const { mutateAsync: confirmQuote, isPending: isConfirming } = useConfirmQuote();
 
   const [selectedConfirmQuoteId, setSelectedConfirmQuoteId] = useState<string | null>(null);
+
   const [confirmError, setConfirmError] = useState("");
 
   const selectedQuote = data?.quotes.find((quote) => quote.id === selectedConfirmQuoteId);
+
+  // 견적 카드에서 선택한 팟트너와의 쪽지 패널 열기
+  const handleQuoteMessage = (quoteId: string) => {
+    const quote = data?.quotes.find((item) => item.id === quoteId);
+
+    if (!quote) {
+      showToast({
+        message: "대화 상대 정보를 찾을 수 없습니다.",
+      });
+      return;
+    }
+
+    openConversation({
+      id: quote.sitter.id,
+      nickname: quote.sitter.nickname,
+      profileImageUrl: quote.sitter.profileImageUrl,
+    });
+  };
 
   const openConfirmModal = (quoteId: string) => {
     setConfirmError("");
@@ -255,6 +276,7 @@ export default function OwnerActiveQuotesPage() {
         onDelete={handleDelete}
         onQuoteDetail={(quoteId) => router.push(`/owner/quotes/${quoteId}`)}
         onQuoteConfirm={openConfirmModal}
+        onQuoteMessage={handleQuoteMessage}
       />
     );
   };

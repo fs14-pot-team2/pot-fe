@@ -1,0 +1,82 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 16px 20px;
+  border: 0;
+  border-radius: 12px;
+  background-color: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.container:hover {
+  background-color: #f3f0e6;
+}
+
+.container:focus-visible {
+  outline: 2px solid #6e7048;
+  outline-offset: -2px;
+}
+
+.profileImage {
+  position: relative;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 50%;
+  background-color: #ebebdd;
+}
+
+.image {
+  object-fit: cover;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: #6e7048;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.nickname {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: #282a22;
+  font-size: 16px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unreadDot {
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: #e34d57;
+}
+
+@media (max-width: 540px) {
+  .container {
+    gap: 12px;
+    padding: 14px 12px;
+  }
+
+  .profileImage {
+    width: 44px;
+    height: 44px;
+  }
+
+  .nickname {
+    font-size: 14px;
+  }
+}
