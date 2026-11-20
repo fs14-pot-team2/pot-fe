@@ -24,6 +24,7 @@ import {
 } from "@/constants/validation";
 
 import styles from "@/app/sitter/account/edit/AccountEditPage.module.css";
+import SocialAccountLinkSection from "@/features/account/components/SocialAccountLinkSection/SocialAccountLinkSection";
 
 interface AccountEditFormValues {
   nickname: string;
@@ -292,6 +293,8 @@ function OwnerAccountEditContent() {
             placeholder="새 비밀번호를 다시 한번 입력해 주세요"
             error={confirmPasswordError?.message}
           />
+
+          <SocialAccountLinkSection user={user} />
 
           <div className={styles.actions}>
             <Button

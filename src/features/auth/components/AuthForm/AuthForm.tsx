@@ -7,9 +7,11 @@ import Toggle from "@/components/ui/Toggle/Toggle";
 import type { AuthMode, AuthResponse, UserRole } from "@/features/auth/types/auth";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import axios from "axios";
+import Image from "next/image";
 import Link from "next/link";
 import { useController, useForm } from "react-hook-form";
 import { useLoginMutation, useSignupMutation } from "../../hooks/useAuthMutations";
+import { startKakaoAuth } from "../../utils/startKakaoAuth";
 import styles from "./AuthForm.module.css";
 
 type AuthFormValues = {
@@ -148,6 +150,16 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const isSubmitting = loginMutation.isPending || signupMutation.isPending;
 
   const { showToast } = useToast();
+
+  const handleKakaoAuth = () => {
+    try {
+      startKakaoAuth(roleField.value, mode);
+    } catch {
+      showToast({
+        message: "카카오 인증을 시작하지 못했어요. 다시 시도해 주세요.",
+      });
+    }
+  };
 
   const handleAuthError = (error: unknown) => {
     const code = axios.isAxiosError<{ code?: string }>(error)
@@ -288,6 +300,36 @@ export default function AuthForm({ mode }: AuthFormProps) {
         <Link href={mode === "login" ? "/signup" : "/login"} className={styles.switchLink}>
           {mode === "login" ? "이메일로 회원가입하기" : "로그인"}
         </Link>
+      </div>
+
+      <div className={styles.socialAuth}>
+        <p className={styles.socialAuthTitle}>
+          SNS 계정으로 간편 {mode === "login" ? "로그인" : "가입"}하기
+        </p>
+
+        <button
+          type="button"
+          className={styles.socialAuthButton}
+          aria-label={mode === "login" ? "구글 로그인 준비 중" : "구글 회원가입 준비 중"}
+          disabled
+        >
+          <picture>
+            <source media="(max-width: 540px)" srcSet="/icons/ic_google_login_sm.svg" />
+            <Image src="/icons/ic_google_login_md.svg" alt="" width={72} height={72} />
+          </picture>
+        </button>
+
+        <button
+          type="button"
+          className={styles.socialAuthButton}
+          aria-label={mode === "login" ? "카카오로 로그인" : "카카오로 회원가입"}
+          onClick={handleKakaoAuth}
+        >
+          <picture>
+            <source media="(max-width: 540px)" srcSet="/icons/ic_kakao_login_sm.svg" />
+            <Image src="/icons/ic_kakao_login_md.svg" alt="" width={72} height={72} />
+          </picture>
+        </button>
       </div>
     </form>
   );
