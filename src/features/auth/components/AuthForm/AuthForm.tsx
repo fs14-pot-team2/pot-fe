@@ -151,6 +151,16 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
   const { showToast } = useToast();
 
+  const handleKakaoAuth = () => {
+    try {
+      startKakaoAuth(roleField.value, mode);
+    } catch {
+      showToast({
+        message: "카카오 인증을 시작하지 못했어요. 다시 시도해 주세요.",
+      });
+    }
+  };
+
   const handleAuthError = (error: unknown) => {
     const code = axios.isAxiosError<{ code?: string }>(error)
       ? error.response?.data?.code
@@ -313,7 +323,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
           type="button"
           className={styles.socialAuthButton}
           aria-label={mode === "login" ? "카카오로 로그인" : "카카오로 회원가입"}
-          onClick={() => startKakaoAuth(roleField.value, mode)}
+          onClick={handleKakaoAuth}
         >
           <picture>
             <source media="(max-width: 540px)" srcSet="/icons/ic_kakao_login_sm.svg" />
