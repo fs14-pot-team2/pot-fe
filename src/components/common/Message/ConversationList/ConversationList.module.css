@@ -1,0 +1,92 @@
+.scrollArea {
+  width: 100%;
+  min-height: 0;
+  max-height: 480px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.scrollArea:focus-visible {
+  outline: 2px solid #6e7048;
+  outline-offset: -2px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  width: 100%;
+  min-width: 0;
+}
+
+.feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 280px;
+  padding: 24px 12px;
+  text-align: center;
+}
+
+.errorText {
+  margin: 0;
+  color: #777;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.retryButton {
+  padding: 8px 16px;
+  border: 1px solid #a7a984;
+  border-radius: 8px;
+  background-color: #fefdf9;
+  color: #505b39;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.retryButton:hover {
+  background-color: #f3f0e6;
+}
+
+.retryButton:focus-visible {
+  outline: 2px solid #6e7048;
+  outline-offset: 2px;
+}
+
+.nextPageLoading,
+.nextPageError {
+  padding: 16px;
+  color: #888;
+  font-size: 13px;
+  text-align: center;
+}
+
+.nextPageError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.nextPageError p {
+  margin: 0;
+}
+
+@media (max-width: 540px) {
+  .scrollArea {
+    max-height: 60dvh;
+  }
+
+  .feedback {
+    min-height: 240px;
+  }
+}

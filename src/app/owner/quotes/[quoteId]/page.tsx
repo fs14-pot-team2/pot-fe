@@ -1,13 +1,12 @@
 "use client";
 
-import PageContainer from "@/components/layout/Page/PageContainer";
-
-import PageMain from "@/components/layout/Page/PageMain";
-
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
+
+import PageContainer from "@/components/layout/Page/PageContainer";
+import PageMain from "@/components/layout/Page/PageMain";
 
 import Button from "@/components/ui/Button/Button";
 import CareInfo from "@/components/common/CareInfo/CareInfo";
@@ -17,6 +16,8 @@ import ProfileImage from "@/components/ui/ProfileImage/ProfileImage";
 import QuoteStatus from "@/components/ui/QuoteStatus/QuoteStatus";
 import Tag from "@/components/ui/Tag/Tag";
 import { useToast } from "@/components/ui/Toast/ToastProvider";
+
+import { useMessagePanel } from "@/features/messages/context/MessagePanelProvider";
 
 import { useConfirmQuote, useQuoteDetail } from "@/features/quotes/owner/hooks/useQuotes";
 
@@ -105,6 +106,7 @@ function getConfirmErrorMessage(error: unknown): string {
 
 function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
   const router = useRouter();
+  const { openConversation } = useMessagePanel();
 
   const { quote, designatedRequestId, careRequest, sitter } = data;
 
@@ -112,7 +114,6 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
   const { showToast } = useToast();
 
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -143,6 +144,19 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
           ? "waiting"
           : null;
 
+  // 쪽지 버튼: 해당 팟트너 대화창 열기
+  const handleOpenMessage = () => {
+    if (!isWaiting || isConfirming || isRedirecting) {
+      return;
+    }
+
+    openConversation({
+      id: sitter.id,
+      nickname: sitter.nickname,
+      profileImageUrl: sitter.profileImageUrl,
+    });
+  };
+
   const openConfirmModal = () => {
     if (!isWaiting || isConfirming || isRedirecting) {
       return;
@@ -165,14 +179,11 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
     }
 
     try {
-      // 견적 확정 API 호출
       await confirmQuote(quote.id);
     } catch (error) {
-      // API 실패 시 상세페이지 유지
       showToast({
         message: getConfirmErrorMessage(error),
       });
-
       return;
     }
 
@@ -180,13 +191,11 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
     setIsRedirecting(true);
     setIsConfirmModalOpen(false);
 
-    // 성공 토스트를 1.8초간 표시
     showToast({
       message: "견적이 확정되었습니다.",
       duration: SUCCESS_TOAST_DURATION,
     });
 
-    // 2초 뒤 받았던 견적 페이지로 이동
     redirectTimerRef.current = setTimeout(() => {
       router.replace("/owner/quotes/history");
     }, REDIRECT_DELAY);
@@ -264,7 +273,6 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
             <section className={styles.quoteSection}>
               <dl className={styles.priceWrap}>
                 <dt>견적가</dt>
-
                 <dd>{quote.price.toLocaleString("ko-KR")}원</dd>
               </dl>
 
@@ -292,7 +300,7 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
             </div>
           </article>
 
-          {/* 견적 확정 및 공유하기 */}
+          {/* 견적 확정 및 쪽지 버튼 */}
           <aside className={styles.shareArea}>
             {isWaiting && !isRedirecting && (
               <div className={styles.confirmArea}>
@@ -305,6 +313,17 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
                 >
                   견적 확정하기
                 </Button>
+
+                <button
+                  type="button"
+                  className={styles.messageButton}
+                  onClick={handleOpenMessage}
+                  disabled={isConfirming}
+                  aria-label={`${sitter.nickname} 팟트너에게 쪽지 보내기`}
+                  title="쪽지 보내기"
+                >
+                  <Image src="/icons/ic_message.svg" alt="" width={24} height={24} />
+                </button>
               </div>
             )}
 
@@ -346,7 +365,6 @@ function QuoteDetailContent({ data }: { data: QuoteDetailResponse }) {
         }
       >
         <p>{sitter.nickname} 팟트너의 견적을 확정하시겠어요?</p>
-
         <p>확정 후에는 다른 견적을 선택할 수 없습니다.</p>
       </Modal>
     </>
@@ -362,6 +380,7 @@ export default function OwnerQuoteDetailPage() {
   const isValidQuoteId = /^\d+$/.test(quoteId) && BigInt(quoteId) > 0n;
 
   const { data, isPending, isError, error, refetch } = useQuoteDetail(quoteId);
+
   const isAccessForbidden =
     isAxiosError(error) &&
     (error.response?.status === 403 ||

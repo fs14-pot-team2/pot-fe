@@ -221,8 +221,6 @@
 
 .shareArea {
   position: sticky;
-
-  /* 고정 헤더 높이 + 상단 여백 */
   top: calc(var(--header-height) + 24px);
   align-self: start;
 
@@ -232,28 +230,77 @@
 
   min-width: 0;
   height: max-content;
-
-  /* 견적 확정 버튼 + 공유 영역이 화면 안에 들어오도록 제한 */
   max-height: calc(100dvh - var(--header-height) - 48px);
-
-  /* 기존 오른쪽 영역 시작 위치 유지 */
   margin-top: 160px;
 
-  /* 화면 높이가 작을 때 내부 스크롤 허용 */
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: thin;
 }
 
-/* 견적 확정 버튼 */
+/* 견적 확정 버튼 + 쪽지 버튼 */
 
 .confirmArea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
   flex-shrink: 0;
 }
 
 .confirmButton {
-  width: 100%;
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+  min-height: 56px;
+}
+
+/* 쪽지 버튼 - PC, 태블릿, 모바일 모두 1:1 */
+
+.messageButton {
+  display: flex;
+  flex: 0 0 56px;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+
+  width: 56px;
+  height: 56px;
+  aspect-ratio: 1 / 1;
+  box-sizing: border-box;
+  padding: 0;
+
+  border: 1px solid var(--color-brand, #6e7048);
+  border-radius: 12px;
+  background-color: var(--color-bg, #fefdf9);
+
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.messageButton:hover:not(:disabled) {
+  background-color: #f3f0e6;
+}
+
+.messageButton:focus-visible {
+  outline: 2px solid var(--color-brand, #6e7048);
+  outline-offset: 2px;
+}
+
+.messageButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* public/icons/ic_message.svg */
+
+.messageButton img {
+  display: block;
+  width: 24px;
+  height: 24px;
 }
 
 /* 견적 확정 모달 버튼 */
@@ -333,7 +380,7 @@
   cursor: pointer;
 }
 
-/* 1024px 이하: Sticky 해제, 공유하기 → 확정 버튼 */
+/* 1024px 이하: Sticky 해제 */
 
 @media (max-width: 1024px) {
   .layout {
@@ -383,6 +430,10 @@
 /* 모바일 */
 
 @media (max-width: 540px) {
+  .main {
+    --quote-detail-spacing: 16px;
+  }
+
   .accessFeedback {
     min-height: 240px;
     padding: 32px 12px;
@@ -394,10 +445,6 @@
 
   .accessDescription {
     font-size: 14px;
-  }
-
-  .main {
-    --quote-detail-spacing: 16px;
   }
 
   .introduction {
@@ -415,5 +462,15 @@
 
   .careInfo h2 {
     font-size: 16px;
+  }
+
+  .confirmButton {
+    min-height: 48px;
+  }
+
+  .messageButton {
+    flex: 0 0 48px;
+    width: 60px;
+    height: 60px;
   }
 }

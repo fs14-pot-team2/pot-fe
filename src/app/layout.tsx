@@ -1,12 +1,18 @@
 import Footer from "@/components/layout/Footer/Footer";
 import AuthHeader from "@/components/layout/Header/AuthHeader";
 import ToastProvider from "@/components/ui/Toast/ToastProvider";
+
+import MessagePanelProvider from "@/features/messages/context/MessagePanelProvider";
+
 import AuthProvider from "@/lib/auth/AuthProvider";
 import QueryProvider from "@/lib/react-query/QueryProvider";
 import SseListener from "@/lib/sse/SseListener";
+
 import "@/styles/reset.css";
 import "@/styles/variables.css";
+
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,17 +25,24 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: ReactNode;
+}>) {
   return (
     <html lang="ko">
       <body>
         <QueryProvider>
           <AuthProvider>
             <SseListener />
+
             <ToastProvider>
-              <AuthHeader />
-              {children}
-              <Footer />
+              <MessagePanelProvider>
+                <AuthHeader />
+                {children}
+                <Footer />
+              </MessagePanelProvider>
             </ToastProvider>
           </AuthProvider>
         </QueryProvider>

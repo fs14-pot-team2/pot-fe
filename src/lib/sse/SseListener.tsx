@@ -1,12 +1,16 @@
 "use client";
 
+import { messageKeys } from "@/features/messages/hooks/useMessages";
 import { notificationKeys } from "@/features/notifications/queryKeys";
 import { activeQuotesKeys } from "@/features/quotes/owner/hooks/useActiveQuotes";
 import { sitterQuoteKeys } from "@/features/quotes/sitter/queryKeys";
+
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { getAccessToken } from "@/lib/auth/accessToken";
+
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+
 import { connectSse } from "./sseClient";
 import { publishSse } from "./sseSubscriptions";
 
@@ -18,23 +22,26 @@ export default function SseListener() {
   const role = user?.role;
 
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_SSE_ENABLED !== "true") return;
-    if (status !== "authenticated" || !userId) return;
+    if (process.env.NEXT_PUBLIC_SSE_ENABLED !== "true") {
+      return;
+    }
 
+    if (status !== "authenticated" || !userId) {
+      return;
+    }
+
+    // 기존 알림 및 역할별 목록 데이터 갱신
     const invalidateRelevantQueries = () => {
-      // 공통 알림 목록 및 미확인 알림 갱신
       void queryClient.invalidateQueries({
         queryKey: notificationKeys.all,
       });
 
-      // 팟오너: 요청한 견적 및 지정 요청 반려 현황
       if (role === "OWNER") {
         void queryClient.invalidateQueries({
           queryKey: activeQuotesKeys.detail(),
         });
       }
 
-      // 팟트너: 보낸 견적 및 받은 요청 목록
       if (role === "SITTER") {
         void queryClient.invalidateQueries({
           queryKey: sitterQuoteKeys.sent(),
@@ -46,17 +53,33 @@ export default function SseListener() {
       }
     };
 
+    // 쪽지 관련 전체 캐시 갱신
+    const invalidateMessageQueries = () => {
+      void queryClient.invalidateQueries({
+        queryKey: messageKeys.all,
+      });
+    };
+
+    // SSE 재연결 또는 탭 복귀 시 놓친 데이터 갱신
+    const invalidateAfterReconnect = () => {
+      invalidateRelevantQueries();
+      invalidateMessageQueries();
+    };
+
     const disconnect = connectSse(
       (event) => {
         if (event.type === "notification.created") {
           invalidateRelevantQueries();
         }
 
+        // 기존 기능별 SSE 구독자에게 이벤트 전달
         publishSse(event);
       },
       {
-        // 재연결 중 놓친 이벤트가 있을 수 있으므로 다시 조회한다.
-        onReconnect: invalidateRelevantQueries,
+        // 연결 중단 동안 놓친 알림 및 쪽지 재조회
+        onReconnect: invalidateAfterReconnect,
+
+        // 기존 SSE 인증 오류 처리 유지
         onAuthError: (error) => {
           if (
             error.shouldClearSession &&
@@ -72,7 +95,7 @@ export default function SseListener() {
     // 다른 탭이나 앱에서 돌아왔을 때 데이터 갱신
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        invalidateRelevantQueries();
+        invalidateAfterReconnect();
       }
     };
 
@@ -80,6 +103,7 @@ export default function SseListener() {
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+
       disconnect();
     };
   }, [status, userId, role, queryClient, clearSession]);
