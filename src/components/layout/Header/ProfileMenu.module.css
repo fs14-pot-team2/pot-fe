@@ -8,6 +8,14 @@
   gap: 8px;
 }
 
+.profileImage {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .menu {
   position: absolute;
   top: calc(100% + 12px);

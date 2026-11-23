@@ -5,10 +5,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getOwnerProfile, updateOwnerProfile } from "../api/ownerProfileApi";
 import { ownerProfileKeys } from "../queryKeys";
 
-export function useOwnerProfile() {
+export function useOwnerProfile(enabled = true) {
   return useQuery({
     queryKey: ownerProfileKeys.detail(),
     queryFn: getOwnerProfile,
+    enabled,
     retry: false,
   });
 }
