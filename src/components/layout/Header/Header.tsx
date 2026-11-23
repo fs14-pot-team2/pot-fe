@@ -22,6 +22,7 @@ type HeaderProps = {
   isLoggedIn: boolean;
   userRole?: "OWNER" | "SITTER";
   nickname?: string;
+  profileImageUrl?: string | null;
   notifications?: NotificationItem[];
   isNotificationLoading?: boolean;
   isMarkingAllNotificationsAsRead?: boolean;
@@ -55,6 +56,7 @@ export default function Header({
   isLoggedIn,
   userRole,
   nickname,
+  profileImageUrl,
   notifications = [],
   isNotificationLoading = false,
   isMarkingAllNotificationsAsRead = false,
@@ -328,6 +330,7 @@ export default function Header({
             <ProfileMenu
               userRole={userRole}
               nickname={nickname}
+              profileImageUrl={profileImageUrl}
               onLogout={onLogout}
               onOpenAccount={userRole === "OWNER" ? handleOpenAccount : undefined}
             />

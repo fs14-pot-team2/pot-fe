@@ -8,6 +8,7 @@ import styles from "./ProfileMenu.module.css";
 type ProfileMenuProps = {
   userRole: "OWNER" | "SITTER";
   nickname: string;
+  profileImageUrl?: string | null;
   onOpenAccount?: () => void;
   onLogout?: () => void;
 };
@@ -15,12 +16,17 @@ type ProfileMenuProps = {
 export default function ProfileMenu({
   userRole,
   nickname,
+  profileImageUrl,
   onOpenAccount,
   onLogout,
 }: ProfileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
+
+  const hasProfileImage = Boolean(profileImageUrl && failedImageUrl !== profileImageUrl);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -56,7 +62,18 @@ export default function ProfileMenu({
         aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
       >
-        <Image src="/icons/ic_profile.svg" alt="" width={36} height={36} />
+        <Image
+          src={hasProfileImage && profileImageUrl ? profileImageUrl : "/icons/ic_profile.svg"}
+          alt=""
+          width={36}
+          height={36}
+          className={hasProfileImage ? styles.profileImage : undefined}
+          onError={() => {
+            if (hasProfileImage && profileImageUrl) {
+              setFailedImageUrl(profileImageUrl);
+            }
+          }}
+        />
         <span>{nickname}</span>
       </button>
 

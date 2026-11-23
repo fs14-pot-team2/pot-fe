@@ -22,6 +22,8 @@ import { getNotificationRoute } from "@/features/notifications/utils/getNotifica
 import { messageKeys, useUnreadMessageStatus } from "@/features/messages/hooks/useMessages";
 
 import { useMessagePanel } from "@/features/messages/context/MessagePanelProvider";
+import { useOwnerProfile } from "@/features/profiles/owner/hooks/useOwnerProfile";
+import { usePartnerProfile } from "@/features/profiles/sitter/hooks/usePartnerProfile";
 
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { subscribeSse } from "@/lib/sse/sseSubscriptions";
@@ -31,6 +33,20 @@ import styles from "./Header.module.css";
 
 export default function AuthHeader() {
   const { user, status } = useAuth();
+
+  const isOwner = status === "authenticated" && user?.role === "OWNER";
+  const isSitter = status === "authenticated" && user?.role === "SITTER";
+
+  const { data: ownerProfile } = useOwnerProfile(isOwner);
+  const { data: partnerProfile } = usePartnerProfile(isSitter);
+
+  let profileImageUrl: string | null = null;
+
+  if (isOwner) {
+    profileImageUrl = ownerProfile?.profileImageUrl ?? null;
+  } else if (isSitter) {
+    profileImageUrl = partnerProfile?.profileImageUrl ?? null;
+  }
 
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -208,6 +224,7 @@ export default function AuthHeader() {
       isLoggedIn={isLoggedIn}
       userRole={user?.role}
       nickname={user?.nickname}
+      profileImageUrl={profileImageUrl}
       notifications={notifications}
       isNotificationLoading={isNotificationLoading}
       hasUnreadNotification={hasUnreadNotification}
