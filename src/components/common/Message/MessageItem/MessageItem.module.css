@@ -65,7 +65,6 @@
 .bubble {
   min-width: 0;
   max-width: 100%;
-  margin: 0;
   padding: 12px 14px;
   border: 1px solid #e7e7dd;
   border-radius: 14px;
@@ -73,13 +72,54 @@
   color: #30332b;
   font-size: 14px;
   line-height: 1.6;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
 }
 
 .sent .bubble {
   border-color: #d5dfc7;
   background-color: #e7ecdc;
+}
+
+.messageText {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+}
+
+.messageText.expanded {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+}
+
+.expandButton {
+  display: block;
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #6e7048;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+}
+
+.expandButton:hover {
+  text-decoration: underline;
+}
+
+.expandButton:focus-visible {
+  outline: 2px solid #6e7048;
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 
 .time {
@@ -97,6 +137,10 @@
   .bubble {
     padding: 10px 12px;
     font-size: 13px;
+  }
+
+  .expandButton {
+    font-size: 12px;
   }
 
   .time {
