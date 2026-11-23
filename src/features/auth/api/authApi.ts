@@ -9,11 +9,20 @@ import type {
   SignupInput,
 } from "../types/auth";
 import type {
+  GoogleAuthInput,
+  GoogleAuthResponse,
+  GoogleLinkInput,
+  GoogleLinkResponse,
   KakaoAuthInput,
   KakaoAuthResponse,
   KakaoLinkInput,
   KakaoLinkResponse,
+  SocialAuthInput,
+  SocialAuthResponse,
+  SocialLinkInput,
 } from "../types/socialAuth";
+
+import type { SocialProvider } from "../utils/socialOAuth";
 
 export async function signup(input: SignupInput): Promise<AuthResponse> {
   const { data } = await apiClient.post<AuthResponse>("/auth/signup", input);
@@ -27,18 +36,33 @@ export async function login(input: LoginInput): Promise<AuthResponse> {
   return data;
 }
 
-export async function loginWithKakao(input: KakaoAuthInput): Promise<KakaoAuthResponse> {
-  const { data } = await apiClient.post<KakaoAuthResponse>("/auth/kakao", input);
+async function loginWithSocial(
+  provider: SocialProvider,
+  input: SocialAuthInput,
+): Promise<SocialAuthResponse> {
+  const { data } = await apiClient.post<SocialAuthResponse>(
+    `/auth/${provider.toLowerCase()}`,
+    input,
+  );
 
   return data;
 }
 
-export async function signupWithKakao(
+export function loginWithKakao(input: KakaoAuthInput): Promise<KakaoAuthResponse> {
+  return loginWithSocial("KAKAO", input);
+}
+
+export function loginWithGoogle(input: GoogleAuthInput): Promise<GoogleAuthResponse> {
+  return loginWithSocial("GOOGLE", input);
+}
+
+async function signupWithSocial(
+  provider: SocialProvider,
   signupToken: string,
   password: string,
 ): Promise<AuthResponse> {
   const { data } = await axios.post<AuthResponse>(
-    "/api/auth/kakao/signup",
+    `/api/auth/${provider.toLowerCase()}/signup`,
     { password },
     {
       headers: { Authorization: `Bearer ${signupToken}` },
@@ -50,19 +74,38 @@ export async function signupWithKakao(
   return data;
 }
 
+export function signupWithKakao(signupToken: string, password: string): Promise<AuthResponse> {
+  return signupWithSocial("KAKAO", signupToken, password);
+}
+
+export function signupWithGoogle(signupToken: string, password: string): Promise<AuthResponse> {
+  return signupWithSocial("GOOGLE", signupToken, password);
+}
+
 export async function logout(): Promise<LogoutResponse> {
   const { data } = await apiClient.post<LogoutResponse>("/auth/logout");
 
   return data;
 }
 
-export async function linkKakaoAccount(input: KakaoLinkInput): Promise<KakaoLinkResponse> {
-  const { data } = await apiClient.post<KakaoLinkResponse>(
-    "/users/me/social-accounts/kakao",
+async function linkSocialAccount<TProvider extends SocialProvider>(
+  provider: TProvider,
+  input: SocialLinkInput,
+): Promise<{ provider: TProvider }> {
+  const { data } = await apiClient.post<{ provider: TProvider }>(
+    `/users/me/social-accounts/${provider.toLowerCase()}`,
     input,
   );
 
   return data;
+}
+
+export function linkKakaoAccount(input: KakaoLinkInput): Promise<KakaoLinkResponse> {
+  return linkSocialAccount("KAKAO", input);
+}
+
+export function linkGoogleAccount(input: GoogleLinkInput): Promise<GoogleLinkResponse> {
+  return linkSocialAccount("GOOGLE", input);
 }
 
 let refreshPromise: Promise<RefreshResponse> | null = null;

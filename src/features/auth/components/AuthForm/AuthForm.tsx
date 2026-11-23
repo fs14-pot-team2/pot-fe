@@ -11,6 +11,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useController, useForm } from "react-hook-form";
 import { useLoginMutation, useSignupMutation } from "../../hooks/useAuthMutations";
+import { startGoogleAuth } from "../../utils/startGoogleAuth";
 import { startKakaoAuth } from "../../utils/startKakaoAuth";
 import styles from "./AuthForm.module.css";
 
@@ -157,6 +158,16 @@ export default function AuthForm({ mode }: AuthFormProps) {
     } catch {
       showToast({
         message: "카카오 인증을 시작하지 못했어요. 다시 시도해 주세요.",
+      });
+    }
+  };
+
+  const handleGoogleAuth = () => {
+    try {
+      startGoogleAuth(roleField.value, mode);
+    } catch {
+      showToast({
+        message: "구글 인증을 시작하지 못했어요. 다시 시도해 주세요.",
       });
     }
   };
@@ -310,8 +321,8 @@ export default function AuthForm({ mode }: AuthFormProps) {
         <button
           type="button"
           className={styles.socialAuthButton}
-          aria-label={mode === "login" ? "구글 로그인 준비 중" : "구글 회원가입 준비 중"}
-          disabled
+          aria-label={mode === "login" ? "구글로 로그인" : "구글로 회원가입"}
+          onClick={handleGoogleAuth}
         >
           <picture>
             <source media="(max-width: 540px)" srcSet="/icons/ic_google_login_sm.svg" />

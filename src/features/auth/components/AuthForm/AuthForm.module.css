@@ -76,11 +76,6 @@
   outline-offset: 4px;
 }
 
-.socialAuthButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
 @media (max-width: 540px) {
   .fields {
     gap: 24px;
