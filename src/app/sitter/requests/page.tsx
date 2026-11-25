@@ -110,10 +110,19 @@ export default function ReceivedRequestsPage() {
 
   const { mutate: sendQuote, isPending: isSendingQuote } = useCreateQuote();
 
+  const handleRequestRemoved = () => {
+    if (!data) return;
+
+    const lastValidPage = Math.max(Math.ceil((data.totalCount - 1) / PAGE_SIZE), 1);
+
+    setCurrentPage((page) => Math.min(page, lastValidPage));
+  };
+
   const handleHideRequest = (careRequestId: string) => {
     if (isIgnoring) return;
 
     ignoreRequest(careRequestId, {
+      onSuccess: handleRequestRemoved,
       onError: () => {
         showToast({ message: "요청을 숨기지 못했습니다. 잠시 후 다시 시도해 주세요." });
       },
@@ -190,6 +199,7 @@ export default function ReceivedRequestsPage() {
       },
       {
         onSuccess: () => {
+          handleRequestRemoved();
           setRejectTarget(null);
         },
         onError: () => {
@@ -220,6 +230,7 @@ export default function ReceivedRequestsPage() {
       },
       {
         onSuccess: () => {
+          handleRequestRemoved();
           setQuoteTarget(null);
         },
         onError: () => {
@@ -341,7 +352,7 @@ export default function ReceivedRequestsPage() {
               />
             )}
 
-            {!isPending && !isError && requests.length === 0 && (
+            {!isPending && !isError && data?.totalCount === 0 && (
               <EmptyState className={styles.listState} messages={["아직 받은 요청이 없어요."]} />
             )}
 
