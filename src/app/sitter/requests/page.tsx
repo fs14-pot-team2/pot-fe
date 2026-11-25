@@ -4,8 +4,13 @@ import PageContainer from "@/components/layout/Page/PageContainer";
 
 import PageMain from "@/components/layout/Page/PageMain";
 
+import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { useState } from "react";
+import {
+  getReceivedRequests,
+  type GetReceivedRequestsParams,
+} from "@/features/care-requests/sitter/getReceivedRequests";
 import { useReceivedRequests } from "@/features/care-requests/sitter/useReceivedRequests";
 import ReceivedRequestCard from "@/components/common/ReceivedRequestCard/ReceivedRequestCard";
 import BottomSheet, {
@@ -91,6 +96,7 @@ function toggleRegion(currentRegions: (Region | "ALL")[], selectedRegion: Region
 
 export default function ReceivedRequestsPage() {
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [appliedKeyword, setAppliedKeyword] = useState("");
@@ -110,19 +116,76 @@ export default function ReceivedRequestsPage() {
 
   const { mutate: sendQuote, isPending: isSendingQuote } = useCreateQuote();
 
-  const handleRequestRemoved = () => {
+  const appliedRegions = selectedRegions.includes("ALL") ? [] : (selectedRegions as Region[]);
+  const receivedRequestParams: GetReceivedRequestsParams = {
+    page: currentPage,
+    pageSize: PAGE_SIZE,
+    serviceTypes:
+      selectedServiceType === "" || selectedServiceType === "ALL" ? [] : [selectedServiceType],
+    designatedOnly,
+    regions: appliedRegions,
+    keyword: appliedKeyword,
+    sort,
+  };
+
+  const { data, isPending, isError, refetch } = useReceivedRequests(receivedRequestParams);
+
+  const handleRequestRemoved = async () => {
     if (!data) return;
 
     const lastValidPage = Math.max(Math.ceil((data.totalCount - 1) / PAGE_SIZE), 1);
+    const nextPage = Math.min(currentPage, lastValidPage);
+    let nextRegions = selectedRegions;
 
-    setCurrentPage((page) => Math.min(page, lastValidPage));
+    if (appliedRegions.length > 0) {
+      try {
+        const refreshedData = await getReceivedRequests({
+          ...receivedRequestParams,
+          page: 1,
+          regions: [],
+        });
+        const availableRegionSet = new Set(refreshedData.availableRegions);
+        const validRegions = appliedRegions.filter((region) => availableRegionSet.has(region));
+
+        if (validRegions.length === 0) {
+          nextRegions = [];
+        } else if (validRegions.length >= refreshedData.availableRegions.length) {
+          nextRegions = ["ALL"];
+        } else {
+          nextRegions = validRegions;
+        }
+      } catch {
+        nextRegions = [];
+      }
+    }
+
+    const didRegionsChange =
+      nextRegions.length !== selectedRegions.length ||
+      nextRegions.some((region, index) => region !== selectedRegions[index]);
+    const didPageChange = nextPage !== currentPage;
+
+    if (didRegionsChange) {
+      setSelectedRegions(nextRegions);
+      setDraftRegions(nextRegions);
+    }
+
+    setCurrentPage(nextPage);
+
+    await queryClient.invalidateQueries({
+      queryKey: ["care-requests", "received"],
+      refetchType: "none",
+    });
+
+    if (!didRegionsChange && !didPageChange) {
+      await refetch();
+    }
   };
 
   const handleHideRequest = (careRequestId: string) => {
     if (isIgnoring) return;
 
     ignoreRequest(careRequestId, {
-      onSuccess: handleRequestRemoved,
+      onSuccess: () => void handleRequestRemoved(),
       onError: () => {
         showToast({ message: "요청을 숨기지 못했습니다. 잠시 후 다시 시도해 주세요." });
       },
@@ -199,7 +262,7 @@ export default function ReceivedRequestsPage() {
       },
       {
         onSuccess: () => {
-          handleRequestRemoved();
+          void handleRequestRemoved();
           setRejectTarget(null);
         },
         onError: () => {
@@ -230,7 +293,7 @@ export default function ReceivedRequestsPage() {
       },
       {
         onSuccess: () => {
-          handleRequestRemoved();
+          void handleRequestRemoved();
           setQuoteTarget(null);
         },
         onError: () => {
@@ -239,19 +302,6 @@ export default function ReceivedRequestsPage() {
       },
     );
   };
-
-  const appliedRegions = selectedRegions.includes("ALL") ? [] : (selectedRegions as Region[]);
-
-  const { data, isPending, isError, refetch } = useReceivedRequests({
-    page: currentPage,
-    pageSize: PAGE_SIZE,
-    serviceTypes:
-      selectedServiceType === "" || selectedServiceType === "ALL" ? [] : [selectedServiceType],
-    designatedOnly,
-    regions: appliedRegions,
-    keyword: appliedKeyword,
-    sort,
-  });
 
   const availableRegionSet = new Set(data?.availableRegions ?? []);
 
