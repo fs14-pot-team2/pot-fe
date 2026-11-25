@@ -34,11 +34,20 @@ export default function SitterMyPage() {
     isPending: isReviewsPending,
     isError: isReviewsError,
     refetch: refetchReviews,
+    isPlaceholderData: isReviewsPlaceholderData,
   } = useSitterReviews({
     sitterId: partner?.id,
     page: currentPage,
     pageSize: 8,
   });
+
+  if (reviews && !isReviewsPlaceholderData && !isReviewsError) {
+    const lastPage = Math.max(1, reviews.totalPages);
+
+    if (currentPage > lastPage) {
+      setCurrentPage(lastPage);
+    }
+  }
 
   return (
     <PageMain variant="fullWidth" className={styles.page}>
