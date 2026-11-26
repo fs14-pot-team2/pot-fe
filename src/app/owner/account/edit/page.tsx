@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useController, useForm } from "react-hook-form";
 import axios from "axios";
@@ -82,6 +82,12 @@ function OwnerAccountEditContent() {
 
   const { showToast } = useToast();
   const updateAccountMutation = useUpdateAccountMutation();
+
+  // 연속 클릭 및 중복 제출 방지
+  const savingRef = useRef(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isSaving = isSubmitting || updateAccountMutation.isPending;
 
   // URL의 returnTo를 직접 읽어 이전 페이지 경로 계산
   const returnPath = getReturnPath(searchParams.get("returnTo"));
@@ -182,12 +188,34 @@ function OwnerAccountEditContent() {
 
   // 취소 시 이전 페이지로 이동
   const handleCancel = () => {
+    if (isSaving || savingRef.current) return;
+
     clearAccountVerification();
     router.replace(returnPath);
   };
 
-  const onSubmit = (values: AccountEditFormValues) => {
-    if (!user || user.role !== "OWNER") return;
+  // 저장 성공 처리
+  const handleSaveSuccess = () => {
+    clearAccountVerification();
+
+    showToast({
+      message: "저장되었습니다.",
+    });
+
+    router.replace(returnPath);
+  };
+
+  // 기본정보 저장
+  const onSubmit = async (values: AccountEditFormValues) => {
+    // 사용자 역할 검증 및 중복 제출 방지
+    if (!user || user.role !== "OWNER" || isSaving || savingRef.current) {
+      return;
+    }
+
+    savingRef.current = true;
+    setIsSubmitting(true);
+
+    let shouldNavigate = false;
 
     const input: UpdateAccountInput = {};
 
@@ -199,58 +227,56 @@ function OwnerAccountEditContent() {
       input.password = values.password;
     }
 
-    // 변경사항이 없으면 이전 페이지로 이동
-    if (Object.keys(input).length === 0) {
-      clearAccountVerification();
-      router.replace(returnPath);
-      return;
+    try {
+      // 변경사항이 있는 경우에만 API 요청
+      if (Object.keys(input).length > 0) {
+        await updateAccountMutation.mutateAsync(input);
+      }
+
+      // 변경사항 유무와 관계없이 성공 토스트 표시
+      // 저장 완료 후 이전 페이지로 이동
+      handleSaveSuccess();
+      shouldNavigate = true;
+    } catch (error) {
+      const code = axios.isAxiosError<{ code?: string }>(error)
+        ? error.response?.data?.code
+        : undefined;
+
+      if (code === "NICKNAME_ALREADY_EXISTS") {
+        setError("nickname", {
+          type: "server",
+          message: "이미 존재하는 닉네임입니다.",
+        });
+        return;
+      }
+
+      if (code === "INVALID_NICKNAME_FORMAT") {
+        setError("nickname", {
+          type: "server",
+          message: NICKNAME_FORMAT_MESSAGE,
+        });
+        return;
+      }
+
+      if (code === "INVALID_PASSWORD_FORMAT") {
+        setError("password", {
+          type: "server",
+          message: PASSWORD_FORMAT_MESSAGE,
+        });
+        return;
+      }
+
+      showToast({
+        message: "기본정보를 변경하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      });
+    } finally {
+      // 저장 실패 시 잠금 해제 및 재시도 허용
+      // 저장 성공 시에는 페이지 이동 전까지 중복 제출 방지
+      if (!shouldNavigate) {
+        savingRef.current = false;
+        setIsSubmitting(false);
+      }
     }
-
-    updateAccountMutation.mutate(input, {
-      onSuccess: () => {
-        clearAccountVerification();
-
-        showToast({
-          message: "기본정보가 변경되었습니다.",
-        });
-
-        router.replace(returnPath);
-      },
-
-      onError: (error) => {
-        const code = axios.isAxiosError<{ code?: string }>(error)
-          ? error.response?.data?.code
-          : undefined;
-
-        if (code === "NICKNAME_ALREADY_EXISTS") {
-          setError("nickname", {
-            type: "server",
-            message: "이미 존재하는 닉네임입니다.",
-          });
-          return;
-        }
-
-        if (code === "INVALID_NICKNAME_FORMAT") {
-          setError("nickname", {
-            type: "server",
-            message: NICKNAME_FORMAT_MESSAGE,
-          });
-          return;
-        }
-
-        if (code === "INVALID_PASSWORD_FORMAT") {
-          setError("password", {
-            type: "server",
-            message: PASSWORD_FORMAT_MESSAGE,
-          });
-          return;
-        }
-
-        showToast({
-          message: "기본정보를 변경하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-        });
-      },
-    });
   };
 
   if (status === "checking" || !user || user.role !== "OWNER" || !hasEditAccess) {
@@ -260,7 +286,7 @@ function OwnerAccountEditContent() {
   return (
     <PageMain>
       <PageContainer>
-        <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+        <form className={styles.form} onSubmit={(event) => void handleSubmit(onSubmit)(event)}>
           <h1 className={styles.title}>기본정보 관리</h1>
 
           <section className={styles.field}>
@@ -297,12 +323,8 @@ function OwnerAccountEditContent() {
           <SocialAccountLinkSection user={user} />
 
           <div className={styles.actions}>
-            <Button
-              type="submit"
-              className={styles.button}
-              disabled={!isValid || updateAccountMutation.isPending}
-            >
-              저장하기
+            <Button type="submit" className={styles.button} disabled={!isValid || isSaving}>
+              {isSaving ? "저장 중..." : "저장하기"}
             </Button>
 
             <Button
@@ -310,7 +332,7 @@ function OwnerAccountEditContent() {
               variant="outlined"
               className={styles.button}
               onClick={handleCancel}
-              disabled={updateAccountMutation.isPending}
+              disabled={isSaving}
             >
               취소
             </Button>
