@@ -24,6 +24,7 @@
 
 .contentsWrap .title {
   font-size: 20px;
+  font-weight: var(--font-medium);
 }
 
 .contentsWrap .subText {
@@ -86,9 +87,11 @@
   outline: 1px solid var(--color-brand);
   outline-offset: 3px;
 }
+
 .imgDeleteButton {
   width: 160px;
 }
+
 .filterChipWrap {
   display: flex;
   flex-wrap: wrap;
@@ -126,7 +129,7 @@
   }
 
   .contentsWrap .title {
-    font-size: 16px;
+    font-size: 18px;
   }
 
   .profileImage {
@@ -136,6 +139,10 @@
 
   .filterChipWrap .profileChip {
     font-size: 14px;
-    height: 36px;
+    height: 42px;
+  }
+
+  .careFliterChip .profileChip {
+    width: calc(50% - 6px);
   }
 }
