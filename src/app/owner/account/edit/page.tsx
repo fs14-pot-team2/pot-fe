@@ -159,19 +159,7 @@ function OwnerAccountEditContent() {
     name: "confirmPassword",
     control,
     rules: {
-      validate: (value, values) => {
-        const password = values.password;
-
-        if (password.length === 0 && value.length === 0) {
-          return true;
-        }
-
-        if (!PASSWORD_REGEX.test(value)) {
-          return PASSWORD_FORMAT_MESSAGE;
-        }
-
-        return value === password || PASSWORD_CONFIRM_MESSAGE;
-      },
+      validate: (value, values) => value === values.password || PASSWORD_CONFIRM_MESSAGE,
     },
   });
 
@@ -291,7 +279,7 @@ function OwnerAccountEditContent() {
             value={confirmPasswordField.value}
             onChange={confirmPasswordField.onChange}
             placeholder="새 비밀번호를 다시 한번 입력해 주세요"
-            error={confirmPasswordError?.message}
+            error={confirmPasswordField.value !== "" ? confirmPasswordError?.message : undefined}
           />
 
           <SocialAccountLinkSection user={user} />
