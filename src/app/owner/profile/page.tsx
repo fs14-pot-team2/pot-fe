@@ -1,15 +1,17 @@
 "use client";
 
-import PageContainer from "@/components/layout/Page/PageContainer";
-
-import PageMain from "@/components/layout/Page/PageMain";
-
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { isAxiosError } from "axios";
+
+import PageContainer from "@/components/layout/Page/PageContainer";
+import PageMain from "@/components/layout/Page/PageMain";
 
 import ProfileImage from "@/components/ui/ProfileImage/ProfileImage";
 import FilterChip from "@/components/ui/FilterChip/FilterChip";
 import Button from "@/components/ui/Button/Button";
+import Loading from "@/components/ui/Loading/Loading";
+import ErrorState from "@/components/ui/ErrorState/ErrorState";
 import { useToast } from "@/components/ui/Toast/ToastProvider";
 
 import { REGION_OPTIONS, SERVICE_TYPE_OPTIONS } from "@/features/profiles/sitter/constants";
@@ -31,6 +33,8 @@ import styles from "./ProfilePage.module.css";
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
+const FALLBACK_PATH = "/";
 
 function isSameServices(a: PartnerServiceType[], b: PartnerServiceType[]) {
   return a.length === b.length && a.every((service) => b.includes(service));
@@ -72,12 +76,13 @@ function getErrorMessage(error: unknown) {
 }
 
 function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { showToast } = useToast();
 
   const updateProfile = useUpdateOwnerProfile();
 
-  // 중복 저장 요청을 즉시 차단하기 위한 잠금
+  // 연속 클릭 및 중복 저장 요청 차단
   const savingRef = useRef(false);
 
   // 이미지 업로드부터 PATCH 완료까지의 저장 상태
@@ -102,8 +107,8 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isImageRemoved, setIsImageRemoved] = useState(false);
 
-  // 같은 사용자의 프로필이 재조회되면 서버 기준값을 갱신합니다.
-  // 사용자가 편집 중인 필드는 덮어쓰지 않습니다.
+  // 서버 프로필 재조회 시 기준값 갱신
+  // 사용자가 편집 중인 필드는 유지
   if (profile !== previousProfile) {
     setPreviousProfile(profile);
     setSavedProfile(profile);
@@ -128,7 +133,7 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
     };
   }, [previewUrl]);
 
-  // S3 업로드 및 PATCH 요청 전체 기간에 적용
+  // 이미지 업로드 및 PATCH 요청 전체 기간에 적용
   const isSaving = isSubmitting || updateProfile.isPending;
 
   const imageSrc = isImageRemoved ? null : (previewUrl ?? savedProfile.profileImageUrl);
@@ -145,11 +150,25 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
 
   const hasChanges = imageChanged || servicesChanged || regionChanged;
 
+  // 이전 페이지 이동
+  // 이전 방문 기록이 없으면 기본 경로로 이동
+  const navigateBack = () => {
+    if (window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.replace(FALLBACK_PATH);
+  };
+
+  // 이미지 선택창 열기
   const handleImageClick = () => {
     if (isSaving) return;
+
     fileInputRef.current?.click();
   };
 
+  // 이미지 선택 및 유효성 검사
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (isSaving) return;
 
@@ -157,6 +176,7 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
 
     if (!file) return;
 
+    // 같은 파일 재선택 가능
     event.target.value = "";
 
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
@@ -178,6 +198,7 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
     setIsImageRemoved(false);
   };
 
+  // 프로필 이미지 제거
   const handleImageRemove = () => {
     if (isSaving) return;
 
@@ -186,6 +207,7 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
     setIsImageRemoved(true);
   };
 
+  // 이용 서비스 선택 및 해제
   const handleServiceToggle = (service: PartnerServiceType) => {
     if (isSaving) return;
 
@@ -194,63 +216,77 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
     );
   };
 
+  // 지역 선택 및 해제
   const handleRegionToggle = (region: PartnerRegion) => {
     if (isSaving) return;
 
     setSelectedRegion((prev) => (prev === region ? null : region));
   };
 
+  // 취소 시 수정사항을 저장하지 않고 이전 페이지 이동
+  const handleCancel = () => {
+    if (isSaving || savingRef.current) return;
+
+    navigateBack();
+  };
+
+  // 프로필 저장
   const handleSave = async () => {
-    // ref로 연속 클릭도 즉시 차단
-    if (!hasChanges || isSaving || savingRef.current) return;
+    // 연속 클릭 및 중복 제출 방지
+    if (isSaving || savingRef.current) return;
 
     savingRef.current = true;
     setIsSubmitting(true);
 
-    const input: UpdateOwnerProfileInput = {};
-
-    if (servicesChanged) {
-      input.preferredServiceTypes = selectedServices;
-    }
-
-    if (regionChanged) {
-      input.livingRegion = selectedRegion;
-    }
-
     try {
-      if (imageFile) {
-        // 1. Presigned URL 발급
-        // 2. S3 이미지 업로드
-        // 이 단계부터 이미 저장 버튼은 비활성화 상태
-        input.profileImageUrl = await uploadProfileImage(imageFile);
-      } else if (isImageRemoved) {
-        input.profileImageUrl = null;
+      // 변경사항이 있는 경우에만 API 요청
+      if (hasChanges) {
+        const input: UpdateOwnerProfileInput = {};
+
+        if (servicesChanged) {
+          input.preferredServiceTypes = selectedServices;
+        }
+
+        if (regionChanged) {
+          input.livingRegion = selectedRegion;
+        }
+
+        if (imageFile) {
+          // Presigned URL 발급 및 S3 이미지 업로드
+          input.profileImageUrl = await uploadProfileImage(imageFile);
+        } else if (imageChanged && isImageRemoved) {
+          input.profileImageUrl = null;
+        }
+
+        // 변경된 필드만 PATCH 요청
+        const updatedProfile = await updateProfile.mutateAsync(input);
+
+        // 저장 성공 후 서버 기준값 및 폼 동기화
+        setSavedProfile(updatedProfile);
+        setPreviousProfile(updatedProfile);
+
+        setSelectedServices(updatedProfile.preferredServiceTypes ?? []);
+        setSelectedRegion(updatedProfile.livingRegion ?? null);
+
+        setImageFile(null);
+        setPreviewUrl(null);
+        setIsImageRemoved(false);
       }
 
-      // 3. 변경된 필드만 PATCH 요청
-      const updatedProfile = await updateProfile.mutateAsync(input);
-
-      // 4. 저장 성공 후 서버 기준값 및 폼 동기화
-      setSavedProfile(updatedProfile);
-      setPreviousProfile(updatedProfile);
-
-      setSelectedServices(updatedProfile.preferredServiceTypes ?? []);
-      setSelectedRegion(updatedProfile.livingRegion ?? null);
-
-      setImageFile(null);
-      setPreviewUrl(null);
-      setIsImageRemoved(false);
-
+      // 변경사항 유무와 관계없이 성공 토스트 표시
       showToast({
-        message: "프로필이 저장되었습니다.",
+        message: "저장되었습니다.",
       });
+
+      // 저장 완료 후 이전 페이지 또는 기본 경로 이동
+      navigateBack();
     } catch (error) {
-      // 이미지 업로드 또는 PATCH 실패 시 입력값 유지
+      // 저장 실패 시 현재 페이지 및 입력값 유지
       showToast({
         message: getErrorMessage(error),
       });
     } finally {
-      // 성공/실패와 관계없이 저장 잠금 해제
+      // 페이지 이동 여부와 관계없이 저장 잠금 해제
       savingRef.current = false;
       setIsSubmitting(false);
     }
@@ -314,7 +350,7 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
               <div className={styles.title}>이용 서비스</div>
 
               <div className={styles.subText}>
-                *이용 서비스는 중복 선택 가능하며, 언제든 수정 가능해요!
+                *이용 서비스는 복수 선택 가능하며, 언제든 수정 가능해요!
               </div>
 
               <div className={styles.content}>
@@ -356,17 +392,28 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
             </div>
           </div>
 
-          {/* 저장 버튼 */}
+          {/* 저장 및 취소 버튼 */}
           <div className={styles.saveButtonWrap}>
             <Button
               type="button"
               variant="solid"
               size="md"
-              disabled={!hasChanges || isSaving}
+              disabled={isSaving}
               onClick={() => void handleSave()}
               className={styles.saveButton}
             >
               {isSaving ? "저장 중..." : "저장하기"}
+            </Button>
+
+            <Button
+              type="button"
+              variant="outlined"
+              size="md"
+              disabled={isSaving}
+              onClick={handleCancel}
+              className={styles.cancelButton}
+            >
+              취소
             </Button>
           </div>
         </div>
@@ -376,38 +423,33 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
 }
 
 export default function OwnerProfilePage() {
-  const { data, isPending, isError, error, refetch } = useOwnerProfile();
+  const { data, isPending, isError, isFetching, error, refetch } = useOwnerProfile();
 
-  if (isPending) {
+  // 타입 좁히기 전에 다시 시도 핸들러 정의
+  const handleRetry = () => {
+    void refetch();
+  };
+
+  // 최초 프로필 조회 및 데이터가 없는 상태에서 다시 시도 중
+  if (isPending || (!data && isFetching)) {
     return (
-      <PageMain>
-        <PageContainer role="status">
-          <p>프로필 정보를 불러오는 중입니다.</p>
-        </PageContainer>
+      <PageMain variant="fullWidth">
+        <Loading variant="full" message="프로필 정보를 불러오는 중..." />
       </PageMain>
     );
   }
 
-  if (isError) {
-    return (
-      <PageMain>
-        <PageContainer role="alert">
-          <p>{getErrorMessage(error)}</p>
-
-          <Button type="button" variant="outlined" size="sm" onClick={() => void refetch()}>
-            다시 시도
-          </Button>
-        </PageContainer>
-      </PageMain>
-    );
-  }
-
+  // 프로필 조회 실패 또는 데이터가 없는 경우
   if (!data) {
     return (
-      <PageMain>
-        <PageContainer>
-          <p>프로필 정보를 찾을 수 없습니다.</p>
-        </PageContainer>
+      <PageMain variant="fullWidth">
+        <ErrorState
+          variant="page"
+          title={isError ? "프로필 정보를 불러오지 못했어요" : "프로필 정보를 찾을 수 없어요"}
+          description={isError ? getErrorMessage(error) : "잠시 후 다시 시도해 주세요."}
+          actionLabel="다시 시도"
+          onAction={handleRetry}
+        />
       </PageMain>
     );
   }

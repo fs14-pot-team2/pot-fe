@@ -24,6 +24,7 @@
 
 .contentsWrap .title {
   font-size: 20px;
+  font-weight: var(--font-medium);
 }
 
 .contentsWrap .subText {
@@ -78,27 +79,25 @@
   outline-offset: 3px;
 }
 
-.imageUploadButton:hover {
-  border-color: var(--color-brand);
-}
-
-.imageUploadButton:focus-visible {
-  outline: 1px solid var(--color-brand);
-  outline-offset: 3px;
-}
 .imgDeleteButton {
   width: 160px;
 }
+
 .filterChipWrap {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
 }
 
-.profileChip {
+/* 이용 서비스 선택 버튼 */
+.careFliterChip .profileChip {
+  flex: 0 0 auto;
   width: auto;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
+/* 지역 선택 버튼 */
 .regionFilterChip .profileChip {
   flex: 0 0 calc((100% - 48px) / 5);
   width: auto;
@@ -126,7 +125,7 @@
   }
 
   .contentsWrap .title {
-    font-size: 16px;
+    font-size: 18px;
   }
 
   .profileImage {
@@ -136,6 +135,11 @@
 
   .filterChipWrap .profileChip {
     font-size: 14px;
-    height: 36px;
+    height: 42px;
+  }
+
+  .careFliterChip .profileChip {
+    flex: 0 0 calc((100% - 12px) / 2);
+    width: calc((100% - 12px) / 2);
   }
 }
