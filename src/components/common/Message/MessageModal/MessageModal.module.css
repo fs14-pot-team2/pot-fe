@@ -5,7 +5,7 @@
 .panelLayer {
   position: fixed;
   inset: 0;
-  z-index: 1200;
+  z-index: 3;
   pointer-events: none;
 }
 
