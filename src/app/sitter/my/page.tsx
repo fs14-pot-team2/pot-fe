@@ -7,6 +7,8 @@ import PageMain from "@/components/layout/Page/PageMain";
 import styles from "./SitterMyPage.module.css";
 import Image from "next/image";
 import Link from "next/link";
+import Loading from "@/components/ui/Loading/Loading";
+import ErrorState from "@/components/ui/ErrorState/ErrorState";
 import { useRouter } from "next/navigation";
 import EmptyState from "@/components/ui/EmptyState/EmptyState";
 import { useState } from "react";
@@ -61,20 +63,22 @@ export default function SitterMyPage() {
 
       <PageContainer>
         <div className={styles.content}>
-          {isPending && <p className={styles.pageState}>마이페이지 정보를 불러오고 있어요.</p>}
-
-          {isError && (
-            <EmptyState
-              className={styles.pageState}
-              messages={["마이페이지 정보를 불러오지 못했어요."]}
-              action={{
-                label: "다시 시도",
-                onClick: () => void refetch(),
-              }}
-            />
+          {isPending && (
+            <div className={styles.pageState}>
+              <Loading />
+            </div>
           )}
 
-          {partner && (
+          {isError && (
+            <div className={styles.pageState}>
+              <ErrorState
+                title="마이페이지 정보를 불러오지 못했어요."
+                onAction={() => void refetch()}
+              />
+            </div>
+          )}
+
+          {!isPending && !isError && partner && (
             <>
               <section className={styles.profileSection}>
                 <PartnerProfile partner={partner} />
@@ -113,20 +117,22 @@ export default function SitterMyPage() {
 
                 <PartnerServiceInfo partner={partner} />
 
-                {isReviewsPending && <p className={styles.reviewState}>리뷰를 불러오고 있어요.</p>}
-
-                {isReviewsError && (
-                  <EmptyState
-                    className={styles.reviewState}
-                    messages={["리뷰를 불러오지 못했어요."]}
-                    action={{
-                      label: "다시 시도",
-                      onClick: () => void refetchReviews(),
-                    }}
-                  />
+                {isReviewsPending && (
+                  <div className={styles.reviewState}>
+                    <Loading />
+                  </div>
                 )}
 
-                {reviews && (
+                {isReviewsError && (
+                  <div className={styles.reviewState}>
+                    <ErrorState
+                      title="리뷰를 불러오지 못했어요."
+                      onAction={() => void refetchReviews()}
+                    />
+                  </div>
+                )}
+
+                {!isReviewsPending && !isReviewsError && reviews && (
                   <PartnerReviews
                     reviews={reviews}
                     pagination={
