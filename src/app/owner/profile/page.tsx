@@ -34,6 +34,8 @@ import styles from "./ProfilePage.module.css";
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
+const FALLBACK_PATH = "/";
+
 function isSameServices(a: PartnerServiceType[], b: PartnerServiceType[]) {
   return a.length === b.length && a.every((service) => b.includes(service));
 }
@@ -148,6 +150,17 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
 
   const hasChanges = imageChanged || servicesChanged || regionChanged;
 
+  // 이전 페이지 이동
+  // 이전 방문 기록이 없으면 기본 경로로 이동
+  const navigateBack = () => {
+    if (window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.replace(FALLBACK_PATH);
+  };
+
   // 이미지 선택창 열기
   const handleImageClick = () => {
     if (isSaving) return;
@@ -214,7 +227,7 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
   const handleCancel = () => {
     if (isSaving || savingRef.current) return;
 
-    router.back();
+    navigateBack();
   };
 
   // 프로필 저장
@@ -224,8 +237,6 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
 
     savingRef.current = true;
     setIsSubmitting(true);
-
-    let shouldNavigate = false;
 
     try {
       // 변경사항이 있는 경우에만 API 요청
@@ -267,21 +278,17 @@ function OwnerProfileForm({ profile }: { profile: OwnerProfile }) {
         message: "저장되었습니다.",
       });
 
-      // 저장 완료 후 이전 페이지 이동
-      router.back();
-      shouldNavigate = true;
+      // 저장 완료 후 이전 페이지 또는 기본 경로 이동
+      navigateBack();
     } catch (error) {
       // 저장 실패 시 현재 페이지 및 입력값 유지
       showToast({
         message: getErrorMessage(error),
       });
     } finally {
-      // 저장 실패 시 잠금 해제 및 재시도 허용
-      // 성공 시 페이지 이동 전까지 중복 제출 방지
-      if (!shouldNavigate) {
-        savingRef.current = false;
-        setIsSubmitting(false);
-      }
+      // 페이지 이동 여부와 관계없이 저장 잠금 해제
+      savingRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
