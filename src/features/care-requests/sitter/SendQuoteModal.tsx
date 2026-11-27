@@ -64,25 +64,26 @@ export default function SendQuoteModal({
   const commentLength = comment.replace(/\s/g, "").length;
 
   const isPriceValid =
-    Number.isInteger(numericPrice) && numericPrice >= 1000 && numericPrice < 100_000_000;
+    /^\d+$/.test(price) &&
+    Number.isInteger(numericPrice) &&
+    numericPrice >= 1000 &&
+    numericPrice < 100_000_000;
 
   const isCommentValid = commentLength >= 10 && commentLength <= 1_000;
   const isFormValid = isPriceValid && isCommentValid;
 
   const address = [request.sido, request.sigungu, request.bname].filter(Boolean).join(" ");
 
-  const displayPrice = price ? Number(price).toLocaleString("ko-KR") : "";
+  const displayPrice = /^\d+$/.test(price) ? price.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : price;
 
   const handlePriceChange = (value: string) => {
-    const numbersOnly = value.replace(/\D/g, "");
+    const normalizedPrice = value.replace(/,/g, "");
 
-    setPrice(numbersOnly);
+    setPrice(/^\d+$/.test(normalizedPrice) ? normalizedPrice : value);
   };
 
   const handleCommentChange = (value: string) => {
-    if (value.replace(/\s/g, "").length <= 1_000) {
-      setComment(value);
-    }
+    setComment(value);
   };
 
   const handleSubmit = () => {
@@ -149,7 +150,6 @@ export default function SendQuoteModal({
           label="견적가를 입력해 주세요"
           value={displayPrice}
           placeholder="견적가 입력"
-          maxLength={10}
           error={
             price !== "" && !isPriceValid
               ? "1,000원 이상 1억 원 미만으로 입력해 주세요."
@@ -169,6 +169,8 @@ export default function SendQuoteModal({
               ? "코멘트는 10자 이상 1,000자 이하로 입력해 주세요."
               : undefined
           }
+          characterCount={commentLength}
+          characterLimit={1_000}
           disabled={isSubmitting}
           onChange={handleCommentChange}
         />

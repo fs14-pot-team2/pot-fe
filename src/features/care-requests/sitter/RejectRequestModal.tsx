@@ -33,15 +33,13 @@ export default function RejectRequestModal({
   const isReasonValid = reasonLength >= 10 && reasonLength <= 100;
 
   const handleReasonChange = (value: string) => {
-    if (value.replace(/\s/g, "").length <= 100) {
-      setReason(value);
-    }
+    setReason(value);
   };
 
   const handleSubmit = () => {
     const trimmedReason = reason.trim();
 
-    if (!isReasonValid) return;
+    if (!isReasonValid || isSubmitting) return;
 
     onSubmit(trimmedReason);
   };
@@ -92,7 +90,14 @@ export default function RejectRequestModal({
         className={styles.reasonField}
         label="반려 사유를 입력해 주세요"
         value={reason}
-        placeholder="최소 10자 이상 입력해주세요"
+        placeholder="최소 10자 이상 입력해 주세요"
+        characterCount={reasonLength}
+        characterLimit={100}
+        error={
+          reason !== "" && !isReasonValid
+            ? "반려 사유는 10자 이상 100자 이하로 입력해 주세요."
+            : undefined
+        }
         disabled={isSubmitting}
         onChange={handleReasonChange}
       />
