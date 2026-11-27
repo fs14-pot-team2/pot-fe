@@ -15,7 +15,8 @@ import { connectSse } from "./sseClient";
 import { publishSse } from "./sseSubscriptions";
 
 export default function SseListener() {
-  const { status, user, clearSession } = useAuth();
+  const { status, user, clearSession, getSessionVersion, refreshSession, sessionRevision } =
+    useAuth();
   const queryClient = useQueryClient();
 
   const userId = user?.id;
@@ -26,7 +27,7 @@ export default function SseListener() {
       return;
     }
 
-    if (status !== "authenticated" || !userId) {
+    if (status !== "authenticated" || !userId || getSessionVersion() !== sessionRevision) {
       return;
     }
 
@@ -76,6 +77,8 @@ export default function SseListener() {
         publishSse(event);
       },
       {
+        getSessionVersion,
+        refreshSession,
         // 연결 중단 동안 놓친 알림 및 쪽지 재조회
         onReconnect: invalidateAfterReconnect,
 
@@ -106,7 +109,16 @@ export default function SseListener() {
 
       disconnect();
     };
-  }, [status, userId, role, queryClient, clearSession]);
+  }, [
+    status,
+    userId,
+    role,
+    queryClient,
+    clearSession,
+    getSessionVersion,
+    refreshSession,
+    sessionRevision,
+  ]);
 
   return null;
 }

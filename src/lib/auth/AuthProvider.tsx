@@ -1,6 +1,6 @@
 "use client";
 
-import { getCurrentUser, refreshAccessToken } from "@/features/auth/api/authApi";
+import { refreshAccessToken, resetRefreshPromise } from "@/features/auth/api/authApi";
 import type { AuthResponse, AuthUser } from "@/features/auth/types/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
@@ -15,6 +15,11 @@ import {
 } from "react";
 import { setAccessToken } from "./accessToken";
 import { installAuthInterceptors } from "./authInterceptors";
+import {
+  AUTH_SESSION_CHANGE_KEY,
+  getAuthSessionChange,
+  publishAuthSessionChange,
+} from "./authSessionSync";
 
 type AuthStatus = "checking" | "authenticated" | "guest" | "error";
 
@@ -22,9 +27,13 @@ type AuthContextValue = {
   user: AuthUser | null;
   status: AuthStatus;
   isAccountVerified: boolean;
+  sessionRevision: number;
   setSession: (session: AuthResponse) => void;
   clearSession: () => void;
+  logoutSession: () => void;
   retrySession: () => void;
+  getSessionVersion: () => number;
+  refreshSession: (version: number) => Promise<string | null>;
   completeAccountVerification: () => void;
   clearAccountVerification: () => void;
 };
@@ -38,12 +47,18 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>("checking");
   const [retryCount, setRetryCount] = useState(0);
   const [isAccountVerified, setIsAccountVerified] = useState(false);
+  const [sessionRevision, setSessionRevision] = useState(0);
 
   const sessionVersion = useRef(0);
+  const currentUserRef = useRef<AuthUser | null>(null);
+  const lastSessionChange = useRef<string | null>(null);
 
-  const setSession = useCallback(
+  const applySession = useCallback(
     (session: AuthResponse) => {
       sessionVersion.current += 1;
+      setSessionRevision(sessionVersion.current);
+      resetRefreshPromise();
+      currentUserRef.current = session.user;
       setAccessToken(session.accessToken);
       queryClient.clear();
       setUser(session.user);
@@ -53,19 +68,118 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     [queryClient],
   );
 
+  const setSession = useCallback(
+    (session: AuthResponse) => {
+      applySession(session);
+      lastSessionChange.current = publishAuthSessionChange();
+    },
+    [applySession],
+  );
+
+  const resetSession = useCallback(
+    (nextStatus: "guest" | "checking") => {
+      sessionVersion.current += 1;
+      setSessionRevision(sessionVersion.current);
+      resetRefreshPromise();
+      currentUserRef.current = null;
+      setAccessToken(null);
+      queryClient.clear();
+      setUser(null);
+      setStatus(nextStatus);
+      setIsAccountVerified(false);
+    },
+    [queryClient],
+  );
+
   const clearSession = useCallback(() => {
-    sessionVersion.current += 1;
-    setAccessToken(null);
-    queryClient.clear();
-    setUser(null);
-    setStatus("guest");
-    setIsAccountVerified(false);
-  }, [queryClient]);
+    resetSession("guest");
+  }, [resetSession]);
+
+  const logoutSession = useCallback(() => {
+    clearSession();
+    lastSessionChange.current = publishAuthSessionChange();
+  }, [clearSession]);
+
+  const getSessionVersion = useCallback(() => {
+    return sessionVersion.current;
+  }, []);
+
+  const refreshSession = useCallback(
+    async (version: number): Promise<string | null> => {
+      const previousUser = currentUserRef.current;
+
+      if (!previousUser || sessionVersion.current !== version) return null;
+
+      const session = await refreshAccessToken();
+
+      if (sessionVersion.current !== version) return null;
+
+      if (previousUser.id !== session.user.id || previousUser.role !== session.user.role) {
+        applySession(session);
+        return null;
+      }
+
+      setAccessToken(session.accessToken);
+
+      return session.accessToken;
+    },
+    [applySession],
+  );
 
   const retrySession = useCallback(() => {
     setStatus("checking");
     setRetryCount((current) => current + 1);
   }, []);
+
+  const syncSession = useCallback(() => {
+    resetSession("checking");
+    setRetryCount((current) => current + 1);
+  }, [resetSession]);
+
+  useEffect(() => {
+    lastSessionChange.current = getAuthSessionChange();
+
+    const checkSessionChange = () => {
+      const latestChange = getAuthSessionChange();
+
+      if (!latestChange || latestChange === lastSessionChange.current) {
+        return;
+      }
+
+      lastSessionChange.current = latestChange;
+      syncSession();
+    };
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === AUTH_SESSION_CHANGE_KEY) {
+        checkSessionChange();
+      }
+    };
+
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        checkSessionChange();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        checkSessionChange();
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("pageshow", handlePageShow);
+    window.addEventListener("focus", checkSessionChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("pageshow", handlePageShow);
+      window.removeEventListener("focus", checkSessionChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [syncSession]);
 
   const completeAccountVerification = useCallback(() => {
     setIsAccountVerified(true);
@@ -78,9 +192,10 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     return installAuthInterceptors({
       clearSession,
-      getSessionVersion: () => sessionVersion.current,
+      getSessionVersion,
+      refreshSession,
     });
-  }, [clearSession]);
+  }, [clearSession, getSessionVersion, refreshSession]);
 
   useEffect(() => {
     let cancelled = false;
@@ -88,17 +203,11 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
     const restoreSession = async () => {
       try {
-        const { accessToken } = await refreshAccessToken();
+        const session = await refreshAccessToken();
 
         if (cancelled || sessionVersion.current !== version) return;
 
-        setAccessToken(accessToken);
-
-        const currentUser = await getCurrentUser();
-
-        if (cancelled || sessionVersion.current !== version) return;
-
-        setSession({ accessToken, user: currentUser });
+        applySession(session);
       } catch (error) {
         if (cancelled || sessionVersion.current !== version) return;
 
@@ -120,7 +229,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [clearSession, setSession, retryCount]);
+  }, [clearSession, applySession, retryCount]);
 
   return (
     <AuthContext.Provider
@@ -128,9 +237,13 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         user,
         status,
         isAccountVerified,
+        sessionRevision,
         setSession,
         clearSession,
+        logoutSession,
         retrySession,
+        getSessionVersion,
+        refreshSession,
         completeAccountVerification,
         clearAccountVerification,
       }}

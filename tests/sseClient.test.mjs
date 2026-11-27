@@ -17,6 +17,7 @@ const compiled = ts.transpileModule(source, {
 
 function createClient(fetchMock, refreshMock) {
   let token = "expired-token";
+  let sessionVersion = 0;
   const exports = {};
 
   // 실제 인증 API 대신 테스트용 함수를 연결
@@ -27,14 +28,8 @@ function createClient(fetchMock, refreshMock) {
         isAxiosError: (error) => error?.isAxiosError === true,
       },
     },
-    "@/features/auth/api/authApi": {
-      refreshAccessToken: refreshMock,
-    },
     "@/lib/auth/accessToken": {
       getAccessToken: () => token,
-      setAccessToken: (value) => {
-        token = value;
-      },
     },
   };
 
@@ -55,10 +50,31 @@ function createClient(fetchMock, refreshMock) {
     console,
   });
 
+  const refreshSession = async (version) => {
+    if (!token || version !== sessionVersion) return null;
+
+    const result = await refreshMock();
+
+    if (version !== sessionVersion) return null;
+
+    token = result.accessToken;
+
+    return token;
+  };
+
   return {
-    connectSse: exports.connectSse,
+    connectSse: (onEvent, options) =>
+      exports.connectSse(onEvent, {
+        ...options,
+        getSessionVersion: () => sessionVersion,
+        refreshSession,
+      }),
     getToken: () => token,
     setToken: (value) => {
+      token = value;
+    },
+    changeSession: (value) => {
+      sessionVersion += 1;
       token = value;
     },
   };
@@ -398,7 +414,7 @@ test("토큰 재발급 중 로그아웃하면 이전 갱신 결과를 무시한�
     await refreshStarted;
 
     // 재발급 완료 전에 로그아웃
-    client.setToken(null);
+    client.changeSession(null);
     disconnect();
 
     // 로그아웃 이후 이전 Refresh 요청이 성공
@@ -441,18 +457,34 @@ test("재발급 중 계정이 변경되면 새로운 계정의 토큰을 유지�
     },
   );
 
-  const watcher = observe(client);
+  const oldEvents = [];
+  const oldErrors = [];
+
+  const disconnectOld = client.connectSse((event) => oldEvents.push(event), {
+    onAuthError: (error) => oldErrors.push(error),
+  });
+
+  let newWatcher;
 
   try {
     await refreshStarted;
 
     // 토큰 재발급 완료 전에 다른 계정으로 변경
-    client.setToken("new-user-token");
+    client.changeSession("new-user-token");
 
     // 이전 계정의 Refresh 요청이 뒤늦게 성공
     finishRefresh({ accessToken: "old-user-refreshed-token" });
 
-    const result = await watcher.result;
+    await new Promise((resolve) => setImmediate(resolve));
+
+    assert.equal(oldEvents.length, 0);
+    assert.equal(oldErrors.length, 0);
+    assert.deepEqual(requestedTokens, ["Bearer expired-token"]);
+
+    disconnectOld();
+
+    newWatcher = observe(client);
+    const result = await newWatcher.result;
 
     assert.equal(result.kind, "event");
     assert.equal(result.event.data.notificationId, "new-user");
@@ -460,7 +492,8 @@ test("재발급 중 계정이 변경되면 새로운 계정의 토큰을 유지�
 
     assert.deepEqual(requestedTokens, ["Bearer expired-token", "Bearer new-user-token"]);
   } finally {
-    watcher.disconnect();
+    disconnectOld();
+    newWatcher?.disconnect();
   }
 });
 
@@ -488,16 +521,32 @@ test("계정 변경 후 이전 SSE 연결의 200 응답은 무시한다", async 
     },
   );
 
-  const watcher = observe(client);
+  const oldEvents = [];
+  const oldErrors = [];
+
+  const disconnectOld = client.connectSse((event) => oldEvents.push(event), {
+    onAuthError: (error) => oldErrors.push(error),
+  });
+
+  let newWatcher;
 
   try {
     // 이전 SSE 요청이 대기 중인 상태에서 계정 전환
-    client.setToken("new-user-token");
+    client.changeSession("new-user-token");
 
     // 예전 계정으로 요청한 SSE가 뒤늦게 성공
     finishOldRequest(successResponse("old-user"));
 
-    const result = await watcher.result;
+    await new Promise((resolve) => setImmediate(resolve));
+
+    assert.equal(oldEvents.length, 0);
+    assert.equal(oldErrors.length, 0);
+    assert.deepEqual(requestedTokens, ["Bearer expired-token"]);
+
+    disconnectOld();
+
+    newWatcher = observe(client);
+    const result = await newWatcher.result;
 
     assert.equal(result.kind, "event");
     assert.equal(result.event.data.notificationId, "new-user");
@@ -505,7 +554,8 @@ test("계정 변경 후 이전 SSE 연결의 200 응답은 무시한다", async 
 
     assert.deepEqual(requestedTokens, ["Bearer expired-token", "Bearer new-user-token"]);
   } finally {
-    watcher.disconnect();
+    disconnectOld();
+    newWatcher?.disconnect();
   }
 });
 
@@ -546,14 +596,21 @@ test("이미 연결된 SSE에서 계정 변경 후 이전 이벤트를 무시한
     },
   );
 
-  const watcher = observe(client, 5000);
+  const oldEvents = [];
+  const oldErrors = [];
+
+  const disconnectOld = client.connectSse((event) => oldEvents.push(event), {
+    onAuthError: (error) => oldErrors.push(error),
+  });
+
+  let newWatcher;
 
   try {
     await opened;
     await new Promise((resolve) => setImmediate(resolve));
 
     // 기존 SSE 연결이 열린 상태에서 다른 계정으로 변경
-    client.setToken("new-user-token");
+    client.changeSession("new-user-token");
 
     // 이전 계정의 이벤트가 뒤늦게 도착
     streamController.enqueue(
@@ -563,15 +620,67 @@ test("이미 연결된 SSE에서 계정 변경 후 이전 이벤트를 무시한
     );
     streamController.close();
 
-    const result = await watcher.result;
+    await new Promise((resolve) => setImmediate(resolve));
 
-    // 이전 계정의 이벤트가 아닌 새 계정의 이벤트만 전달되어야 함
+    assert.equal(oldEvents.length, 0);
+    assert.equal(oldErrors.length, 0);
+    assert.deepEqual(requestedTokens, ["Bearer expired-token"]);
+
+    disconnectOld();
+
+    newWatcher = observe(client);
+    const result = await newWatcher.result;
+
+    // 새로운 계정의 이벤트만 정상적으로 전달되어야 함
     assert.equal(result.kind, "event");
     assert.equal(result.event.data.notificationId, "new-user");
     assert.equal(client.getToken(), "new-user-token");
 
     assert.deepEqual(requestedTokens, ["Bearer expired-token", "Bearer new-user-token"]);
   } finally {
-    watcher.disconnect();
+    disconnectOld();
+    newWatcher?.disconnect();
+  }
+});
+
+test("같은 토큰이어도 인증 세션이 변경되면 이전 SSE 응답을 무시한다", async () => {
+  let finishOldRequest;
+
+  const oldResponse = new Promise((resolve) => {
+    finishOldRequest = resolve;
+  });
+
+  let requestCount = 0;
+  const oldEvents = [];
+  const oldErrors = [];
+
+  const client = createClient(
+    async () => {
+      requestCount += 1;
+      return oldResponse;
+    },
+    async () => {
+      throw new Error("Refresh API를 호출하면 안 됩니다.");
+    },
+  );
+
+  const disconnect = client.connectSse((event) => oldEvents.push(event), {
+    onAuthError: (error) => oldErrors.push(error),
+  });
+
+  try {
+    // 토큰은 유지하고 인증 세션 번호만 변경
+    client.changeSession("expired-token");
+
+    // 이전 SSE 연결 응답 도착
+    finishOldRequest(successResponse("old-session"));
+
+    await new Promise((resolve) => setImmediate(resolve));
+
+    assert.equal(oldEvents.length, 0);
+    assert.equal(oldErrors.length, 0);
+    assert.equal(requestCount, 1);
+  } finally {
+    disconnect();
   }
 });

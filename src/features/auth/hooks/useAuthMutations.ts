@@ -17,10 +17,10 @@ export function useSignupMutation() {
 }
 
 export function useLogoutMutation() {
-  const { clearSession } = useAuth();
+  const { logoutSession } = useAuth();
 
   return useMutation({
     mutationFn: logout,
-    onSuccess: clearSession,
+    onSuccess: logoutSession,
   });
 }
