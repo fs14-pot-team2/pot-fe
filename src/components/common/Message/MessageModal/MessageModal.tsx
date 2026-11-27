@@ -62,6 +62,8 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
 
   const isConversationList = selectedConversation === null;
 
+  const isPanelVisible = isOpen && status === "authenticated" && Boolean(user);
+
   // 대화방 목록 API
   const conversationsQuery = useConversations(isOpen && isConversationList);
 
@@ -80,16 +82,61 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
 
   const isInitialMessagesError = messagesQuery.isError && !messagesQuery.data;
 
+  // 모바일에서 쪽지 패널 활성화 시 배경 스크롤 제한
+  useEffect(() => {
+    if (!isPanelVisible) return;
+
+    const mediaQuery = window.matchMedia("(max-width: 540px)");
+    const body = document.body;
+
+    let previousOverflow: string | null = null;
+
+    // 기존 스크롤 설정 복원
+    const unlockScroll = () => {
+      if (previousOverflow === null) return;
+
+      body.style.overflow = previousOverflow;
+      previousOverflow = null;
+    };
+
+    // 모바일 여부에 따라 스크롤 잠금 상태 동기화
+    const syncScrollLock = () => {
+      if (mediaQuery.matches) {
+        // 이미 잠금 상태라면 중복 적용하지 않음
+        if (previousOverflow !== null) return;
+
+        previousOverflow = body.style.overflow;
+        body.style.overflow = "hidden";
+      } else {
+        unlockScroll();
+      }
+    };
+
+    // 최초 패널 활성화 시 적용
+    syncScrollLock();
+
+    // 화면 크기 변경 시 모바일 여부 재확인
+    mediaQuery.addEventListener("change", syncScrollLock);
+
+    // 패널 종료 및 컴포넌트 언마운트 시 복원
+    return () => {
+      mediaQuery.removeEventListener("change", syncScrollLock);
+      unlockScroll();
+    };
+  }, [isPanelVisible]);
+
   // 모바일에서 패널 열릴 때 닫기 버튼에 포커스
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isPanelVisible) return;
 
     const isMobile = window.matchMedia("(max-width: 540px)").matches;
 
     if (isMobile) {
-      closeButtonRef.current?.focus();
+      closeButtonRef.current?.focus({
+        preventScroll: true,
+      });
     }
-  }, [isOpen]);
+  }, [isPanelVisible]);
 
   // Escape 닫기 및 브라우저 활성화 확인
   useEffect(() => {
@@ -325,7 +372,7 @@ export default function MessageModal({ isOpen, onClose, initialUser = null }: Me
   };
 
   // Hooks 호출 후 렌더링 조건 확인
-  if (!isOpen || status !== "authenticated" || !user || typeof document === "undefined") {
+  if (!isPanelVisible || !user || typeof document === "undefined") {
     return null;
   }
 
