@@ -148,6 +148,11 @@ export default function Header({
 
   // 기본정보 관리 진입 전 비밀번호 인증
   const handleOpenAccount = () => {
+    // 이미 기본정보 관리 페이지에 있는 경우 재인증 방지
+    if (pathname === "/owner/account/edit") {
+      return;
+    }
+
     returnPathRef.current =
       window.location.pathname + window.location.search + window.location.hash;
 
