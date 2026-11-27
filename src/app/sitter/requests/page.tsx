@@ -6,12 +6,8 @@ import PageMain from "@/components/layout/Page/PageMain";
 
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import {
-  getReceivedRequests,
-  isInvalidRegionError,
-  type GetReceivedRequestsParams,
-} from "@/features/care-requests/sitter/getReceivedRequests";
+import { useMemo, useState } from "react";
+import type { GetReceivedRequestsParams } from "@/features/care-requests/sitter/getReceivedRequests";
 import { useReceivedRequests } from "@/features/care-requests/sitter/useReceivedRequests";
 import ReceivedRequestCard from "@/components/common/ReceivedRequestCard/ReceivedRequestCard";
 import BottomSheet, {
@@ -150,76 +146,25 @@ export default function ReceivedRequestsPage() {
     [currentPage, selectedServiceType, designatedOnly, selectedRegions, appliedKeyword, sort],
   );
 
-  const appliedRegions = receivedRequestParams.regions;
-  const latestParamsRef = useRef(receivedRequestParams);
-
-  useLayoutEffect(() => {
-    latestParamsRef.current = receivedRequestParams;
-  }, [receivedRequestParams]);
-
-  const { data, isPending, isError, isFetching, isPlaceholderData, error, refetch } =
+  const { data, isPending, isError, isFetching, isPlaceholderData, refetch } =
     useReceivedRequests(receivedRequestParams);
 
-  useEffect(() => {
-    if (!isError || isFetching || !isInvalidRegionError(error) || appliedRegions.length === 0) {
-      return;
+  if (data && !isPlaceholderData && !isError && !isFetching) {
+    const nextRegions = reconcileRegions(selectedRegions, data.availableRegions);
+
+    const didRegionsChange =
+      nextRegions.length !== selectedRegions.length ||
+      nextRegions.some((region, index) => region !== selectedRegions[index]);
+
+    if (didRegionsChange) {
+      setSelectedRegions(nextRegions);
     }
 
-    let cancelled = false;
-
-    const recoverRegions = async () => {
-      try {
-        const params = {
-          ...receivedRequestParams,
-          page: 1,
-          regions: [],
-        };
-
-        const refreshedData = await queryClient.fetchQuery({
-          queryKey: ["care-requests", "received", params],
-          queryFn: () => getReceivedRequests(params),
-          retry: false,
-        });
-
-        if (cancelled || latestParamsRef.current !== receivedRequestParams) {
-          return;
-        }
-
-        const nextRegions = reconcileRegions(selectedRegions, refreshedData.availableRegions);
-
-        const didRegionsChange =
-          nextRegions.length !== selectedRegions.length ||
-          nextRegions.some((region, index) => region !== selectedRegions[index]);
-
-        if (!didRegionsChange) return;
-
-        setSelectedRegions(nextRegions);
-        setDraftRegions((current) => reconcileRegions(current, refreshedData.availableRegions));
-      } catch {
-        // 최신 지역 조회 실패 시 기존 필터 및 오류 상태 유지
-      }
-    };
-
-    void recoverRegions();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    isError,
-    isFetching,
-    error,
-    appliedRegions,
-    receivedRequestParams,
-    selectedRegions,
-    queryClient,
-  ]);
-
-  if (data && !isPlaceholderData && !isError && !isFetching) {
     const lastValidPage = Math.max(1, data.totalPages);
+    const nextPage = Math.min(data.page, lastValidPage);
 
-    if (currentPage > lastValidPage) {
-      setCurrentPage(lastValidPage);
+    if (currentPage !== nextPage) {
+      setCurrentPage(nextPage);
     }
 
     if (isFilterOpen) {
@@ -236,52 +181,6 @@ export default function ReceivedRequestsPage() {
   }
 
   const handleRequestRemoved = async () => {
-    if (latestParamsRef.current !== receivedRequestParams) {
-      await queryClient.invalidateQueries({
-        queryKey: ["care-requests", "received"],
-      });
-      return;
-    }
-
-    let nextRegions = selectedRegions;
-
-    if (appliedRegions.length > 0) {
-      try {
-        const refreshedData = await getReceivedRequests({
-          ...receivedRequestParams,
-          page: 1,
-          regions: [],
-        });
-
-        if (latestParamsRef.current !== receivedRequestParams) {
-          await queryClient.invalidateQueries({
-            queryKey: ["care-requests", "received"],
-          });
-          return;
-        }
-
-        nextRegions = reconcileRegions(selectedRegions, refreshedData.availableRegions);
-
-        setDraftRegions((current) => reconcileRegions(current, refreshedData.availableRegions));
-      } catch {
-        // 최신 지역 조회 실패 시 기존 필터 유지
-      }
-    }
-
-    const didRegionsChange =
-      nextRegions.length !== selectedRegions.length ||
-      nextRegions.some((region, index) => region !== selectedRegions[index]);
-
-    if (latestParamsRef.current === receivedRequestParams && didRegionsChange) {
-      void queryClient.invalidateQueries({
-        queryKey: ["care-requests", "received"],
-        refetchType: "none",
-      });
-
-      setSelectedRegions(nextRegions);
-      return;
-    }
-
     await queryClient.invalidateQueries({
       queryKey: ["care-requests", "received"],
     });
