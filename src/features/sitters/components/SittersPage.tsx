@@ -27,11 +27,14 @@ import Image from "next/image";
 import { useState } from "react";
 import { GENDER_FILTER_OPTIONS, SERVICE_FILTER_OPTIONS } from "../constants";
 import { useSitters } from "../hooks/useSitters";
-import type { SitterListParams, SitterSort } from "../types/sitter";
+import type { SitterFilterValues, SitterListState, SitterSort } from "../types/sitter";
+import {
+  MAX_SITTER_REGION_SELECTIONS,
+  toggleSitterRegion,
+  toSitterListParams,
+} from "../utils/sitterFilters";
 import SitterFilters from "./SitterFilters";
 import styles from "./SittersPage.module.css";
-
-type MobileFilterValues = Pick<SitterListParams, "regions" | "serviceTypes" | "gender">;
 
 const SORT_OPTIONS: { label: string; value: SitterSort }[] = [
   { label: "평점 높은 순", value: "RATING_DESC" },
@@ -40,19 +43,27 @@ const SORT_OPTIONS: { label: string; value: SitterSort }[] = [
 ];
 
 export default function SittersPage() {
-  const [params, setParams] = useState<SitterListParams>({
+  const [listState, setListState] = useState<SitterListState>({
     page: 1,
     sort: "RATING_DESC",
+    filters: {},
   });
+  const params = toSitterListParams(listState);
   const [searchText, setSearchText] = useState("");
   const { status: authStatus } = useAuth();
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [draftFilters, setDraftFilters] = useState<MobileFilterValues>({});
+  const [draftFilters, setDraftFilters] = useState<SitterFilterValues>({});
+
+  const draftRegions = Array.isArray(draftFilters.regions) ? draftFilters.regions : [];
+
+  const hasActiveDraftFilters = Boolean(
+    draftFilters.regions || draftFilters.serviceTypes || draftFilters.gender,
+  );
 
   const mobileFilterTabs: BottomSheetTab[] = [
     {
-      label: draftFilters.regions?.length ? `지역 (${draftFilters.regions.length})` : "지역",
+      label: draftRegions.length ? `지역 (${draftRegions.length})` : "지역",
       value: "region",
     },
     {
@@ -68,14 +79,14 @@ export default function SittersPage() {
   const { data, isPending, isError, refetch } = useSitters(params, authStatus !== "checking");
 
   const handlePageChange = (page: number) => {
-    setParams((current) => ({
+    setListState((current) => ({
       ...current,
       page,
     }));
   };
 
   const handleSearch = (value: string) => {
-    setParams((current) => ({
+    setListState((current) => ({
       ...current,
       keyword: value.trim() || undefined,
       page: 1,
@@ -87,47 +98,43 @@ export default function SittersPage() {
 
     if (!selectedOption) return;
 
-    setParams((current) => ({
+    setListState((current) => ({
       ...current,
       sort: selectedOption.value,
       page: 1,
     }));
   };
 
-  const handleFilterChange = (changes: Partial<SitterListParams>) => {
-    setParams((current) => ({
+  const handleFilterChange = (changes: Partial<SitterFilterValues>) => {
+    setListState((current) => ({
       ...current,
-      ...changes,
+      filters: {
+        ...current.filters,
+        ...changes,
+      },
       page: 1,
     }));
   };
 
   const handleFilterReset = () => {
-    setParams((current) => ({
+    setListState((current) => ({
       ...current,
-      regions: undefined,
-      serviceTypes: undefined,
-      gender: undefined,
+      filters: {},
       page: 1,
     }));
   };
 
   const handleMobileFilterOpen = () => {
-    setDraftFilters({
-      regions: params.regions,
-      serviceTypes: params.serviceTypes,
-      gender: params.gender,
-    });
-
+    setDraftFilters({ ...listState.filters });
     setIsFilterOpen(true);
   };
 
   const handleMobileFilterApply = () => {
-    handleFilterChange({
-      regions: draftFilters.regions,
-      serviceTypes: draftFilters.serviceTypes,
-      gender: draftFilters.gender,
-    });
+    setListState((current) => ({
+      ...current,
+      filters: { ...draftFilters },
+      page: 1,
+    }));
   };
 
   const handleMobileFilterReset = () => {
@@ -135,26 +142,17 @@ export default function SittersPage() {
   };
 
   const handleMobileRegionChange = (region: PartnerRegion | "ALL") => {
-    setDraftFilters((current) => {
-      if (region === "ALL") {
-        return { ...current, regions: undefined };
-      }
-
-      const currentRegions = current.regions ?? [];
-
-      if (currentRegions.includes(region)) {
-        const regions = currentRegions.filter((item) => item !== region);
-        return { ...current, regions: regions.length ? regions : undefined };
-      }
-
-      if (currentRegions.length >= 16) return current;
-
-      return { ...current, regions: [...currentRegions, region] };
-    });
+    setDraftFilters((current) => ({
+      ...current,
+      regions: toggleSitterRegion(current.regions, region),
+    }));
   };
 
   const handleMobileServiceChange = (selected: string) => {
-    const serviceTypes = SERVICE_TYPE_OPTIONS.find((option) => option.value === selected)?.value;
+    const serviceTypes =
+      selected === "ALL"
+        ? "ALL"
+        : SERVICE_TYPE_OPTIONS.find((option) => option.value === selected)?.value;
 
     setDraftFilters((current) => ({
       ...current,
@@ -163,7 +161,10 @@ export default function SittersPage() {
   };
 
   const handleMobileGenderChange = (selected: string) => {
-    const gender = GENDER_OPTIONS.find((option) => option.value === selected)?.value;
+    const gender =
+      selected === "ALL"
+        ? "ALL"
+        : GENDER_OPTIONS.find((option) => option.value === selected)?.value;
 
     setDraftFilters((current) => ({
       ...current,
@@ -187,7 +188,7 @@ export default function SittersPage() {
         <div className={styles.toolbar}>
           <div className={styles.desktopFilters}>
             <SitterFilters
-              value={params}
+              value={listState.filters}
               onChange={handleFilterChange}
               onReset={handleFilterReset}
             />
@@ -241,25 +242,26 @@ export default function SittersPage() {
         onClose={() => setIsFilterOpen(false)}
         onApply={handleMobileFilterApply}
         onReset={handleMobileFilterReset}
+        resetDisabled={!hasActiveDraftFilters}
       >
         {{
           region: (
             <div>
               <BottomSheetOption
                 label="전체"
-                selected={!draftFilters.regions?.length}
+                selected={draftFilters.regions === "ALL"}
                 onClick={() => handleMobileRegionChange("ALL")}
               />
 
               {REGION_OPTIONS.map((region) => {
-                const isSelected = draftFilters.regions?.includes(region.value) ?? false;
+                const isSelected = draftRegions.includes(region.value);
 
                 return (
                   <BottomSheetOption
                     key={region.value}
                     label={region.label}
                     selected={isSelected}
-                    disabled={!isSelected && (draftFilters.regions?.length ?? 0) >= 16}
+                    disabled={!isSelected && draftRegions.length >= MAX_SITTER_REGION_SELECTIONS}
                     onClick={() => handleMobileRegionChange(region.value)}
                   />
                 );
@@ -272,7 +274,7 @@ export default function SittersPage() {
                 <BottomSheetOption
                   key={option.value}
                   label={option.label}
-                  selected={(draftFilters.serviceTypes ?? "ALL") === option.value}
+                  selected={draftFilters.serviceTypes === option.value}
                   onClick={() => handleMobileServiceChange(option.value)}
                 />
               ))}
@@ -284,7 +286,7 @@ export default function SittersPage() {
                 <BottomSheetOption
                   key={option.value}
                   label={option.label}
-                  selected={(draftFilters.gender ?? "ALL") === option.value}
+                  selected={draftFilters.gender === option.value}
                   onClick={() => handleMobileGenderChange(option.value)}
                 />
               ))}
