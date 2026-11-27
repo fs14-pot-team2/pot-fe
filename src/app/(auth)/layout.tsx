@@ -2,6 +2,8 @@ import PageMain from "@/components/layout/Page/PageMain";
 import GuestOnlyGuard from "@/features/auth/components/GuestOnlyGuard/GuestOnlyGuard";
 import Image from "next/image";
 import styles from "./AuthLayout.module.css";
+import { Suspense } from "react";
+import Loading from "@/components/ui/Loading/Loading";
 
 export default function AuthLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
@@ -16,7 +18,9 @@ export default function AuthLayout({ children }: Readonly<{ children: React.Reac
           className={styles.logo}
         />
 
-        <GuestOnlyGuard>{children}</GuestOnlyGuard>
+        <GuestOnlyGuard>
+          <Suspense fallback={<Loading variant="content" />}>{children}</Suspense>
+        </GuestOnlyGuard>
       </section>
     </PageMain>
   );

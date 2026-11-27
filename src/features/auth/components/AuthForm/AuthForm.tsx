@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useController, useForm } from "react-hook-form";
 import { useLoginMutation, useSignupMutation } from "../../hooks/useAuthMutations";
 import { startGoogleAuth } from "../../utils/startGoogleAuth";
@@ -16,7 +17,6 @@ import { startKakaoAuth } from "../../utils/startKakaoAuth";
 import styles from "./AuthForm.module.css";
 
 type AuthFormValues = {
-  role: UserRole;
   email: string;
   nickname: string;
   password: string;
@@ -37,6 +37,9 @@ const NICKNAME_REGEX = /^[가-힣a-zA-Z0-9]{2,7}$/;
 const PASSWORD_REGEX = /^[A-Za-z0-9!@#$]{8,20}$/;
 
 export default function AuthForm({ mode }: AuthFormProps) {
+  const searchParams = useSearchParams();
+  const role: UserRole = searchParams.get("role") === "SITTER" ? "SITTER" : "OWNER";
+
   const {
     control,
     handleSubmit,
@@ -46,17 +49,11 @@ export default function AuthForm({ mode }: AuthFormProps) {
   } = useForm<AuthFormValues>({
     mode: "onChange",
     defaultValues: {
-      role: "OWNER",
       email: "",
       nickname: "",
       password: "",
       confirmPassword: "",
     },
-  });
-
-  const { field: roleField } = useController({
-    name: "role",
-    control,
   });
 
   const {
@@ -121,7 +118,10 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
   const handleRoleChange = (value: string) => {
     if (value === "OWNER" || value === "SITTER") {
-      roleField.onChange(value);
+      const url = new URL(window.location.href);
+      url.searchParams.set("role", value);
+      window.history.replaceState(null, "", url);
+
       clearErrors("root");
     }
   };
@@ -154,7 +154,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
   const handleKakaoAuth = () => {
     try {
-      startKakaoAuth(roleField.value, mode);
+      startKakaoAuth(role, mode);
     } catch {
       showToast({
         message: "카카오 인증을 시작하지 못했어요. 다시 시도해 주세요.",
@@ -164,7 +164,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
   const handleGoogleAuth = () => {
     try {
-      startGoogleAuth(roleField.value, mode);
+      startGoogleAuth(role, mode);
     } catch {
       showToast({
         message: "구글 인증을 시작하지 못했어요. 다시 시도해 주세요.",
@@ -210,7 +210,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
     if (mode === "login") {
       loginMutation.mutate(
         {
-          role: values.role,
+          role,
           email: values.email,
           password: values.password,
         },
@@ -220,7 +220,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
     }
     signupMutation.mutate(
       {
-        role: values.role,
+        role,
         email: values.email,
         nickname: values.nickname,
         password: values.password,
@@ -235,12 +235,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
       aria-label={mode === "login" ? "로그인" : "회원가입"}
       onSubmit={handleSubmit(onSubmit)}
     >
-      <Toggle
-        options={ROLE_OPTIONS}
-        value={roleField.value}
-        onChange={handleRoleChange}
-        variant="auth"
-      />
+      <Toggle options={ROLE_OPTIONS} value={role} onChange={handleRoleChange} variant="auth" />
 
       <div className={styles.fields}>
         <Input
@@ -308,7 +303,10 @@ export default function AuthForm({ mode }: AuthFormProps) {
       <div className={styles.switchRow}>
         <span>{mode === "login" ? "아직 POT 회원이 아니신가요?" : "이미 POT 회원이신가요?"}</span>
 
-        <Link href={mode === "login" ? "/signup" : "/login"} className={styles.switchLink}>
+        <Link
+          href={{ pathname: mode === "login" ? "/signup" : "/login", query: { role } }}
+          className={styles.switchLink}
+        >
           {mode === "login" ? "이메일로 회원가입하기" : "로그인"}
         </Link>
       </div>
