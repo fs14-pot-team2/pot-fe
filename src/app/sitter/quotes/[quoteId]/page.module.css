@@ -11,6 +11,40 @@
   min-height: 320px;
 }
 
+.accessFeedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  padding: 48px 20px;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.accessTitle {
+  margin: 0;
+  color: #262524;
+  font-size: 24px;
+  font-weight: var(--font-bold);
+  line-height: 1.4;
+}
+
+.accessDescription {
+  margin: 12px 0 0;
+  color: #777;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.accessFeedback .accessAction {
+  width: auto;
+  max-width: 100%;
+  margin-top: 24px;
+  padding-inline: 24px;
+  word-break: keep-all;
+}
+
 .pageHeader {
   display: flex;
   align-items: center;
@@ -33,10 +67,6 @@
   grid-template-columns: minmax(0, 760px) minmax(220px, 300px);
   justify-content: space-between;
   gap: 29px;
-}
-
-.content {
-  padding-top: var(--quote-detail-spacing);
 }
 
 .basicInfo {
@@ -82,8 +112,8 @@
 }
 
 .priceRow dt {
-  font-size: 18px;
-  font-weight: var(--font-medium);
+  font-size: 20px;
+  font-weight: var(--font-semibold);
 }
 
 .priceRow dd {
@@ -93,14 +123,14 @@
 }
 
 .commentBlock {
-  padding: 20px 0 28px;
+  padding: 20px 0;
   border-bottom: 1px solid #d3d4c2;
 }
 
 .commentBlock h2 {
   margin: 0 0 16px;
-  font-size: 18px;
-  font-weight: var(--font-medium);
+  font-size: 20px;
+  font-weight: var(--font-semibold);
 }
 
 .commentBlock p {
@@ -121,7 +151,11 @@
 }
 
 .shareArea {
+  position: sticky;
+  top: calc(var(--header-height) + 24px);
+  align-self: start;
   min-width: 0;
+  margin-top: 50px;
 }
 
 .ownerActions {
@@ -148,15 +182,27 @@
     gap: 32px;
   }
 
+  .careInfo {
+    padding-bottom: 30px;
+    border-bottom: 1px solid #d3d4c2;
+  }
+
   .shareArea {
+    position: static;
+    top: auto;
     width: 100%;
     max-width: 280px;
+    margin-top: 0;
   }
 }
 
 @media (max-width: 768px) {
   .main {
     --quote-detail-spacing: 20px;
+  }
+
+  .content {
+    padding-top: 32px;
   }
 
   .hero {
@@ -179,6 +225,10 @@
 
   .pageHeader h1 {
     font-size: 18px;
+  }
+
+  .content {
+    padding-top: 24px;
   }
 
   .hero {
@@ -217,7 +267,7 @@
   }
 
   .commentBlock {
-    padding: 18px 0 24px;
+    padding: 18px 0;
   }
 
   .commentBlock p {
@@ -227,5 +277,22 @@
 
   .careInfo {
     margin-top: 24px;
+  }
+
+  .careInfo h2 {
+    font-size: 16px;
+  }
+
+  .accessFeedback {
+    min-height: 240px;
+    padding: 32px 12px;
+  }
+
+  .accessTitle {
+    font-size: 20px;
+  }
+
+  .accessDescription {
+    font-size: 14px;
   }
 }
