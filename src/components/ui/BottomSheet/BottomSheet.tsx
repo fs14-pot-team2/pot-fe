@@ -46,6 +46,7 @@ type BottomSheetProps = {
   onClose: () => void;
   onApply: () => void;
   onReset: () => void;
+  resetDisabled?: boolean;
   tabs: BottomSheetTab[];
   children: Record<string, React.ReactNode>;
   className?: string;
@@ -56,6 +57,7 @@ export default function BottomSheet({
   onClose,
   onApply,
   onReset,
+  resetDisabled = false,
   tabs,
   children,
   className = "",
@@ -190,7 +192,7 @@ export default function BottomSheet({
 
       <footer className={styles.footer}>
         <div className={styles.resetButton}>
-          <FilterReset onReset={onReset} />
+          <FilterReset onReset={onReset} disabled={resetDisabled} />
         </div>
 
         <Button className={styles.applyButton} variant="solid" onClick={handleApply}>

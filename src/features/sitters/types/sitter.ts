@@ -11,6 +11,16 @@ export type SitterListParams = {
   gender?: "MALE" | "FEMALE";
 };
 
+export type SitterFilterValues = {
+  regions?: PartnerRegion[] | "ALL";
+  serviceTypes?: PartnerServiceType | "ALL";
+  gender?: "MALE" | "FEMALE" | "ALL";
+};
+
+export type SitterListState = Omit<SitterListParams, "regions" | "serviceTypes" | "gender"> & {
+  filters: SitterFilterValues;
+};
+
 export type SitterListResponse = {
   items: PartnerInfo[];
   page: number;
