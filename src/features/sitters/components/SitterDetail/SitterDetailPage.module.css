@@ -69,7 +69,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 101;
+    z-index: 3;
     padding: 16px 32px calc(16px + env(safe-area-inset-bottom));
   }
 
