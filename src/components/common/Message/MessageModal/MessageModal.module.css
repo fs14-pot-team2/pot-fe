@@ -231,6 +231,10 @@
 ========================= */
 
 @media (max-width: 540px) {
+  .panelLayer {
+    z-index: 101;
+  }
+
   .panel {
     inset: 0;
 
@@ -239,6 +243,9 @@
 
     border: 0;
     box-shadow: none;
+
+    /* 배경 페이지로 스크롤 전파 방지 */
+    overscroll-behavior: contain;
   }
 
   .header {
@@ -252,5 +259,14 @@
 
   .listView {
     padding: 12px 16px 20px;
+  }
+
+  /* 대화방 목록 스크롤이 배경으로 전파되지 않도록 제한 */
+  .listView > div {
+    overscroll-behavior-y: contain;
+  }
+
+  .conversationView {
+    overscroll-behavior-y: contain;
   }
 }
