@@ -1,8 +1,16 @@
+import { isAxiosError } from "axios";
 import { apiClient } from "@/lib/api/apiClient";
 
 import type { ReceivedRequestsParams, ReceivedRequestsResponse } from "@/types/receivedRequest";
 
 export type GetReceivedRequestsParams = ReceivedRequestsParams;
+export function isInvalidRegionError(error: unknown): boolean {
+  return (
+    isAxiosError<{ code?: string }>(error) &&
+    error.response?.status === 400 &&
+    error.response?.data?.code === "INVALID_REGION"
+  );
+}
 
 export async function getReceivedRequests({
   page,

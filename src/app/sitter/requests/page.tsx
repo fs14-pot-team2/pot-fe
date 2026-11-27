@@ -4,8 +4,10 @@ import PageContainer from "@/components/layout/Page/PageContainer";
 
 import PageMain from "@/components/layout/Page/PageMain";
 
+import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import type { GetReceivedRequestsParams } from "@/features/care-requests/sitter/getReceivedRequests";
 import { useReceivedRequests } from "@/features/care-requests/sitter/useReceivedRequests";
 import ReceivedRequestCard from "@/components/common/ReceivedRequestCard/ReceivedRequestCard";
 import BottomSheet, {
@@ -89,8 +91,28 @@ function toggleRegion(currentRegions: (Region | "ALL")[], selectedRegion: Region
   return nextRegions.length > 0 ? nextRegions : (["ALL"] as const);
 }
 
+function reconcileRegions(
+  regions: (Region | "ALL")[],
+  availableRegions: Region[],
+): (Region | "ALL")[] {
+  if (regions.length === 0 || regions.includes("ALL")) {
+    return regions;
+  }
+
+  const availableRegionSet = new Set(availableRegions);
+  const validRegions = regions.filter(
+    (region) => region !== "ALL" && availableRegionSet.has(region),
+  );
+
+  if (validRegions.length === 0) return [];
+  if (validRegions.length === availableRegions.length) return ["ALL"];
+
+  return validRegions;
+}
+
 export default function ReceivedRequestsPage() {
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [appliedKeyword, setAppliedKeyword] = useState("");
@@ -110,10 +132,65 @@ export default function ReceivedRequestsPage() {
 
   const { mutate: sendQuote, isPending: isSendingQuote } = useCreateQuote();
 
+  const receivedRequestParams = useMemo<GetReceivedRequestsParams>(
+    () => ({
+      page: currentPage,
+      pageSize: PAGE_SIZE,
+      serviceTypes:
+        selectedServiceType === "" || selectedServiceType === "ALL" ? [] : [selectedServiceType],
+      designatedOnly,
+      regions: selectedRegions.includes("ALL") ? [] : (selectedRegions as Region[]),
+      keyword: appliedKeyword,
+      sort,
+    }),
+    [currentPage, selectedServiceType, designatedOnly, selectedRegions, appliedKeyword, sort],
+  );
+
+  const { data, isPending, isError, isFetching, isPlaceholderData, refetch } =
+    useReceivedRequests(receivedRequestParams);
+
+  if (data && !isPlaceholderData && !isError && !isFetching) {
+    const nextRegions = reconcileRegions(selectedRegions, data.availableRegions);
+
+    const didRegionsChange =
+      nextRegions.length !== selectedRegions.length ||
+      nextRegions.some((region, index) => region !== selectedRegions[index]);
+
+    if (didRegionsChange) {
+      setSelectedRegions(nextRegions);
+    }
+
+    const lastValidPage = Math.max(1, data.totalPages);
+    const nextPage = Math.min(data.page, lastValidPage);
+
+    if (currentPage !== nextPage) {
+      setCurrentPage(nextPage);
+    }
+
+    if (isFilterOpen) {
+      const nextDraftRegions = reconcileRegions(draftRegions, data.availableRegions);
+
+      const didDraftRegionsChange =
+        nextDraftRegions.length !== draftRegions.length ||
+        nextDraftRegions.some((region, index) => region !== draftRegions[index]);
+
+      if (didDraftRegionsChange) {
+        setDraftRegions(nextDraftRegions);
+      }
+    }
+  }
+
+  const handleRequestRemoved = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: ["care-requests", "received"],
+    });
+  };
+
   const handleHideRequest = (careRequestId: string) => {
     if (isIgnoring) return;
 
     ignoreRequest(careRequestId, {
+      onSuccess: () => void handleRequestRemoved(),
       onError: () => {
         showToast({ message: "요청을 숨기지 못했습니다. 잠시 후 다시 시도해 주세요." });
       },
@@ -190,6 +267,7 @@ export default function ReceivedRequestsPage() {
       },
       {
         onSuccess: () => {
+          void handleRequestRemoved();
           setRejectTarget(null);
         },
         onError: () => {
@@ -220,6 +298,7 @@ export default function ReceivedRequestsPage() {
       },
       {
         onSuccess: () => {
+          void handleRequestRemoved();
           setQuoteTarget(null);
         },
         onError: () => {
@@ -228,19 +307,6 @@ export default function ReceivedRequestsPage() {
       },
     );
   };
-
-  const appliedRegions = selectedRegions.includes("ALL") ? [] : (selectedRegions as Region[]);
-
-  const { data, isPending, isError, refetch } = useReceivedRequests({
-    page: currentPage,
-    pageSize: PAGE_SIZE,
-    serviceTypes:
-      selectedServiceType === "" || selectedServiceType === "ALL" ? [] : [selectedServiceType],
-    designatedOnly,
-    regions: appliedRegions,
-    keyword: appliedKeyword,
-    sort,
-  });
 
   const availableRegionSet = new Set(data?.availableRegions ?? []);
 
@@ -341,7 +407,7 @@ export default function ReceivedRequestsPage() {
               />
             )}
 
-            {!isPending && !isError && requests.length === 0 && (
+            {!isPending && !isError && data?.totalCount === 0 && (
               <EmptyState className={styles.listState} messages={["아직 받은 요청이 없어요."]} />
             )}
 

@@ -1,12 +1,17 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { getReceivedRequests, type GetReceivedRequestsParams } from "./getReceivedRequests";
+import {
+  getReceivedRequests,
+  isInvalidRegionError,
+  type GetReceivedRequestsParams,
+} from "./getReceivedRequests";
 
 export function useReceivedRequests(params: GetReceivedRequestsParams) {
   return useQuery({
     queryKey: ["care-requests", "received", params],
     queryFn: () => getReceivedRequests(params),
+    retry: (failureCount, error) => !isInvalidRegionError(error) && failureCount < 3,
     placeholderData: keepPreviousData, // 다음페이지 불러오는동안 이전 카드목록 유지
     refetchInterval: 60_000, // 60초 마다 API 재조회
   });
