@@ -25,6 +25,7 @@ import {
 
 import styles from "@/app/sitter/account/edit/AccountEditPage.module.css";
 import SocialAccountLinkSection from "@/features/account/components/SocialAccountLinkSection/SocialAccountLinkSection";
+import PasswordVerificationModal from "@/features/account/components/PasswordVerificationModal/PasswordVerificationModal";
 
 interface AccountEditFormValues {
   nickname: string;
@@ -78,7 +79,8 @@ function OwnerAccountEditContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const { user, status, isAccountVerified, clearAccountVerification } = useAuth();
+  const { user, status, isAccountVerified, clearAccountVerification, getSessionVersion } =
+    useAuth();
 
   const { showToast } = useToast();
   const updateAccountMutation = useUpdateAccountMutation();
@@ -86,6 +88,11 @@ function OwnerAccountEditContent() {
   // 연속 클릭 및 중복 제출 방지
   const savingRef = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [pendingReauth, setPendingReauth] = useState<{
+    input: UpdateAccountInput;
+    sessionVersion: number;
+  } | null>(null);
 
   const isSaving = isSubmitting || updateAccountMutation.isPending;
 
@@ -176,7 +183,7 @@ function OwnerAccountEditContent() {
 
   // 취소 시 이전 페이지로 이동
   const handleCancel = () => {
-    if (isSaving || savingRef.current) return;
+    if (isSaving || savingRef.current || pendingReauth) return;
 
     clearAccountVerification();
     router.replace(returnPath);
@@ -193,42 +200,34 @@ function OwnerAccountEditContent() {
     router.replace(returnPath);
   };
 
-  // 기본정보 저장
-  const onSubmit = async (values: AccountEditFormValues) => {
-    // 사용자 역할 검증 및 중복 제출 방지
-    if (!user || user.role !== "OWNER" || isSaving || savingRef.current) {
-      return;
-    }
+  // 기본정보 저장 및 재인증 이후 자동 저장
+  const saveAccount = async (input: UpdateAccountInput, allowReauth = true) => {
+    if (savingRef.current) return;
 
     savingRef.current = true;
     setIsSubmitting(true);
 
+    const sessionVersion = getSessionVersion();
     let shouldNavigate = false;
 
-    const input: UpdateAccountInput = {};
-
-    if (values.nickname !== user.nickname) {
-      input.nickname = values.nickname;
-    }
-
-    if (values.password.length > 0) {
-      input.password = values.password;
-    }
-
     try {
-      // 변경사항이 있는 경우에만 API 요청
       if (Object.keys(input).length > 0) {
         await updateAccountMutation.mutateAsync(input);
       }
 
-      // 변경사항 유무와 관계없이 성공 토스트 표시
-      // 저장 완료 후 이전 페이지로 이동
       handleSaveSuccess();
       shouldNavigate = true;
     } catch (error) {
+      if (getSessionVersion() !== sessionVersion) return;
+
       const code = axios.isAxiosError<{ code?: string }>(error)
         ? error.response?.data?.code
         : undefined;
+
+      if (code === "REAUTHENTICATION_REQUIRED" && allowReauth) {
+        setPendingReauth({ input, sessionVersion });
+        return;
+      }
 
       if (code === "NICKNAME_ALREADY_EXISTS") {
         setError("nickname", {
@@ -258,13 +257,42 @@ function OwnerAccountEditContent() {
         message: "기본정보를 변경하지 못했습니다. 잠시 후 다시 시도해 주세요.",
       });
     } finally {
-      // 저장 실패 시 잠금 해제 및 재시도 허용
-      // 저장 성공 시에는 페이지 이동 전까지 중복 제출 방지
       if (!shouldNavigate) {
         savingRef.current = false;
         setIsSubmitting(false);
       }
     }
+  };
+
+  // 저장 버튼 클릭
+  const onSubmit = async (values: AccountEditFormValues) => {
+    if (!user || user.role !== "OWNER" || isSaving || savingRef.current || pendingReauth) {
+      return;
+    }
+
+    const input: UpdateAccountInput = {};
+
+    if (values.nickname !== user.nickname) {
+      input.nickname = values.nickname;
+    }
+
+    if (values.password.length > 0) {
+      input.password = values.password;
+    }
+
+    await saveAccount(input);
+  };
+
+  // 비밀번호 재확인 성공 후 자동 저장
+  const handleReauthVerified = () => {
+    if (!pendingReauth) return;
+
+    const { input, sessionVersion } = pendingReauth;
+    setPendingReauth(null);
+
+    if (getSessionVersion() !== sessionVersion) return;
+
+    void saveAccount(input, false);
   };
 
   if (status === "checking" || !user || user.role !== "OWNER" || !hasEditAccess) {
@@ -311,7 +339,11 @@ function OwnerAccountEditContent() {
           <SocialAccountLinkSection user={user} />
 
           <div className={styles.actions}>
-            <Button type="submit" className={styles.button} disabled={!isValid || isSaving}>
+            <Button
+              type="submit"
+              className={styles.button}
+              disabled={!isValid || isSaving || !!pendingReauth}
+            >
               {isSaving ? "저장 중..." : "저장하기"}
             </Button>
 
@@ -320,13 +352,22 @@ function OwnerAccountEditContent() {
               variant="outlined"
               className={styles.button}
               onClick={handleCancel}
-              disabled={isSaving}
+              disabled={isSaving || !!pendingReauth}
             >
               취소
             </Button>
           </div>
         </form>
       </PageContainer>
+
+      {pendingReauth && (
+        <PasswordVerificationModal
+          isOpen
+          description="본인 확인이 만료되었습니다. 비밀번호를 다시 확인해 주세요."
+          onClose={() => setPendingReauth(null)}
+          onVerified={handleReauthVerified}
+        />
+      )}
     </PageMain>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import axios from "axios";
 import Modal from "@/components/ui/Modal/Modal";
 import Input from "@/components/ui/Input/Input";
@@ -12,15 +12,19 @@ interface PasswordVerificationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onVerified: () => void;
+  description?: string;
 }
 
 export default function PasswordVerificationModal({
   isOpen,
   onClose,
   onVerified,
+  description = "본인확인을 위해 비밀번호를 입력해 주세요",
 }: PasswordVerificationModalProps) {
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
+
+  const verificationRef = useRef(false);
 
   const {
     mutate: verifyPassword,
@@ -35,6 +39,8 @@ export default function PasswordVerificationModal({
   };
 
   const handleClose = () => {
+    if (verificationRef.current || isPending) return;
+
     resetModal();
     onClose();
   };
@@ -50,20 +56,27 @@ export default function PasswordVerificationModal({
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    if (verificationRef.current || isPending) return;
+
     if (password.length === 0) {
       setPasswordError("비밀번호를 입력해 주세요.");
       return;
     }
 
+    verificationRef.current = true;
+
     verifyPassword(
       { password },
       {
         onSuccess: () => {
+          verificationRef.current = false;
           resetModal();
           onClose();
           onVerified();
         },
         onError: (error) => {
+          verificationRef.current = false;
+
           const code = axios.isAxiosError<{ code?: string }>(error)
             ? error.response?.data?.code
             : undefined;
@@ -82,7 +95,7 @@ export default function PasswordVerificationModal({
   return (
     <Modal isOpen={isOpen} onClose={handleClose} className={styles.modal}>
       <form className={styles.form} onSubmit={handleSubmit}>
-        <p className={styles.description}>본인확인을 위해 비밀번호를 입력해 주세요</p>
+        <p className={styles.description}>{description}</p>
 
         <Input
           label="비밀번호"
