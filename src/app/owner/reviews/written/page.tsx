@@ -14,6 +14,7 @@ import {
   useWrittenReviews,
 } from "@/features/reviews/hooks/useReviews";
 import type { ReviewFormValues, WrittenReviewItem } from "@/features/reviews/types/review";
+import { getReviewErrorCode, getReviewErrorPolicy } from "@/features/reviews/utils/reviewErrors";
 import { useState } from "react";
 import styles from "./page.module.css";
 
@@ -22,10 +23,22 @@ export default function WrittenReviewsPage() {
   const [editingReview, setEditingReview] = useState<WrittenReviewItem | null>(null);
   const [deletingReview, setDeletingReview] = useState<WrittenReviewItem | null>(null);
 
-  const { data, isPending, isError, refetch } = useWrittenReviews(page);
+  const { data, isPending, isError, isFetching, isPlaceholderData, refetch } =
+    useWrittenReviews(page);
 
   const updateReviewMutation = useUpdateReview();
   const deleteReviewMutation = useDeleteReview();
+
+  const deleteErrorCode = getReviewErrorCode(deleteReviewMutation.error);
+  const { blockSubmit: isDeleteBlocked } = getReviewErrorPolicy(deleteErrorCode);
+
+  if (data && !isError && !isFetching && !isPlaceholderData && data.page === page) {
+    const lastValidPage = Math.max(1, data.totalPages);
+
+    if (page > lastValidPage) {
+      setPage(lastValidPage);
+    }
+  }
 
   const handleUpdateReview = async (values: ReviewFormValues) => {
     if (!editingReview) return;
@@ -49,14 +62,10 @@ export default function WrittenReviewsPage() {
   };
 
   const handleDeleteReview = () => {
-    if (!deletingReview || deleteReviewMutation.isPending) return;
+    if (!deletingReview || isDeleteBlocked || deleteReviewMutation.isPending) return;
 
     deleteReviewMutation.mutate(deletingReview.review.id, {
       onSuccess: () => {
-        if (page > 1 && data?.items.length === 1) {
-          setPage(page - 1);
-        }
-
         setDeletingReview(null);
       },
     });
@@ -153,7 +162,7 @@ export default function WrittenReviewsPage() {
               <Button
                 size="sm"
                 onClick={handleDeleteReview}
-                disabled={deleteReviewMutation.isPending}
+                disabled={isDeleteBlocked || deleteReviewMutation.isPending}
               >
                 {deleteReviewMutation.isPending ? "삭제 중..." : "삭제하기"}
               </Button>
@@ -168,7 +177,9 @@ export default function WrittenReviewsPage() {
 
           {deleteReviewMutation.isError && (
             <p className={styles.deleteError} role="alert">
-              리뷰를 삭제하지 못했습니다. 다시 시도해 주세요.
+              {deleteErrorCode === "REVIEW_NOT_FOUND"
+                ? "삭제할 리뷰를 찾을 수 없습니다."
+                : "리뷰를 삭제하지 못했습니다. 다시 시도해 주세요."}
             </p>
           )}
         </Modal>

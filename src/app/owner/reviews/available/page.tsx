@@ -15,8 +15,17 @@ export default function AvailableReviewsPage() {
   const [page, setPage] = useState(1);
   const [selectedReview, setSelectedReview] = useState<WritableReviewItem | null>(null);
 
-  const { data, isPending, isError, refetch } = useWritableReviews(page);
+  const { data, isPending, isError, isFetching, isPlaceholderData, refetch } =
+    useWritableReviews(page);
   const createReviewMutation = useCreateReview();
+
+  if (data && !isError && !isFetching && !isPlaceholderData && data.page === page) {
+    const lastValidPage = Math.max(1, data.totalPages);
+
+    if (page > lastValidPage) {
+      setPage(lastValidPage);
+    }
+  }
 
   const handleCreateReview = async (values: ReviewFormValues) => {
     if (!selectedReview) return;
@@ -25,10 +34,6 @@ export default function AvailableReviewsPage() {
       careRequestId: selectedReview.careRequest.id,
       input: values,
     });
-
-    if (page > 1 && data?.items.length === 1) {
-      setPage(page - 1);
-    }
   };
 
   const renderContent = () => {
