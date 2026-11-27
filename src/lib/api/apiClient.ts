@@ -8,6 +8,8 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
+  if (config._authRetry) return config;
+
   const token = getAccessToken();
 
   if (token) {

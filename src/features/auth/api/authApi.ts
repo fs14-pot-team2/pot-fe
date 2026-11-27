@@ -108,25 +108,41 @@ export function linkGoogleAccount(input: GoogleLinkInput): Promise<GoogleLinkRes
   return linkSocialAccount("GOOGLE", input);
 }
 
-let refreshPromise: Promise<RefreshResponse> | null = null;
+let refreshPromise: Promise<AuthResponse> | null = null;
 
-export function refreshAccessToken(): Promise<RefreshResponse> {
-  if (!refreshPromise) {
-    refreshPromise = axios
-      .post<RefreshResponse>("/api/auth/refresh", undefined, {
-        withCredentials: true,
-        timeout: 10000,
-      })
-      .then(({ data }) => data)
-      .finally(() => {
-        refreshPromise = null;
-      });
-  }
-
-  return refreshPromise;
+export function resetRefreshPromise() {
+  refreshPromise = null;
 }
-export async function getCurrentUser(): Promise<AuthUser> {
-  const { data } = await apiClient.get<AuthUser>("/users/me");
+
+export function refreshAccessToken(): Promise<AuthResponse> {
+  if (refreshPromise) return refreshPromise;
+
+  const request: Promise<AuthResponse> = axios
+    .post<RefreshResponse>("/api/auth/refresh", undefined, {
+      withCredentials: true,
+      timeout: 10000,
+    })
+    .then(async ({ data }) => ({
+      accessToken: data.accessToken,
+      user: await getCurrentUser(data.accessToken),
+    }))
+    .finally(() => {
+      if (refreshPromise === request) {
+        refreshPromise = null;
+      }
+    });
+
+  refreshPromise = request;
+
+  return request;
+}
+
+export async function getCurrentUser(accessToken: string): Promise<AuthUser> {
+  const { data } = await axios.get<AuthUser>("/api/users/me", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    withCredentials: true,
+    timeout: 10000,
+  });
 
   return data;
 }

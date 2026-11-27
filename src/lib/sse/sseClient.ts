@@ -1,9 +1,10 @@
+import { getAccessToken } from "@/lib/auth/accessToken";
 import axios from "axios";
-import { refreshAccessToken } from "@/features/auth/api/authApi";
-import { getAccessToken, setAccessToken } from "@/lib/auth/accessToken";
 import type { SseEvent } from "./sseTypes";
 
 type SseOptions = {
+  getSessionVersion: () => number;
+  refreshSession: (version: number) => Promise<string | null>;
   onReconnect?: () => void;
   onAuthError?: (error: SseAuthError) => void;
 };
@@ -45,13 +46,17 @@ function fetchEvents(token: string, signal: AbortSignal) {
 
 async function openSseConnection(
   signal: AbortSignal,
+  options: SseOptions,
+  version: number,
 ): Promise<{ response: Response; token: string } | null> {
+  const isSessionActive = () => !signal.aborted && options.getSessionVersion() === version;
+
   let token = getAccessToken();
   if (!token) throw new SseAuthError("Access Token이 없습니다.");
 
   let response = await fetchEvents(token, signal);
 
-  if (signal.aborted || getAccessToken() !== token) {
+  if (!isSessionActive() || getAccessToken() !== token) {
     void response.body?.cancel().catch(() => {});
     return null;
   }
@@ -59,7 +64,7 @@ async function openSseConnection(
   if (response.status === 401) {
     const code = await readSseErrorCode(response);
 
-    if (signal.aborted) return null;
+    if (!isSessionActive()) return null;
 
     if (code !== "TOKEN_EXPIRED") {
       // 다른 요청이 이미 토큰을 변경했다면 새 토큰으로 다시 연결
@@ -73,15 +78,14 @@ async function openSseConnection(
 
     if (currentToken === token) {
       try {
-        const { accessToken } = await refreshAccessToken();
+        const accessToken = await options.refreshSession(version);
 
         // 토큰 갱신 중 로그아웃하거나 세션이 변경됐다면 이전 연결은 중단
-        if (signal.aborted || getAccessToken() !== token) return null;
+        if (!isSessionActive() || !accessToken || getAccessToken() !== accessToken) return null;
 
-        setAccessToken(accessToken);
         token = accessToken;
       } catch (error) {
-        if (signal.aborted || getAccessToken() !== token) return null;
+        if (!isSessionActive() || getAccessToken() !== token) return null;
 
         if (
           axios.isAxiosError<{ code?: string }>(error) &&
@@ -100,7 +104,7 @@ async function openSseConnection(
 
     response = await fetchEvents(token, signal);
 
-    if (signal.aborted || getAccessToken() !== token) {
+    if (!isSessionActive() || getAccessToken() !== token) {
       void response.body?.cancel().catch(() => {});
       return null;
     }
@@ -109,7 +113,7 @@ async function openSseConnection(
   if (response.status === 401) {
     const code = await readSseErrorCode(response);
 
-    if (signal.aborted || getAccessToken() !== token) return null;
+    if (!isSessionActive() || getAccessToken() !== token) return null;
 
     throw new SseAuthError("SSE 인증 실패", code === "UNAUTHORIZED", token);
   }
@@ -134,17 +138,17 @@ async function openSseConnection(
 async function readSseStream(
   reader: ReadableStreamDefaultReader<Uint8Array>,
   onEvent: (event: SseEvent) => void,
-  signal: AbortSignal,
+  isSessionActive: () => boolean,
   connectionToken: string,
 ) {
   const decoder = new TextDecoder();
   let buffer = "";
 
   try {
-    while (!signal.aborted && getAccessToken() === connectionToken) {
+    while (isSessionActive() && getAccessToken() === connectionToken) {
       const { value, done } = await reader.read();
 
-      if (signal.aborted || done || getAccessToken() !== connectionToken) break;
+      if (!isSessionActive() || done || getAccessToken() !== connectionToken) break;
 
       // 잘려서 도착한 데이터들을 모음 (잘려서 따로 오는 SSE 이벤트 방지)
       buffer += decoder.decode(value, { stream: true });
@@ -155,7 +159,7 @@ async function readSseStream(
       buffer = chunks.pop() ?? "";
 
       for (const chunk of chunks) {
-        if (signal.aborted || getAccessToken() !== connectionToken) break;
+        if (!isSessionActive() || getAccessToken() !== connectionToken) break;
 
         const lines = chunk.split("\n");
 
@@ -236,25 +240,26 @@ function waitForReconnect(signal: AbortSignal): Promise<void> {
   });
 }
 
-export function connectSse(
-  onEvent: (event: SseEvent) => void,
-  options: SseOptions = {},
-): () => void {
+export function connectSse(onEvent: (event: SseEvent) => void, options: SseOptions): () => void {
   const controller = new AbortController();
   const signal = controller.signal;
+  const version = options.getSessionVersion();
+
+  const isSessionActive = () => !signal.aborted && options.getSessionVersion() === version;
+
   let hasAttemptedConnection = false;
 
   const run = async () => {
-    while (!signal.aborted) {
+    while (!signal.aborted && options.getSessionVersion() === version) {
       if (!getAccessToken()) return;
 
       const isReconnect = hasAttemptedConnection;
       hasAttemptedConnection = true;
 
       try {
-        const connection = await openSseConnection(signal);
+        const connection = await openSseConnection(signal, options, version);
 
-        if (signal.aborted) {
+        if (signal.aborted || options.getSessionVersion() !== version) {
           void connection?.response.body?.cancel().catch(() => {});
           return;
         }
@@ -273,9 +278,9 @@ export function connectSse(
 
         if (isReconnect) options.onReconnect?.();
 
-        await readSseStream(reader, onEvent, signal, token);
+        await readSseStream(reader, onEvent, isSessionActive, token);
       } catch (error) {
-        if (signal.aborted) return;
+        if (signal.aborted || options.getSessionVersion() !== version) return;
 
         // 인증 오류는 반복 재시도하지 않고 상위 인증 관리 코드에 알린다.
         if (error instanceof SseAuthError) {
