@@ -4,7 +4,10 @@ import PageContainer from "@/components/layout/Page/PageContainer";
 
 import PageMain from "@/components/layout/Page/PageMain";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { isAxiosError } from "axios";
+import Button from "@/components/ui/Button/Button";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 import EmptyState from "@/components/ui/EmptyState/EmptyState";
 import Loading from "@/components/ui/Loading/Loading";
@@ -52,6 +55,8 @@ function QuoteDetailLayout({ children }: { children: ReactNode }) {
 
 export default function SitterQuoteDetailPage() {
   const { quoteId } = useParams<{ quoteId: string }>();
+  const { user, status: authStatus } = useAuth();
+  const router = useRouter();
 
   const shareUrl = useShareUrl();
 
@@ -63,7 +68,22 @@ export default function SitterQuoteDetailPage() {
 
   const isValidQuoteId = /^\d+$/.test(quoteId) && BigInt(quoteId) > 0n;
 
-  const { data, isPending, isError, refetch } = useSitterQuoteDetail(quoteId);
+  const { data, isPending, isError, error, refetch } = useSitterQuoteDetail(quoteId);
+
+  const isAccessForbidden =
+    isAxiosError(error) &&
+    (error.response?.status === 403 ||
+      error.response?.data?.code === "QUOTE_ACCESS_FORBIDDEN" ||
+      error.response?.data?.code === "FORBIDDEN");
+
+  const handleGoBack = () => {
+    if (window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.replace("/sitter/quotes");
+  };
 
   if (!isValidQuoteId) {
     return (
@@ -81,6 +101,20 @@ export default function SitterQuoteDetailPage() {
         <div className={styles.feedback}>
           <Loading variant="content" message="견적 정보를 불러오고 있어요." />
         </div>
+      </QuoteDetailLayout>
+    );
+  }
+
+  if (isError && isAccessForbidden) {
+    return (
+      <QuoteDetailLayout>
+        <section className={styles.accessFeedback} role="alert">
+          <h2 className={styles.accessTitle}>견적을 조회할 권한이 없어요</h2>
+          <p className={styles.accessDescription}>현재 계정으로는 이 견적을 확인할 수 없어요.</p>
+          <Button variant="solid" size="md" className={styles.accessAction} onClick={handleGoBack}>
+            이전 페이지로 이동
+          </Button>
+        </section>
       </QuoteDetailLayout>
     );
   }
@@ -111,11 +145,15 @@ export default function SitterQuoteDetailPage() {
     );
   }
 
-  const { quote, designatedRequestId, careRequest, owner } = data;
+  const { quote, designatedRequestId, careRequest, owner, sitter } = data;
 
   const isDesignated = designatedRequestId !== null;
   const isConfirmed = careRequest.confirmedQuoteId === quote.id;
-  const canEdit = careRequest.status === "OPEN";
+  const canEdit =
+    authStatus === "authenticated" &&
+    user?.role === "SITTER" &&
+    user.id === sitter.id &&
+    careRequest.status === "OPEN";
 
   const handleEditModalClose = () => {
     if (isUpdatingQuote) return;
@@ -124,7 +162,7 @@ export default function SitterQuoteDetailPage() {
   };
 
   const handleEditSubmit = (values: QuoteFormValues) => {
-    if (isUpdatingQuote) return;
+    if (!canEdit || isUpdatingQuote) return;
 
     updateQuote(
       {
@@ -151,7 +189,7 @@ export default function SitterQuoteDetailPage() {
         <div className={styles.layout}>
           <section className={styles.basicInfo} aria-label="견적 기본 정보">
             <div className={styles.tagRow}>
-              {isDesignated && <Tag variant="designated" size="sm" />}
+              {isDesignated && <Tag variant="designated" size="md" />}
             </div>
 
             <div className={styles.ownerRow}>
@@ -207,7 +245,7 @@ export default function SitterQuoteDetailPage() {
         </div>
       </QuoteDetailLayout>
 
-      {isEditModalOpen && (
+      {canEdit && isEditModalOpen && (
         <SendQuoteModal
           isOpen
           mode="edit"
