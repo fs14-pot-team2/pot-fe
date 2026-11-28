@@ -23,6 +23,7 @@ import { formatDateOnly } from "@/utils/dateFormat";
 import { useSentQuotes } from "@/features/quotes/sitter/hooks/useSentQuotes";
 import { useUpdateQuote } from "@/features/quotes/sitter/hooks/useUpdateQuote";
 import { useRejectedRequests } from "@/features/care-requests/sitter/useRejectedRequests";
+import { usePreservedListHeight } from "@/hooks/usePreservedListHeight";
 
 import type { SentQuoteItem } from "@/features/quotes/sitter/types/sentQuote";
 import type { QuoteFormValues } from "@/features/care-requests/sitter/SendQuoteModal";
@@ -54,16 +55,20 @@ export default function SitterSentQuotePage() {
 
   const { showToast } = useToast();
 
-  const { data, isPending, isError, refetch } = useSentQuotes({
+  const { data, isPending, isError, isPlaceholderData, refetch } = useSentQuotes({
     page: currentPage,
     pageSize: 8,
     confirmedOnly,
   });
 
+  const isSentListLoading = isPending || isPlaceholderData;
+  const sentListRef = usePreservedListHeight<HTMLElement>(isSentListLoading);
+
   const {
     data: rejectedData,
     isPending: isRejectedPending,
     isError: isRejectedError,
+    isPlaceholderData: isRejectedPlaceholderData,
     refetch: refetchRejectedRequests,
   } = useRejectedRequests(
     {
@@ -72,6 +77,9 @@ export default function SitterSentQuotePage() {
     },
     activeTab === "rejected",
   );
+
+  const isRejectedListLoading = isRejectedPending || isRejectedPlaceholderData;
+  const rejectedListRef = usePreservedListHeight<HTMLElement>(isRejectedListLoading);
 
   const rejectedRequests = rejectedData?.items ?? [];
 
@@ -131,8 +139,8 @@ export default function SitterSentQuotePage() {
                   label="확정견적"
                 />
               </div>
-              <section className={styles.quoteList} aria-label="보낸 견적 목록">
-                {isPending && (
+              <section ref={sentListRef} className={styles.quoteList} aria-label="보낸 견적 목록">
+                {isSentListLoading && !isError && (
                   <Loading
                     className={styles.listState}
                     variant="content"
@@ -151,14 +159,14 @@ export default function SitterSentQuotePage() {
                   />
                 )}
 
-                {!isPending && !isError && sentQuotes.length === 0 && (
+                {!isSentListLoading && !isError && sentQuotes.length === 0 && (
                   <EmptyState
                     className={styles.listState}
                     messages={["아직 보낸 견적이 없어요."]}
                   />
                 )}
 
-                {!isPending &&
+                {!isSentListLoading &&
                   !isError &&
                   sentQuotes.map((item) => {
                     const { quote, careRequest, owner, designatedRequestId } = item;
@@ -210,8 +218,12 @@ export default function SitterSentQuotePage() {
 
           {activeTab === "rejected" && (
             <>
-              <section className={styles.quoteList} aria-label="반려한 요청 목록">
-                {isRejectedPending && (
+              <section
+                ref={rejectedListRef}
+                className={styles.quoteList}
+                aria-label="반려한 요청 목록"
+              >
+                {isRejectedListLoading && !isRejectedError && (
                   <Loading
                     className={styles.listState}
                     variant="content"
@@ -230,14 +242,14 @@ export default function SitterSentQuotePage() {
                   />
                 )}
 
-                {!isRejectedPending && !isRejectedError && rejectedRequests.length === 0 && (
+                {!isRejectedListLoading && !isRejectedError && rejectedRequests.length === 0 && (
                   <EmptyState
                     className={styles.listState}
                     messages={["아직 반려한 요청이 없어요."]}
                   />
                 )}
 
-                {!isRejectedPending &&
+                {!isRejectedListLoading &&
                   !isRejectedError &&
                   rejectedRequests.map((item) => {
                     const { rejectedRequest, careRequest } = item;

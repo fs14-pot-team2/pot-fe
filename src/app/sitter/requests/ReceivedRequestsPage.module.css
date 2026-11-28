@@ -87,15 +87,6 @@
   min-height: 320px;
 }
 
-.loadingState {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  color: #999999;
-  font-size: 16px;
-}
-
 @media (max-width: 768px) {
   .inner {
     max-width: 680px;

@@ -1,16 +1,24 @@
 import EmptyState from "@/components/ui/EmptyState/EmptyState";
 import type { PartnerReviewsData } from "@/types/partner";
-import type { ReactNode } from "react";
+import { useRef, type ReactNode, type Ref } from "react";
 import PartnerReviewItem from "./PartnerReviewItem/PartnerReviewItem";
 import styles from "./PartnerReviews.module.css";
 import ReviewRatingSummary from "./ReviewRatingSummary/ReviewRatingSummary";
+import Loading from "@/components/ui/Loading/Loading";
 
 type PartnerReviewsProps = {
   reviews: PartnerReviewsData;
   pagination?: ReactNode;
+  isListLoading?: boolean;
+  listRef?: Ref<HTMLDivElement>;
 };
 
-export default function PartnerReviews({ reviews, pagination }: PartnerReviewsProps) {
+export default function PartnerReviews({
+  reviews,
+  pagination,
+  isListLoading = false,
+  listRef,
+}: PartnerReviewsProps) {
   const hasReviews = reviews.summary.reviewCount > 0;
 
   return (
@@ -21,10 +29,12 @@ export default function PartnerReviews({ reviews, pagination }: PartnerReviewsPr
         <>
           <ReviewRatingSummary summary={reviews.summary} />
 
-          <div className={styles.list}>
-            {reviews.items.map((item) => (
-              <PartnerReviewItem key={item.review.id} item={item} />
-            ))}
+          <div ref={listRef} className={styles.list}>
+            {isListLoading ? (
+              <Loading variant="content" />
+            ) : (
+              reviews.items.map((item) => <PartnerReviewItem key={item.review.id} item={item} />)
+            )}
           </div>
 
           {pagination && <div className={styles.pagination}>{pagination}</div>}
