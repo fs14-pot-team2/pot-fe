@@ -143,7 +143,10 @@ export default function AuthHeader() {
   };
 
   // 알림 클릭
-  const handleNotificationClick = async (notification: NotificationItem) => {
+  const handleNotificationClick = async (
+    notification: NotificationItem,
+    canNavigate: () => boolean,
+  ) => {
     if (!user || isReadingNotification) {
       return false;
     }
@@ -161,6 +164,10 @@ export default function AuthHeader() {
     try {
       if (!notification.isRead) {
         await markNotificationAsRead(notification.id);
+      }
+
+      if (!canNavigate()) {
+        return false;
       }
 
       router.push(route);

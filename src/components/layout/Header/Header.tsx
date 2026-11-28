@@ -29,7 +29,10 @@ type HeaderProps = {
   hasUnreadNotification?: boolean;
   hasUnreadMessage?: boolean;
   onLogout?: () => void;
-  onNotificationClick?: (notification: NotificationItem) => boolean | Promise<boolean>;
+  onNotificationClick?: (
+    notification: NotificationItem,
+    canNavigate: () => boolean,
+  ) => boolean | Promise<boolean>;
   onMarkAllNotificationsAsRead?: () => void;
   hasNextNotificationPage?: boolean;
   isFetchingNextNotificationPage?: boolean;
@@ -85,6 +88,7 @@ export default function Header({
 
   const notificationRef = useRef<HTMLDivElement>(null);
   const notificationButtonRef = useRef<HTMLButtonElement>(null);
+  const notificationNavigationVersionRef = useRef(0);
 
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
@@ -95,12 +99,19 @@ export default function Header({
   }, []);
 
   const closeNotification = useCallback(() => {
+    notificationNavigationVersionRef.current += 1;
     setIsNotificationOpen(false);
 
     window.requestAnimationFrame(() => {
       notificationButtonRef.current?.focus();
     });
   }, []);
+
+  useEffect(() => {
+    return () => {
+      notificationNavigationVersionRef.current += 1;
+    };
+  }, [pathname]);
 
   // 모바일 메뉴 반응형 처리
   useEffect(() => {
@@ -167,6 +178,7 @@ export default function Header({
   // 쪽지 패널 열기/닫기
   const handleMessageClick = () => {
     if (isNotificationOpen) {
+      notificationNavigationVersionRef.current += 1;
       setIsNotificationOpen(false);
     }
 
@@ -293,10 +305,20 @@ export default function Header({
                     onRetry={onNotificationRetry}
                     onClose={closeNotification}
                     onNotificationClick={(notification) => {
-                      const handleNotification = async () => {
-                        const shouldClose = await onNotificationClick?.(notification);
+                      const navigationVersion = notificationNavigationVersionRef.current;
+                      const initialUrl = window.location.href;
 
-                        if (shouldClose) {
+                      const canNavigate = () =>
+                        navigationVersion === notificationNavigationVersionRef.current &&
+                        initialUrl === window.location.href;
+
+                      const handleNotification = async () => {
+                        const shouldClose = await onNotificationClick?.(notification, canNavigate);
+
+                        if (
+                          shouldClose &&
+                          navigationVersion === notificationNavigationVersionRef.current
+                        ) {
                           closeNotification();
                         }
                       };

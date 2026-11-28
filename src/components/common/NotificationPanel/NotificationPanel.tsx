@@ -97,7 +97,6 @@ export default function NotificationPanel({
       role="dialog"
       aria-label="알림 목록"
       onKeyDown={handleKeyDown}
-      onScroll={handleScroll}
     >
       <div className={styles.header}>
         <h2 className={styles.title}>알림</h2>
@@ -124,59 +123,61 @@ export default function NotificationPanel({
         </div>
       </div>
 
-      {isLoading ? (
-        <Loading
-          variant="content"
-          message="알림 목록을 불러오는 중이에요."
-          className={styles.loading}
-        />
-      ) : hasError ? (
-        <div className={styles.error}>
-          <p>알림을 불러오지 못했어요.</p>
+      <div className={styles.scrollArea} onScroll={handleScroll}>
+        {isLoading ? (
+          <Loading
+            variant="content"
+            message="알림 목록을 불러오는 중이에요."
+            className={styles.loading}
+          />
+        ) : hasError ? (
+          <div className={styles.error}>
+            <p>알림을 불러오지 못했어요.</p>
 
-          <button type="button" className={styles.retryButton} onClick={onRetry}>
-            다시 시도
-          </button>
-        </div>
-      ) : notifications.length === 0 ? (
-        <p className={styles.emptyMessage}>새로운 알림이 없어요.</p>
-      ) : (
-        <ul className={styles.list}>
-          {notifications.map((notification) => (
-            <li key={notification.id} className={styles.item}>
-              <button
-                type="button"
-                className={styles.itemButton}
-                onClick={() => onNotificationClick?.(notification)}
-              >
-                <span className={styles.content}>{notification.content}</span>
-                <span className={styles.meta}>
-                  <time dateTime={notification.createdAt}>
-                    {formatRelativeTime(notification.createdAt)}
-                  </time>
-                  {!notification.isRead && (
-                    <span className={styles.unreadDot} aria-label="읽지 않음" />
-                  )}
-                </span>
-              </button>
-            </li>
-          ))}
+            <button type="button" className={styles.retryButton} onClick={onRetry}>
+              다시 시도
+            </button>
+          </div>
+        ) : notifications.length === 0 ? (
+          <p className={styles.emptyMessage}>새로운 알림이 없어요.</p>
+        ) : (
+          <ul className={styles.list}>
+            {notifications.map((notification) => (
+              <li key={notification.id} className={styles.item}>
+                <button
+                  type="button"
+                  className={styles.itemButton}
+                  onClick={() => onNotificationClick?.(notification)}
+                >
+                  <span className={styles.content}>{notification.content}</span>
+                  <span className={styles.meta}>
+                    <time dateTime={notification.createdAt}>
+                      {formatRelativeTime(notification.createdAt)}
+                    </time>
+                    {!notification.isRead && (
+                      <span className={styles.unreadDot} aria-label="읽지 않음" />
+                    )}
+                  </span>
+                </button>
+              </li>
+            ))}
 
-          {isFetchingNextPage && (
-            <li className={styles.nextPageLoading}>알림을 더 불러오는 중...</li>
-          )}
+            {isFetchingNextPage && (
+              <li className={styles.nextPageLoading}>알림을 더 불러오는 중...</li>
+            )}
 
-          {hasNextPageError && !isFetchingNextPage && (
-            <li className={styles.nextPageError}>
-              <p>알림을 더 불러오지 못했어요.</p>
+            {hasNextPageError && !isFetchingNextPage && (
+              <li className={styles.nextPageError}>
+                <p>알림을 더 불러오지 못했어요.</p>
 
-              <button type="button" className={styles.nextPageRetryButton} onClick={onLoadMore}>
-                다시 시도
-              </button>
-            </li>
-          )}
-        </ul>
-      )}
+                <button type="button" className={styles.nextPageRetryButton} onClick={onLoadMore}>
+                  다시 시도
+                </button>
+              </li>
+            )}
+          </ul>
+        )}
+      </div>
     </section>
   );
 }
