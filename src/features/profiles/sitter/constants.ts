@@ -2,8 +2,8 @@ import type { PartnerRegion, PartnerServiceType } from "@/types/partner";
 import type { PartnerGender } from "./types";
 
 export const GENDER_OPTIONS: { value: PartnerGender; label: string }[] = [
-  { value: "MALE", label: "남자" },
-  { value: "FEMALE", label: "여자" },
+  { value: "MALE", label: "남성" },
+  { value: "FEMALE", label: "여성" },
 ];
 
 export const SERVICE_TYPE_OPTIONS: { value: PartnerServiceType; label: string }[] = [
