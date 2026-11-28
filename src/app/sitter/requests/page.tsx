@@ -21,6 +21,7 @@ import IconButton from "@/components/ui/IconButton/IconButton";
 import Pagination from "@/components/ui/Pagination/Pagination";
 import SearchInput from "@/components/ui/SearchInput/SearchInput";
 import Sort from "@/components/ui/Sort/Sort";
+import Loading from "@/components/ui/Loading/Loading";
 import EmptyState from "@/components/ui/EmptyState/EmptyState";
 import { useToast } from "@/components/ui/Toast/ToastProvider";
 import { useIgnoreReceivedRequest } from "@/features/care-requests/sitter/useIgnoreReceivedRequest";
@@ -30,6 +31,7 @@ import SendQuoteModal, {
   type QuoteFormValues,
 } from "@/features/care-requests/sitter/SendQuoteModal";
 import { useCreateQuote } from "@/features/care-requests/sitter/useCreateQuote";
+import { usePreservedListHeight } from "@/hooks/usePreservedListHeight";
 import type {
   ReceivedRequestItem,
   ReceivedRequestSort,
@@ -148,6 +150,10 @@ export default function ReceivedRequestsPage() {
 
   const { data, isPending, isError, isFetching, isPlaceholderData, refetch } =
     useReceivedRequests(receivedRequestParams);
+
+  const isListLoading = isPending || isPlaceholderData;
+
+  const listRef = usePreservedListHeight<HTMLElement>(isListLoading);
 
   if (data && !isPlaceholderData && !isError && !isFetching) {
     const nextRegions = reconcileRegions(selectedRegions, data.availableRegions);
@@ -389,11 +395,13 @@ export default function ReceivedRequestsPage() {
             </div>
           </div>
 
-          <section className={styles.requestList} aria-label="받은 요청 목록">
-            {isPending && (
-              <p className={`${styles.listState} ${styles.loadingState}`}>
-                요청 목록을 불러오고 있어요.
-              </p>
+          <section ref={listRef} className={styles.requestList} aria-label="받은 요청 목록">
+            {isListLoading && !isError && (
+              <Loading
+                className={styles.listState}
+                variant="content"
+                message="요청 목록을 불러오고 있어요."
+              />
             )}
 
             {isError && (
@@ -411,7 +419,7 @@ export default function ReceivedRequestsPage() {
               <EmptyState className={styles.listState} messages={["아직 받은 요청이 없어요."]} />
             )}
 
-            {!isPending &&
+            {!isListLoading &&
               !isError &&
               requests.map(({ careRequest, designatedRequestId }) => (
                 <ReceivedRequestCard

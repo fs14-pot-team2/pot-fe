@@ -10,7 +10,6 @@ import Link from "next/link";
 import Loading from "@/components/ui/Loading/Loading";
 import ErrorState from "@/components/ui/ErrorState/ErrorState";
 import { useRouter } from "next/navigation";
-import EmptyState from "@/components/ui/EmptyState/EmptyState";
 import { useState } from "react";
 
 import PartnerProfile from "@/components/common/PartnerDetail/PartnerProfile/PartnerProfile";
@@ -20,6 +19,7 @@ import PartnerReviews from "@/components/common/PartnerDetail/PartnerReviews/Par
 import Pagination from "@/components/ui/Pagination/Pagination";
 import { useSitterMyPage } from "@/features/profiles/sitter/hooks/useSitterMyPage";
 import { useSitterReviews } from "@/features/profiles/sitter/hooks/useSitterReviews";
+import { usePreservedListHeight } from "@/hooks/usePreservedListHeight";
 import PasswordVerificationModal from "@/features/account/components/PasswordVerificationModal/PasswordVerificationModal";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
@@ -42,6 +42,10 @@ export default function SitterMyPage() {
     page: currentPage,
     pageSize: 8,
   });
+
+  const reviewListRef = usePreservedListHeight<HTMLDivElement>(
+    isReviewsPending || isReviewsPlaceholderData,
+  );
 
   if (reviews && !isReviewsPlaceholderData && !isReviewsError) {
     const lastPage = Math.max(1, reviews.totalPages);
@@ -135,10 +139,12 @@ export default function SitterMyPage() {
                 {!isReviewsPending && !isReviewsError && reviews && (
                   <PartnerReviews
                     reviews={reviews}
+                    isListLoading={isReviewsPlaceholderData}
+                    listRef={reviewListRef}
                     pagination={
                       reviews.totalPages > 1 ? (
                         <Pagination
-                          currentPage={reviews.page}
+                          currentPage={currentPage}
                           totalPages={reviews.totalPages}
                           onPageChange={setCurrentPage}
                         />
