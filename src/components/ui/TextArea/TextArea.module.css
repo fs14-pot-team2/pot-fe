@@ -71,9 +71,45 @@
   font-size: 16px;
 }
 
+.feedbackRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.feedbackRow .errorMessage {
+  margin-top: 0;
+  min-width: 0;
+}
+
+.characterCount {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 14px;
+  color: #757575;
+  white-space: nowrap;
+}
+
+.countExceeded {
+  color: #e5484d;
+}
+
 @media (max-width: 768px) {
   .errorMessage {
     margin-top: 4px;
+    font-size: 13px;
+  }
+
+  .feedbackRow {
+    margin-top: 4px;
+  }
+
+  .feedbackRow .errorMessage {
+    margin-top: 0;
+  }
+
+  .characterCount {
     font-size: 13px;
   }
 }

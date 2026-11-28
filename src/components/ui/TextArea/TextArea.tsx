@@ -8,6 +8,8 @@ interface TextAreaProps {
   onChange: (value: string) => void;
   placeholder?: string;
   maxLength?: number;
+  characterCount?: number;
+  characterLimit?: number;
   error?: string;
   disabled?: boolean;
   className?: string;
@@ -21,6 +23,8 @@ export default function TextArea({
   onChange,
   placeholder,
   maxLength,
+  characterCount,
+  characterLimit,
   error,
   disabled = false,
   className = "",
@@ -30,6 +34,8 @@ export default function TextArea({
 }: TextAreaProps) {
   const textAreaId = useId();
   const errorId = `${textAreaId}-error`;
+
+  const showCharacterCount = characterCount !== undefined && characterLimit !== undefined;
 
   return (
     <div className={`${styles.textAreaWrapper} ${className}`}>
@@ -60,10 +66,28 @@ export default function TextArea({
         />
       </div>
 
-      {error && (
-        <p id={errorId} className={styles.errorMessage}>
-          {error}
-        </p>
+      {showCharacterCount ? (
+        <div className={styles.feedbackRow}>
+          {error && (
+            <p id={errorId} className={styles.errorMessage}>
+              {error}
+            </p>
+          )}
+
+          <span
+            className={`${styles.characterCount} ${
+              characterCount > characterLimit ? styles.countExceeded : ""
+            }`}
+          >
+            {characterCount} / {characterLimit}
+          </span>
+        </div>
+      ) : (
+        error && (
+          <p id={errorId} className={styles.errorMessage}>
+            {error}
+          </p>
+        )
       )}
     </div>
   );
