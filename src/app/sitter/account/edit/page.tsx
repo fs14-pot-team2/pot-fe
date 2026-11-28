@@ -4,13 +4,14 @@ import PageContainer from "@/components/layout/Page/PageContainer";
 
 import PageMain from "@/components/layout/Page/PageMain";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useController, useForm } from "react-hook-form";
 import axios from "axios";
 
 import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/Input/Input";
+import PasswordVerificationModal from "@/features/account/components/PasswordVerificationModal/PasswordVerificationModal";
 import { useToast } from "@/components/ui/Toast/ToastProvider";
 import type { UpdateAccountInput } from "@/features/account/api/accountApi";
 import { useUpdateAccountMutation } from "@/features/account/hooks/useAccountMutations";
@@ -34,10 +35,20 @@ interface AccountEditFormValues {
 
 export default function SitterAccountEditPage() {
   const router = useRouter();
-  const { user, status, isAccountVerified, clearAccountVerification } = useAuth();
+  const { user, status, isAccountVerified, clearAccountVerification, getSessionVersion } =
+    useAuth();
   const { showToast } = useToast();
   const updateAccountMutation = useUpdateAccountMutation();
   const [hasEditAccess] = useState(isAccountVerified);
+  const savingRef = useRef(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [pendingReauth, setPendingReauth] = useState<{
+    input: UpdateAccountInput;
+    sessionVersion: number;
+  } | null>(null);
+
+  const isSaving = isSubmitting || updateAccountMutation.isPending;
 
   const {
     control,
@@ -118,24 +129,94 @@ export default function SitterAccountEditPage() {
   };
 
   const handleCancel = () => {
+    if (isSaving || savingRef.current || pendingReauth) return;
+
     clearAccountVerification();
     router.replace("/sitter/my");
   };
 
-  const onSubmit = (values: AccountEditFormValues) => {
-    if (!user) return;
+  // 기본정보 저장 및 재인증 이후 자동 저장
+  const saveAccount = async (input: UpdateAccountInput, allowReauth = true) => {
+    if (savingRef.current) return;
+
+    savingRef.current = true;
+    setIsSubmitting(true);
+
+    const sessionVersion = getSessionVersion();
+    let shouldNavigate = false;
+
+    try {
+      await updateAccountMutation.mutateAsync(input);
+
+      clearAccountVerification();
+
+      showToast({
+        message: "저장되었습니다.",
+      });
+
+      router.replace("/sitter/my");
+      shouldNavigate = true;
+    } catch (error) {
+      if (getSessionVersion() !== sessionVersion) return;
+
+      const code = axios.isAxiosError<{ code?: string }>(error)
+        ? error.response?.data?.code
+        : undefined;
+
+      if (code === "REAUTHENTICATION_REQUIRED" && allowReauth) {
+        setPendingReauth({ input, sessionVersion });
+        return;
+      }
+
+      if (code === "NICKNAME_ALREADY_EXISTS") {
+        setError("nickname", {
+          type: "server",
+          message: "이미 존재하는 닉네임입니다.",
+        });
+        return;
+      }
+
+      if (code === "INVALID_NICKNAME_FORMAT") {
+        setError("nickname", {
+          type: "server",
+          message: NICKNAME_FORMAT_MESSAGE,
+        });
+        return;
+      }
+
+      if (code === "INVALID_PASSWORD_FORMAT") {
+        setError("password", {
+          type: "server",
+          message: PASSWORD_FORMAT_MESSAGE,
+        });
+        return;
+      }
+
+      showToast({
+        message: "기본정보를 변경하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      });
+    } finally {
+      if (!shouldNavigate) {
+        savingRef.current = false;
+        setIsSubmitting(false);
+      }
+    }
+  };
+
+  // 저장 버튼 클릭
+  const onSubmit = async (values: AccountEditFormValues) => {
+    if (!user || user.role !== "SITTER" || isSaving || savingRef.current || pendingReauth) {
+      return;
+    }
 
     const input: UpdateAccountInput = {};
 
-    const nickname = values.nickname;
-    const password = values.password;
-
-    if (nickname !== user.nickname) {
-      input.nickname = nickname;
+    if (values.nickname !== user.nickname) {
+      input.nickname = values.nickname;
     }
 
-    if (password.length > 0) {
-      input.password = password;
+    if (values.password.length > 0) {
+      input.password = values.password;
     }
 
     if (Object.keys(input).length === 0) {
@@ -144,49 +225,19 @@ export default function SitterAccountEditPage() {
       return;
     }
 
-    updateAccountMutation.mutate(input, {
-      onSuccess: () => {
-        clearAccountVerification();
-        showToast({
-          message: "기본정보가 변경되었습니다.",
-        });
+    await saveAccount(input);
+  };
 
-        router.replace("/sitter/my");
-      },
-      onError: (error) => {
-        const code = axios.isAxiosError<{ code?: string }>(error)
-          ? error.response?.data?.code
-          : undefined;
+  // 비밀번호 재확인 성공 후 자동 저장
+  const handleReauthVerified = () => {
+    if (!pendingReauth) return;
 
-        if (code === "NICKNAME_ALREADY_EXISTS") {
-          setError("nickname", {
-            type: "server",
-            message: "이미 존재하는 닉네임입니다.",
-          });
-          return;
-        }
+    const { input, sessionVersion } = pendingReauth;
+    setPendingReauth(null);
 
-        if (code === "INVALID_NICKNAME_FORMAT") {
-          setError("nickname", {
-            type: "server",
-            message: NICKNAME_FORMAT_MESSAGE,
-          });
-          return;
-        }
+    if (getSessionVersion() !== sessionVersion) return;
 
-        if (code === "INVALID_PASSWORD_FORMAT") {
-          setError("password", {
-            type: "server",
-            message: PASSWORD_FORMAT_MESSAGE,
-          });
-          return;
-        }
-
-        showToast({
-          message: "기본정보를 변경하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-        });
-      },
-    });
+    void saveAccount(input, false);
   };
 
   if (status === "checking" || !user || !hasEditAccess) return <PageMain />;
@@ -194,7 +245,7 @@ export default function SitterAccountEditPage() {
   return (
     <PageMain>
       <PageContainer>
-        <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+        <form className={styles.form} onSubmit={(event) => void handleSubmit(onSubmit)(event)}>
           <h1 className={styles.title}>기본정보 관리</h1>
 
           <section className={styles.field}>
@@ -233,9 +284,9 @@ export default function SitterAccountEditPage() {
             <Button
               type="submit"
               className={styles.button}
-              disabled={!isValid || updateAccountMutation.isPending}
+              disabled={!isValid || isSaving || !!pendingReauth}
             >
-              저장하기
+              {isSaving ? "저장 중..." : "저장하기"}
             </Button>
 
             <Button
@@ -243,13 +294,21 @@ export default function SitterAccountEditPage() {
               variant="outlined"
               className={styles.button}
               onClick={handleCancel}
-              disabled={updateAccountMutation.isPending}
+              disabled={isSaving || !!pendingReauth}
             >
               취소
             </Button>
           </div>
         </form>
       </PageContainer>
+      {pendingReauth && (
+        <PasswordVerificationModal
+          isOpen
+          description="본인 확인이 만료되었습니다. 비밀번호를 다시 확인해 주세요."
+          onClose={() => setPendingReauth(null)}
+          onVerified={handleReauthVerified}
+        />
+      )}
     </PageMain>
   );
 }
