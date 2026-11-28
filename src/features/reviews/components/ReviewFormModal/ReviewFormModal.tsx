@@ -4,13 +4,13 @@ import Button from "@/components/ui/Button/Button";
 import Modal from "@/components/ui/Modal/Modal";
 import ProfileImage from "@/components/ui/ProfileImage/ProfileImage";
 import Tag from "@/components/ui/Tag/Tag";
+import TextArea from "@/components/ui/TextArea/TextArea";
 import { formatDateOnly } from "@/utils/dateFormat";
-import { isAxiosError } from "axios";
 import { useEffect, useRef, useState } from "react";
 import type { ReviewFormValues, ReviewQuoteType, ReviewServiceType } from "../../types/review";
+import { getReviewErrorCode, getReviewErrorPolicy } from "../../utils/reviewErrors";
 import styles from "./ReviewFormModal.module.css";
 import ReviewRatingInput from "./ReviewRatingInput";
-import TextArea from "@/components/ui/TextArea/TextArea";
 
 type ReviewFormTarget = {
   careRequest: {
@@ -37,11 +37,14 @@ type ReviewFormModalProps = {
 };
 
 function getSubmitErrorMessage(error: unknown): string {
-  const code = isAxiosError<{ code?: string }>(error) ? error.response?.data?.code : undefined;
+  const code = getReviewErrorCode(error);
 
   switch (code) {
     case "REVIEW_ALREADY_EXISTS":
       return "이미 리뷰를 작성한 돌봄 요청입니다.";
+
+    case "REVIEW_ALREADY_DELETED":
+      return "삭제한 리뷰는 다시 작성할 수 없습니다.";
 
     case "REVIEW_NOT_WRITABLE":
       return "아직 리뷰를 작성할 수 없는 돌봄 요청입니다.";
@@ -87,6 +90,8 @@ export default function ReviewFormModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const [isSubmitBlocked, setIsSubmitBlocked] = useState(false);
 
   const submittingRef = useRef(false);
   const closingRef = useRef(false);
@@ -138,7 +143,7 @@ export default function ReviewFormModal({
   };
 
   const handleSubmit = async () => {
-    if (!isFormValid || submittingRef.current || closingRef.current) {
+    if (!isFormValid || isSubmitBlocked || submittingRef.current || closingRef.current) {
       return;
     }
 
@@ -151,6 +156,9 @@ export default function ReviewFormModal({
       handleClose(true);
     } catch (error) {
       setErrorMessage(getSubmitErrorMessage(error));
+
+      const { blockSubmit } = getReviewErrorPolicy(getReviewErrorCode(error));
+      setIsSubmitBlocked(blockSubmit);
     } finally {
       submittingRef.current = false;
       setIsSubmitting(false);
@@ -166,7 +174,7 @@ export default function ReviewFormModal({
       footer={
         <Button
           className={styles.submitButton}
-          disabled={!isFormValid || isSubmitting || isClosing}
+          disabled={!isFormValid || isSubmitBlocked || isSubmitting || isClosing}
           onClick={() => void handleSubmit()}
         >
           {isSubmitting
