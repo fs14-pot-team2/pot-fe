@@ -23,11 +23,15 @@ import {
 } from "@/features/profiles/sitter/constants";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import type { PartnerRegion } from "@/types/partner";
+import { hashKey } from "@tanstack/react-query";
 import Image from "next/image";
 import { useState } from "react";
 import { GENDER_FILTER_OPTIONS, SERVICE_FILTER_OPTIONS } from "../constants";
+import { useSitterListState } from "../context/SitterListStateProvider";
+import { useSitterListUrlState } from "../hooks/useSitterListUrlState";
 import { useSitters } from "../hooks/useSitters";
-import type { SitterFilterValues, SitterListState, SitterSort } from "../types/sitter";
+import { sitterKeys } from "../queryKeys";
+import type { SitterFilterValues, SitterSort } from "../types/sitter";
 import {
   MAX_SITTER_REGION_SELECTIONS,
   toggleSitterRegion,
@@ -43,14 +47,29 @@ const SORT_OPTIONS: { label: string; value: SitterSort }[] = [
 ];
 
 export default function SittersPage() {
-  const [listState, setListState] = useState<SitterListState>({
-    page: 1,
-    sort: "RATING_DESC",
-    filters: {},
-  });
+  const { listState, setListState } = useSitterListUrlState();
+  const { searchDraft, setSearchDraft } = useSitterListState();
+
+  const appliedKeyword = listState.keyword ?? "";
+
+  const searchText =
+    searchDraft && searchDraft.keyword === appliedKeyword ? searchDraft.text : appliedKeyword;
+
   const params = toSitterListParams(listState);
-  const [searchText, setSearchText] = useState("");
   const { status: authStatus } = useAuth();
+
+  const currentQueryHash = hashKey(sitterKeys.list(params));
+  const currentConditionsHash = hashKey(sitterKeys.list({ ...params, page: 1 }));
+
+  const [queryTransition, setQueryTransition] = useState<{
+    queryHash: string;
+    conditionsHash: string;
+    kind: "page" | "conditions" | null;
+  }>({
+    queryHash: currentQueryHash,
+    conditionsHash: currentConditionsHash,
+    kind: null,
+  });
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [draftFilters, setDraftFilters] = useState<SitterFilterValues>({});
@@ -76,7 +95,34 @@ export default function SittersPage() {
     },
   ];
 
-  const { data, isPending, isError, refetch } = useSitters(params, authStatus !== "checking");
+  const { data, isPending, isError, isFetching, isPlaceholderData, refetch } = useSitters(
+    params,
+    authStatus !== "checking",
+  );
+
+  if (queryTransition.queryHash !== currentQueryHash) {
+    setQueryTransition({
+      queryHash: currentQueryHash,
+      conditionsHash: currentConditionsHash,
+      kind: queryTransition.conditionsHash === currentConditionsHash ? "page" : "conditions",
+    });
+  } else if (queryTransition.kind !== null && !isFetching && !isPlaceholderData) {
+    setQueryTransition({
+      ...queryTransition,
+      kind: null,
+    });
+  }
+
+  const isQueryChanging = queryTransition.kind !== null && isFetching;
+
+  const isPageChanging = queryTransition.kind === "page" && isFetching;
+
+  const isListLoading = isPending || isPlaceholderData || isQueryChanging;
+
+  const canShowPagination =
+    data &&
+    data.totalPages >= params.page &&
+    (isPageChanging || isPlaceholderData || (!isListLoading && !isError && data.items.length > 0));
 
   const handlePageChange = (page: number) => {
     setListState((current) => ({
@@ -85,7 +131,16 @@ export default function SittersPage() {
     }));
   };
 
+  const setSearchText = (value: string) => {
+    setSearchDraft({
+      keyword: appliedKeyword,
+      text: value,
+    });
+  };
+
   const handleSearch = (value: string) => {
+    setSearchDraft(null);
+
     setListState((current) => ({
       ...current,
       keyword: value.trim() || undefined,
@@ -208,7 +263,7 @@ export default function SittersPage() {
           </div>
         </div>
 
-        {isPending ? (
+        {isListLoading ? (
           <Loading variant="content" />
         ) : isError ? (
           <ErrorState variant="content" onAction={() => void refetch()} />
@@ -219,20 +274,20 @@ export default function SittersPage() {
             className={styles.emptyState}
           />
         ) : (
-          <>
-            <section className={styles.cards} aria-label="팟트너 목록">
-              {data.items.map((sitter) => (
-                <PartnerCard key={sitter.id} partner={sitter} href={`/sitters/${sitter.id}`} />
-              ))}
-            </section>
+          <section className={styles.cards} aria-label="팟트너 목록">
+            {data.items.map((sitter) => (
+              <PartnerCard key={sitter.id} partner={sitter} href={`/sitters/${sitter.id}`} />
+            ))}
+          </section>
+        )}
 
-            <Pagination
-              currentPage={params.page}
-              totalPages={data.totalPages}
-              onPageChange={handlePageChange}
-              className={styles.pagination}
-            />
-          </>
+        {canShowPagination && (
+          <Pagination
+            currentPage={params.page}
+            totalPages={data.totalPages}
+            onPageChange={handlePageChange}
+            className={styles.pagination}
+          />
         )}
       </PageContainer>
 
