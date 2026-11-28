@@ -151,7 +151,10 @@
   }
 
   .notificationPanel {
-    top: calc(100% + 10px);
+    position: fixed;
+    top: calc(var(--header-height) + 8px);
+    right: 16px;
+    width: min(320px, calc(100vw - 32px));
   }
 
   .menuButton {
