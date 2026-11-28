@@ -38,11 +38,18 @@ interface MessagePanelContextValue {
 
 const MessagePanelContext = createContext<MessagePanelContextValue | null>(null);
 
-function MessagePanelState({ children }: { children: ReactNode }) {
-  const { status } = useAuth();
+export default function MessagePanelProvider({ children }: { children: ReactNode }) {
+  const { status, user } = useAuth();
+  const accountKey = user ? `${user.role}:${user.id}` : "guest";
 
+  const [previousAccountKey, setPreviousAccountKey] = useState(accountKey);
   const [panel, setPanel] = useState<PanelState>(null);
   const nextKeyRef = useRef(0);
+
+  if (previousAccountKey !== accountKey) {
+    setPreviousAccountKey(accountKey);
+    setPanel(null);
+  }
 
   const createKey = useCallback(() => {
     nextKeyRef.current += 1;
@@ -108,16 +115,6 @@ function MessagePanelState({ children }: { children: ReactNode }) {
         />
       )}
     </MessagePanelContext.Provider>
-  );
-}
-
-export default function MessagePanelProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
-
-  return (
-    <MessagePanelState key={user ? `${user.role}:${user.id}` : "guest"}>
-      {children}
-    </MessagePanelState>
   );
 }
 
