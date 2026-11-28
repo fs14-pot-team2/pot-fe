@@ -1,4 +1,5 @@
 import SittersAccessGuard from "@/features/sitters/components/SittersAccessGuard";
+import SitterListStateProvider from "@/features/sitters/context/SitterListStateProvider";
 import type { ReactNode } from "react";
 
 type SittersLayoutProps = {
@@ -6,5 +7,9 @@ type SittersLayoutProps = {
 };
 
 export default function SittersLayout({ children }: SittersLayoutProps) {
-  return <SittersAccessGuard>{children}</SittersAccessGuard>;
+  return (
+    <SittersAccessGuard>
+      <SitterListStateProvider>{children}</SitterListStateProvider>
+    </SittersAccessGuard>
+  );
 }
